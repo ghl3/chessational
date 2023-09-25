@@ -1,2 +1,3 @@
-# chessational
+# Chessational
+
 Improve your chess
