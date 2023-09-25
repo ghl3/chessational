@@ -1,0 +1,39 @@
+/* styles/Chessboard.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.playerNameRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0; /* padding added */
+  height: 40px; /* Adjust based on the size of your text and padding */
+  overflow: hidden; /* Hide any extra content if it exceeds the height */
+}
+
+.Chessboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.buttonRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0; /* padding added */
+}
+
+.localButton {
+  margin: 0 5px;
+}
+
+.playerName {
+  margin: 0;
+  font-size: 1.2em;
+}
