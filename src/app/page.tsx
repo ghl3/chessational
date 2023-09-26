@@ -5,22 +5,28 @@ import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
-import { Client } from "equine";
 import Head from "next/head";
 
 const getStudy = async (studyId: string) => {
-  fetch("http://localhost:3000/api/getStudy", {
+  const res = await fetch("http://localhost:3000/api/getStudy", {
     method: "POST",
-
     cache: "force-cache",
-    body: { studyId: studyId },
-  })
-    .then((response) => {
-      return response.json();
-    })
-    .then((data) => {
-      console.log(data);
-    });
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ studyId: studyId }),
+  });
+
+  if (res.status !== 200) {
+    console.log("Error");
+    return;
+  }
+
+  console.log(res);
+
+  const json = await res.json();
+
+  console.log(json);
 };
 
 const Home: React.FC = () => {
