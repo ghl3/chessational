@@ -6,23 +6,33 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "npx prettier --write 'src/**/*.{js,jsx,ts,tsx,css,json}'",
+    "test": "jest"
   },
   "dependencies": {
     "equine": "^0.1.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^22.1.0",
     "next": "latest",
+    "pgn-parser": "^2.2.0",
     "react": "latest",
     "react-chessboard": "^4.2.1",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "ts-jest": "^29.1.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.5",
     "@types/node": "latest",
+    "@types/pgn-parser": "^2.1.1",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "autoprefixer": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "jest": "^29.7.0",
     "postcss": "latest",
+    "prettier": "3.0.3",
     "tailwindcss": "latest",
     "typescript": "latest"
   }
