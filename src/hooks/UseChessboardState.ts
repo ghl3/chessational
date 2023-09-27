@@ -1,5 +1,5 @@
 import { Fen } from "@/chess/Fen";
-import { Game } from "@/chess/Game";
+import { Game } from "@/chess/PgnTree";
 import { Position } from "@/chess/Position";
 import { useState, useEffect } from "react";
 
