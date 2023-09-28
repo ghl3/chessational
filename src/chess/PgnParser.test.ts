@@ -54,4 +54,51 @@ describe("PgnParser", () => {
       },
     ]);
   });
+
+  it("should parse a nested pgn with comments", () => {
+    const pgn = `[Foo "Bar"]
+    1. e4 e5 {The standard response}
+    2. Nf3 Nc6 {Defending the pawn} (Nf6 {Going into the Petrov} 3. Nxe5) 3. Bb5 {The Ruy Lopez} *`;
+    const tree = parsePgnString(pgn);
+    expect(tree).toEqual([
+      {
+        headers: { Foo: "Bar" },
+        perspective: "w",
+        moveTree: [
+          {
+            move: "e4",
+            children: [
+              {
+                move: "e5",
+                comments: ["The standard response"],
+                children: [
+                  {
+                    move: "Nf3",
+                    children: [
+                      {
+                        move: "Nc6",
+                        comments: ["Defending the pawn"],
+                        children: [
+                          {
+                            move: "Bb5",
+                            comments: ["The Ruy Lopez"],
+                            children: [],
+                          },
+                        ],
+                      },
+                      {
+                        move: "Nf6",
+                        comments: ["Going into the Petrov"],
+                        children: [{ move: "Nxe5", children: [] }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
 });

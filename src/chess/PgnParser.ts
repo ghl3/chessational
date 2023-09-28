@@ -3,6 +3,7 @@ import {
   ParsedPGN,
   Header as PgnHeader,
   Move as PgnMove,
+  Comment as PgnComment,
 } from "pgn-parser";
 
 // Remove the following line since ParsedPGN is already imported above
@@ -23,6 +24,14 @@ const convertHeaders = (
   }
 };
 
+const extractComment = (comment: string | PgnComment): string => {
+  if (typeof comment === "string") {
+    return comment;
+  } else {
+    return comment.text;
+  }
+};
+
 const makeMoveAndChildren = (moves: PgnMove[]): MoveNode => {
   const firstMove = moves[0];
   const childMoves = convertMovesToTree(moves.slice(1));
@@ -33,7 +42,7 @@ const makeMoveAndChildren = (moves: PgnMove[]): MoveNode => {
   };
 
   if (firstMove.comments.length > 0) {
-    mainLineMove.comments = firstMove.comments;
+    mainLineMove.comments = firstMove.comments.map(extractComment);
   }
 
   return mainLineMove;
@@ -48,37 +57,17 @@ const convertMovesToTree = (moves: PgnMove[]): MoveNode[] => {
     return [];
   }
   // The nodes consist of the move (and its children)
-  // and the revisions (and their children);
+  // and the revisions (and their children).
 
   const moveNodes: MoveNode[] = [];
 
-  // First, we create the main line move
+  // First, we add the main line move.
   moveNodes.push(makeMoveAndChildren(moves));
-  /*
-  const mainMove = moves[0];
 
-  const mainLineMove: MoveNode = {
-    move: mainMove.move,
-    comments: mainMove.comments.length > 0 ? mainMove.comments : undefined,
-    children: convertMovesToTree(moves.slice(1)),
-  };
-  moveNodes.push(mainLineMove);
-*/
-  // Then, we add all the revisions
+  // Then, we add all the revisions for the first move.
   if (moves[0].ravs) {
     for (const rav of moves[0].ravs) {
       moveNodes.push(makeMoveAndChildren(rav.moves));
-
-      /*
-      const firstMove = rav.moves[0];
-
-      moveNodes.push({
-        move: firstMove.move,
-        comments:
-          firstMove.comments.length > 0 ? firstMove.comments : undefined,
-        children: convertMovesToTree(rav.moves.slice(1)),
-      });
-      */
     }
   }
 
