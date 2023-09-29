@@ -1,5 +1,6 @@
+import { PgnTree } from "@/chess/PgnTree";
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "pgn-parser";
+import { parsePgnString } from "@/chess/PgnParser";
 
 export async function POST(req: NextRequest) {
   const data = await req.json();
@@ -10,25 +11,9 @@ export async function POST(req: NextRequest) {
 
   const pgn = await response.text();
 
-  const parsed = parse(pgn);
+  const pgns: PgnTree[] = parsePgnString(pgn);
 
-  const lastGame = parsed[parsed.length - 1];
+  console.log(pgns);
 
-  const ravs = lastGame.moves[2].ravs;
-
-  console.log(ravs);
-
-  //for (const game of parsed) {
-  //  console.log(game);
-  // }
-
-  //console.log("START PGN");
-  //console.log(pgn);
-  //console.log("END PGN");
-
-  //const json = await response.json();
-
-  //console.log(json);
-
-  return NextResponse.json({ foo: "bar" });
+  return NextResponse.json({ pgns: pgns });
 }

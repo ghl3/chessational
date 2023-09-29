@@ -6,9 +6,8 @@ import {
   Comment as PgnComment,
 } from "pgn-parser";
 
-// Remove the following line since ParsedPGN is already imported above
-// import { ParsedPGN } from "pgn-parser";
-import { PgnTree, MoveNode } from "./PgnTree";
+import { Chess } from "chess.js";
+import { PgnTree, MoveNode, GameResult } from "./PgnTree";
 
 const convertHeaders = (
   headers: PgnHeader[] | null
@@ -32,23 +31,60 @@ const extractComment = (comment: string | PgnComment): string => {
   }
 };
 
-const makeMoveAndChildren = (moves: PgnMove[]): MoveNode => {
+const getGameResult = (chess: Chess): GameResult => {
+  if (chess.isCheckmate()) {
+    return "CHECKMATE";
+  } else if (chess.isStalemate()) {
+    return "STALEMATE";
+  } else if (chess.isInsufficientMaterial()) {
+    return "INSUFFICIENT_MATERIAL";
+  } else if (chess.isThreefoldRepetition()) {
+    return "THREEFOLD_REPETITION";
+  } else if (chess.isDraw()) {
+    return "DRAW";
+  } else {
+    return "UNKNOWN";
+  }
+};
+
+const makeMoveAndChildren = (moves: PgnMove[], chess: Chess): MoveNode => {
+  // Get the current player's turn
+  const turn = chess.turn();
+
+  // Execute the move on the chess board.
   const firstMove = moves[0];
-  const childMoves = convertMovesToTree(moves.slice(1));
+  const moveResult = chess.move(firstMove.move);
+
+  // Get the child moves.  It important to do this AFTER we call chess.move(...)
+  // above so the board is up-to-date.
+  const childMoves = convertMovesToTree(moves.slice(1), chess);
 
   const mainLineMove: MoveNode = {
     move: firstMove.move,
+    piece: moveResult.piece,
+    from: moveResult.from,
+    to: moveResult.to,
     children: childMoves,
+    player: turn,
+    fen: chess.fen(),
+    isGameOver: chess.isGameOver(),
   };
+
+  if (chess.isGameOver()) {
+    mainLineMove.gameResult = getGameResult(chess);
+  }
 
   if (firstMove.comments.length > 0) {
     mainLineMove.comments = firstMove.comments.map(extractComment);
   }
 
+  // Undo the move
+  chess.undo();
+
   return mainLineMove;
 };
 
-const convertMovesToTree = (moves: PgnMove[]): MoveNode[] => {
+const convertMovesToTree = (moves: PgnMove[], chess: Chess): MoveNode[] => {
   // A PgnMove is a set of sibling moves.
   // Given a parent move, these are the children
   // (as well as the recursive children of those moves).
@@ -62,12 +98,12 @@ const convertMovesToTree = (moves: PgnMove[]): MoveNode[] => {
   const moveNodes: MoveNode[] = [];
 
   // First, we add the main line move.
-  moveNodes.push(makeMoveAndChildren(moves));
+  moveNodes.push(makeMoveAndChildren(moves, chess));
 
   // Then, we add all the revisions for the first move.
   if (moves[0].ravs) {
     for (const rav of moves[0].ravs) {
-      moveNodes.push(makeMoveAndChildren(rav.moves));
+      moveNodes.push(makeMoveAndChildren(rav.moves, chess));
     }
   }
 
@@ -75,10 +111,11 @@ const convertMovesToTree = (moves: PgnMove[]): MoveNode[] => {
 };
 
 export const convertGameToTree = (game: ParsedPGN): PgnTree => {
+  const chess = new Chess();
+
   return {
     headers: convertHeaders(game.headers),
-    moveTree: convertMovesToTree(game.moves),
-    perspective: "w",
+    moveTree: convertMovesToTree(game.moves, chess),
   };
 };
 

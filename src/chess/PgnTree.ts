@@ -17,28 +17,26 @@ export interface Position {
   color: Color;
 }
 
-export type GameState = "CHECK" | "CHECKMATE" | "STALEMATE" | "DRAW" | "OTHER";
-/*
-export interface Move {
+export type GameResult =
+  | "UNKNOWN"
+  | "CHECKMATE"
+  | "STALEMATE"
+  | "INSUFFICIENT_MATERIAL"
+  | "THREEFOLD_REPETITION"
+  | "DRAW";
+
+export interface MoveNode {
+  // The move that was made.
   move: string;
-  comments: string[];
-  / *
+  piece: string;
   from: string;
   to: string;
-  promotion?: string | undefined;
-  color: "w" | "b";
-  piece?: string;
-  san?: string;
-  captured?: string;
-  flags?: string;
-  lan?: string;
-  before?: string;
-  after?: string;
-  * /
-}
-*/
-export interface MoveNode {
-  move: string;
+  // The color of the player who made the move.
+  player: Color;
+  // The fen of the position after the move.
+  fen: Fen;
+  isGameOver: boolean;
+  gameResult?: GameResult;
   comments?: string[];
   children: MoveNode[];
 }
@@ -46,6 +44,5 @@ export interface MoveNode {
 // A Tree Representation
 export interface PgnTree {
   headers: { [key: string]: string };
-  perspective: Color;
   moveTree: MoveNode[];
 }
