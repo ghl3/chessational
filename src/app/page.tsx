@@ -6,8 +6,14 @@ import {
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import Head from "next/head";
+import { useState } from "react";
+import { StudySelector } from "@/components/StudySelector";
+import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
+import { PgnTree } from "@/chess/PgnTree";
 
-const getStudy = async (studyId: string) => {
+type PgnTrees = PgnTree[];
+
+const getStudy = async (studyId: string): Promise<PgnTrees> => {
   const res = await fetch("http://localhost:3000/api/getStudy", {
     method: "POST",
     cache: "force-cache",
@@ -19,23 +25,30 @@ const getStudy = async (studyId: string) => {
 
   if (res.status !== 200) {
     console.log("Error");
-    return;
+    throw new Error("Error");
   }
 
   console.log(res);
 
   const json = await res.json();
 
-  console.log(json);
+  const { pgns } = json;
+
+  return pgns;
 };
 
 const Home: React.FC = () => {
+  const [selectedStudy, setSelectedStudy] = useState<string | undefined>(
+    undefined
+  );
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<string | undefined>(
+    undefined
+  );
+
+  const [pgnTree, setPgnTree] = useState<PgnTrees | undefined>(undefined);
+
   const chessboardState: ChessboardState = useChessboardState();
-
-  //const client = new Client('foobar');
-  //client.user.
-
-  getStudy("gCdIXthy");
 
   return (
     <>
@@ -48,6 +61,15 @@ const Home: React.FC = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
+        <StudySelector
+          selectedStudy={selectedStudy}
+          onStudyChange={setSelectedStudy}
+        />
+        <ChapterSelector
+          chapters={chapters}
+          selectedChapter={selectedChapter}
+          onChapterChange={setSelectedChapter}
+        />
         <Chessboard chessboardState={chessboardState} />
       </main>
     </>
