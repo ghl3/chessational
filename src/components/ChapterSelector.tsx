@@ -7,7 +7,7 @@ type ChapterProps = {
 };
 
 export type Chapter = {
-  id: string;
+  index: number;
   name: string;
 };
 
@@ -24,7 +24,7 @@ export const ChapterSelector: React.FC<ChapterProps> = ({
     <select value={selectedChapter || ""} onChange={handleChapterChange}>
       <option value="">All Chapters</option>
       {chapters.map((chapter) => (
-        <option key={chapter.id} value={chapter.id}>
+        <option key={chapter.name} value={chapter.name}>
           {chapter.name}
         </option>
       ))}

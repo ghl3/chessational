@@ -28,13 +28,25 @@ const getStudy = async (studyId: string): Promise<PgnTrees> => {
     throw new Error("Error");
   }
 
-  console.log(res);
-
-  const json = await res.json();
-
-  const { pgns } = json;
+  const { pgns } = await res.json();
 
   return pgns;
+};
+
+const getChapters = (pgnTrees: PgnTrees): Chapter[] => {
+  const chapters: Chapter[] = [];
+
+  for (let i = 0; i < pgnTrees.length; i++) {
+    const pgnTree = pgnTrees[i];
+    const chapter: Chapter = {
+      index: i,
+      name: pgnTree.headers["Event"] || "Unknown Chapter",
+    };
+
+    chapters.push(chapter);
+  }
+
+  return chapters;
 };
 
 const Home: React.FC = () => {
@@ -50,6 +62,18 @@ const Home: React.FC = () => {
 
   const chessboardState: ChessboardState = useChessboardState();
 
+  const fetchStudyData = async () => {
+    if (!selectedStudy) return; // Exit if no study selected
+
+    try {
+      const newPgnTrees = await getStudy(selectedStudy);
+      setPgnTree(newPgnTrees);
+      setChapters(getChapters(newPgnTrees));
+    } catch (error) {
+      console.error("Failed to get study:", error);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -64,6 +88,7 @@ const Home: React.FC = () => {
         <StudySelector
           selectedStudy={selectedStudy}
           onStudyChange={setSelectedStudy}
+          onStudySubmit={fetchStudyData}
         />
         <ChapterSelector
           chapters={chapters}
