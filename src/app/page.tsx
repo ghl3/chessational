@@ -6,15 +6,17 @@ import {
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import Head from "next/head";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { StudySelector } from "@/components/StudySelector";
 import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
 import { Controls } from "@/components/Controls";
-import { MoveNode, PgnTree } from "@/chess/PgnTree";
+import { Move, MoveNode, PgnTree } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { Chess } from "chess.js";
+import { Chess, Move as MoveResult } from "chess.js";
 
 type Study = PgnTree[];
+
+const OPPONENT_MOVE_DELAY = 250;
 
 const getStudy = async (studyId: string): Promise<Study> => {
   const res = await fetch("http://localhost:3000/api/getStudy", {
@@ -62,20 +64,18 @@ const Home: React.FC = () => {
   );
   const [study, setStudy] = useState<Study | undefined>(undefined);
 
-  // The list of moves from the current line.
-  //const [moves, setMoves] = useState<Move[]>([]);
-
   const chessboardState: ChessboardState = useChessboardState();
 
   let gameObject = useRef<Chess>(new Chess());
 
   // Set the latest move in the line
   const [line, setLine] = useState<MoveNode | null>(null);
-  // The next move in the line
-  //const [nextMove, setNextMove] = useState<Move | null>(null);
 
-  const fetchStudyData = async () => {
-    if (!selectedStudy) return; // Exit if no study selected
+  const fetchStudyData = useCallback(async () => {
+    // Exit if no study selected
+    if (!selectedStudy) {
+      return;
+    }
 
     try {
       const newStudy = await getStudy(selectedStudy);
@@ -84,7 +84,7 @@ const Home: React.FC = () => {
     } catch (error) {
       console.error("Failed to get study:", error);
     }
-  };
+  }, [selectedStudy]);
 
   // Find the chapter with the given name, or choose a random chapter
   // if the name is null.
@@ -111,7 +111,9 @@ const Home: React.FC = () => {
   const pickAndApplyMove = (moveNodes: MoveNode[]) => {
     const moveIndex = Math.floor(Math.random() * moveNodes.length);
     const nextMoveNode = moveNodes[moveIndex];
-    const moveResult = gameObject.current.move(nextMoveNode.move);
+
+    const moveResult = moveOrNull(nextMoveNode.from, nextMoveNode.to);
+    //const moveResult = gameObject.current.move(nextMoveNode.move);
     if (moveResult == null) {
       throw new Error("Move is null");
     }
@@ -119,7 +121,7 @@ const Home: React.FC = () => {
     chessboardState.addMove(nextMoveNode);
   };
 
-  const onNewLine = () => {
+  const onNewLine = useCallback(() => {
     // Reset the game
     gameObject.current = new Chess();
     setLine(null);
@@ -137,80 +139,73 @@ const Home: React.FC = () => {
     // If we are black, we first have to do white's move
     if (chapter.orientation == "b") {
       pickAndApplyMove(chapter.moveTree);
-      /*
-      const lineIndex = Math.floor(Math.random() * chapter.moveTree.length);
-      const newLine = chapter.moveTree[lineIndex];
-      setLine(newLine);
+    }
+  }, [study, selectedChapter, chessboardState]);
 
-      // Update the line in our game state and on the board
-      const moveResult = gameObject.current.move(newLine.move);
-      if (moveResult == null) {
-        throw new Error("Move is null");
-      }
-      chessboardState.addMove(newLine);
-      */
+  const moveOrNull = (
+    sourceSquare: Square,
+    targetSquare: Square
+  ): MoveResult | null => {
+    try {
+      return gameObject.current.move({
+        from: sourceSquare,
+        to: targetSquare,
+      });
+    } catch (error) {
+      console.error("Invalid Move:", error);
+      return null;
     }
   };
 
-  const onDrop = (sourceSquare: Square, targetSquare: Square): boolean => {
-    if (line == null) {
-      throw new Error("Line is null");
-    }
+  const onDrop = useCallback(
+    (sourceSquare: Square, targetSquare: Square): boolean => {
+      if (line == null) {
+        throw new Error("Line is null");
+      }
 
-    // Check that it's a valid move
-    const moveResult = gameObject.current.move({
-      from: sourceSquare,
-      to: targetSquare,
-    });
+      // Check that it's a valid move
+      const moveResult = moveOrNull(sourceSquare, targetSquare);
+      if (moveResult == null) {
+        return false;
+      }
 
-    if (moveResult == null) {
-      return false;
-    }
+      // If so, check whether it's the correct move (or one of the correct moves)
+      // If so, get the next move and add it to the line
 
-    // If so, check whether it's the correct move (or one of the correct moves)
-    // If so, get the next move and add it to the line
+      for (const move of line.children) {
+        if (move.from === sourceSquare && move.to === targetSquare) {
+          // Add it to the line
+          setLine(move);
+          // Add it to the game state
+          chessboardState.addMove(move);
 
-    for (const move of line.children) {
-      if (move.from === sourceSquare && move.to === targetSquare) {
-        // Add it to the line
-        setLine(move);
-        // Add it to the game state
-        chessboardState.addMove(move);
-
-        // If this is the end of the line, we're done.
-        if (move.children.length == 0) {
-          // We've reached the end of the line
-          console.log("End of the line");
-          return true;
-        } else {
-          // Otherwise, pick the opponent's next move in the line
-          // Do this in a delay to simulate a game.
-          setTimeout(async () => {
-            pickAndApplyMove(move.children);
-            /*
-            const nextMoveIndex = Math.floor(
-              Math.random() * move.children.length
-            );
-            const nextMove = move.children[nextMoveIndex];
-            setLine(nextMove);
-            gameObject.current.move(nextMove.move);
-            chessboardState.addMove(nextMove);
-            */
-          }, 500);
-          return true;
+          // If this is the end of the line, we're done.
+          if (move.children.length == 0) {
+            // We've reached the end of the line
+            console.log("End of the line");
+            return true;
+          } else {
+            // Otherwise, pick the opponent's next move in the line
+            // Do this in a delay to simulate a game.
+            setTimeout(async () => {
+              pickAndApplyMove(move.children);
+            }, OPPONENT_MOVE_DELAY);
+            return true;
+          }
         }
       }
-    }
 
-    // If we got here, the move is not correct
-    console.log("Move is incorrect");
+      // If we got here, the move is not correct
+      console.log("Move is incorrect");
 
-    // We have to undo the move we did above
-    gameObject.current.undo();
-    return false;
-  };
+      // We have to undo the move we did above
+      gameObject.current.undo();
+      return false;
+    },
+    [line, chessboardState]
+  );
 
-  const onShowSolution = () => {};
+  const onShowSolution = useCallback(() => {}, []);
 
   return (
     <>

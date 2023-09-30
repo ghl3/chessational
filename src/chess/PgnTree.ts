@@ -1,4 +1,4 @@
-export type Color = "w" | "b";
+import { Square, PieceSymbol, Color } from "chess.js";
 
 export const getOppositeColor = (color: Color): Color => {
   return color === "w" ? "b" : "w";
@@ -12,11 +12,6 @@ export class FenUtil {
   };
 }
 
-export interface Position {
-  fen: Fen;
-  color: Color;
-}
-
 export type GameResult =
   | "UNKNOWN"
   | "CHECKMATE"
@@ -28,9 +23,9 @@ export type GameResult =
 export interface Move {
   // The move that was made.
   move: string;
-  piece: string;
-  from: string;
-  to: string;
+  piece: PieceSymbol;
+  from: Square;
+  to: Square;
   // The color of the player who made the move.
   player: Color;
   // The fen of the position after the move.
