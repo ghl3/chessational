@@ -86,9 +86,40 @@ const Home: React.FC = () => {
     }
   };
 
-  const onNewLine = () => {
-    // Randomly pick a line
+  // Find the chapter with the given name, or choose a random chapter
+  // if the name is null.
+  const findOrChooseChapter = (
+    study: Study,
+    selectedChapter: string | null
+  ): PgnTree => {
+    if (selectedChapter == null) {
+      // Randomly pick a chapter
+      const chapterIndex = Math.floor(Math.random() * study.length);
+      return study[chapterIndex];
+    } else {
+      // Find the chapter
+      const chapter = study.find(
+        (chapter) => chapter.headers["Event"] == selectedChapter
+      );
+      if (chapter == null) {
+        throw new Error("chapter is null");
+      }
+      return chapter;
+    }
+  };
 
+  const pickAndApplyMove = (moveNodes: MoveNode[]) => {
+    const moveIndex = Math.floor(Math.random() * moveNodes.length);
+    const nextMoveNode = moveNodes[moveIndex];
+    const moveResult = gameObject.current.move(nextMoveNode.move);
+    if (moveResult == null) {
+      throw new Error("Move is null");
+    }
+    setLine(nextMoveNode);
+    chessboardState.addMove(nextMoveNode);
+  };
+
+  const onNewLine = () => {
     // Reset the game
     gameObject.current = new Chess();
     setLine(null);
@@ -97,30 +128,28 @@ const Home: React.FC = () => {
       throw new Error("study is null");
     }
 
-    // Randomly pick a chapter
-    const chapterIndex = Math.floor(Math.random() * study.length);
-    const chapter: PgnTree = study[chapterIndex];
+    const chapter = findOrChooseChapter(study, selectedChapter || null);
 
-    setSelectedChapter(chapter.chapter);
     chessboardState.setOrientation(
       chapter.orientation == "w" ? "white" : "black"
     );
 
-    // Initialize the line.  There are two cases:
-    // - We are white and we have the first move
-    // - We are black and we need to get the first move from the chapter.
+    // If we are black, we first have to do white's move
+    if (chapter.orientation == "b") {
+      pickAndApplyMove(chapter.moveTree);
+      /*
+      const lineIndex = Math.floor(Math.random() * chapter.moveTree.length);
+      const newLine = chapter.moveTree[lineIndex];
+      setLine(newLine);
 
-    // Black Case: We first have to pick the opponent's move
-    const lineIndex = Math.floor(Math.random() * chapter.moveTree.length);
-    const newLine = chapter.moveTree[lineIndex];
-    setLine(newLine);
-
-    // Update the line in our game state and on the board
-    const moveResult = gameObject.current.move(newLine.move);
-    if (moveResult == null) {
-      throw new Error("Move is null");
+      // Update the line in our game state and on the board
+      const moveResult = gameObject.current.move(newLine.move);
+      if (moveResult == null) {
+        throw new Error("Move is null");
+      }
+      chessboardState.addMove(newLine);
+      */
     }
-    chessboardState.addMove(newLine);
   };
 
   const onDrop = (sourceSquare: Square, targetSquare: Square): boolean => {
@@ -143,23 +172,22 @@ const Home: React.FC = () => {
 
     for (const move of line.children) {
       if (move.from === sourceSquare && move.to === targetSquare) {
-        // This is a valid move
         // Add it to the line
         setLine(move);
         // Add it to the game state
         chessboardState.addMove(move);
 
-        // Pick the next move in the line,
-        // or finish if this is the last move in the line
-
+        // If this is the end of the line, we're done.
         if (move.children.length == 0) {
           // We've reached the end of the line
           console.log("End of the line");
           return true;
         } else {
-          // Pick the next move in the line
-
+          // Otherwise, pick the opponent's next move in the line
+          // Do this in a delay to simulate a game.
           setTimeout(async () => {
+            pickAndApplyMove(move.children);
+            /*
             const nextMoveIndex = Math.floor(
               Math.random() * move.children.length
             );
@@ -167,6 +195,7 @@ const Home: React.FC = () => {
             setLine(nextMove);
             gameObject.current.move(nextMove.move);
             chessboardState.addMove(nextMove);
+            */
           }, 500);
           return true;
         }
