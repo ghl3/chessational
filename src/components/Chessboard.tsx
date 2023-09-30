@@ -2,12 +2,15 @@
 
 import React, { useCallback, useState } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
+
+import { Square } from "react-chessboard/dist/chessboard/types";
 import styles from "../styles/Chessboard.module.css";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 
 interface ChessboardProps {
   chessboardState: ChessboardState;
+  onDrop: (source: Square, target: Square) => boolean;
 }
 
 interface GameControlButtonsProps {
@@ -68,6 +71,7 @@ const GameControlButtons: React.FC<GameControlButtonsProps> = ({
 
 const Chessboard: React.FC<ChessboardProps> = ({
   chessboardState: chessboardData,
+  onDrop,
 }) => {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
 
@@ -131,6 +135,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
             boardWidth={chessboardData.boardSize}
             areArrowsAllowed={true}
             boardOrientation={orientation}
+            onPieceDrop={onDrop}
           />
         </div>
 

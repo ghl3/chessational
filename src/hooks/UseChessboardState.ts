@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 const defaultFen: Fen =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// A Chessboard can be thought of as a series of moves and
+// positions as well as an orientation and board size.
 export interface ChessboardState {
   moveIndex: number;
   position: Fen;
