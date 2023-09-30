@@ -71,9 +71,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
 }) => {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
 
-  const controlsDisabled = chessboardData.game == null;
-
-  const setGamePosition = useCallback(
+  const setGamePositionFromIndex = useCallback(
     (moveIndex: number) => {
       chessboardData.setPositionFromIndex(moveIndex);
     },
@@ -90,33 +88,32 @@ const Chessboard: React.FC<ChessboardProps> = ({
     if (chessboardData.moveIndex <= 0) {
       return;
     }
-    setGamePosition(chessboardData.moveIndex - 1);
-  }, [chessboardData.moveIndex, setGamePosition]);
+    setGamePositionFromIndex(chessboardData.moveIndex - 1);
+  }, [chessboardData.moveIndex, setGamePositionFromIndex]);
 
   const handleRightClick = useCallback(() => {
-    if (
-      chessboardData.moveIndex + 1 ==
-      chessboardData.game?.positions?.length
-    ) {
+    if (chessboardData.moveIndex + 1 == chessboardData.moves.length) {
       return;
     }
-    setGamePosition(chessboardData.moveIndex + 1);
-  }, [chessboardData.moveIndex, chessboardData.game, setGamePosition]);
+    setGamePositionFromIndex(chessboardData.moveIndex + 1);
+  }, [
+    chessboardData.moveIndex,
+    chessboardData.moves,
+    setGamePositionFromIndex,
+  ]);
 
   const handleJumpToStart = useCallback(() => {
-    if (chessboardData.game) {
-      setGamePosition(0);
-    }
-  }, [chessboardData.game, setGamePosition]);
+    setGamePositionFromIndex(0);
+  }, [setGamePositionFromIndex]);
 
   const handleJumpToEnd = useCallback(() => {
-    if (chessboardData.game) {
-      const endIndex = chessboardData.game.positions.length - 1;
-      setGamePosition(endIndex);
+    if (chessboardData.moves.length === 0) {
+      setGamePositionFromIndex(0);
     } else {
-      setGamePosition(0);
+      const endIndex = chessboardData.moves.length - 1;
+      setGamePositionFromIndex(endIndex);
     }
-  }, [chessboardData.game, setGamePosition]);
+  }, [chessboardData.moves, setGamePositionFromIndex]);
 
   // Inside your Review component
   useArrowKeys({
@@ -127,17 +124,9 @@ const Chessboard: React.FC<ChessboardProps> = ({
   return (
     <>
       <div className={styles.container}>
-        <div className={styles.playerNameRow}>
-          <p className={styles.playerName}>
-            {orientation === "white"
-              ? chessboardData.game?.black
-              : chessboardData.game?.white}
-          </p>
-        </div>
-
         <div className={styles.Chessboard}>
           <ReactChessboard
-            position={chessboardData.getPositionFen()}
+            position={chessboardData.position}
             customDarkSquareStyle={{ backgroundColor: "#34495e" }}
             boardWidth={chessboardData.boardSize}
             areArrowsAllowed={true}
@@ -145,16 +134,8 @@ const Chessboard: React.FC<ChessboardProps> = ({
           />
         </div>
 
-        <div className={styles.playerNameRow}>
-          <p className={styles.playerName}>
-            {orientation === "white"
-              ? chessboardData.game?.white
-              : chessboardData.game?.black}
-          </p>
-        </div>
-
         <GameControlButtons
-          isDisabled={controlsDisabled}
+          isDisabled={false}
           handleJumpToStart={handleJumpToStart}
           handleLeftClick={handleLeftClick}
           handleRightClick={handleRightClick}

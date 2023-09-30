@@ -1,21 +1,20 @@
-import { Fen } from "@/chess/Fen";
-import { Game } from "@/chess/PgnTree";
-import { Position } from "@/chess/Position";
+import { Fen, Move } from "@/chess/PgnTree";
 import { useState, useEffect } from "react";
 
 const defaultFen: Fen =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 export interface ChessboardState {
-  game: Game | null;
   moveIndex: number;
-  getPositionFen: () => Fen;
+  position: Fen;
+  moves: Move[];
   boardSize: number;
-  clearGame: () => void;
-  loadGame: (game: Game) => void;
-  setPositionFromIndex: (moveIndex: number) => void;
   orientation: "white" | "black";
+
+  setPositionFromIndex: (moveIndex: number) => void;
   setOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
+  addMove: (move: Move) => void;
+  clearGame: () => void;
 }
 
 const useBoardSize = (): number => {
@@ -54,48 +53,41 @@ const useBoardSize = (): number => {
 };
 
 export const useChessboardState = (): ChessboardState => {
-  const [game, setGame] = useState<Game | null>(null);
+  const [moves, setMoves] = useState<Move[]>([]);
   const [moveIndex, setMoveIndex] = useState<number>(0);
-  const [position, setPosition] = useState<Position | null>(null);
+  const [position, setPosition] = useState<Fen>(defaultFen);
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const boardSize = useBoardSize();
 
-  const loadGame = (game: Game) => {
-    setGame(game);
-    setPosition(game.positions[0]);
-    setMoveIndex(0);
-  };
-
   const setPositionFromIndex = (moveIndex: number) => {
-    if (game) {
+    if (moveIndex < moves.length) {
       setMoveIndex(moveIndex);
-      setPosition(game.positions[moveIndex]);
-    }
-  };
-
-  const getPositionFen = (): Fen => {
-    if (position) {
-      return position.fen;
-    } else {
-      return defaultFen;
+      setPosition(moves[moveIndex].fen);
     }
   };
 
   const clearGame = () => {
-    setGame(null);
+    setMoves([]);
     setMoveIndex(0);
-    setPosition(null);
+    setPosition(defaultFen);
+  };
+
+  const addMove = (move: Move) => {
+    setMoves((moves) => [...moves, move]);
+    setMoveIndex((moveIndex) => moveIndex + 1);
+    setPosition(move.fen);
   };
 
   return {
-    game,
     moveIndex,
-    getPositionFen,
+    position,
+    moves,
     boardSize,
-    clearGame,
-    loadGame,
-    setPositionFromIndex,
     orientation,
+
+    setPositionFromIndex,
     setOrientation,
+    addMove,
+    clearGame,
   };
 };

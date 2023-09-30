@@ -9,7 +9,8 @@ import Head from "next/head";
 import { useState } from "react";
 import { StudySelector } from "@/components/StudySelector";
 import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
-import { PgnTree } from "@/chess/PgnTree";
+import { Controls } from "@/components/Controls";
+import { Move, PgnTree } from "@/chess/PgnTree";
 
 type PgnTrees = PgnTree[];
 
@@ -60,6 +61,9 @@ const Home: React.FC = () => {
 
   const [pgnTree, setPgnTree] = useState<PgnTrees | undefined>(undefined);
 
+  // The list of moves from the current line.
+  const [moves, setMoves] = useState<Move[]>([]);
+
   const chessboardState: ChessboardState = useChessboardState();
 
   const fetchStudyData = async () => {
@@ -96,6 +100,8 @@ const Home: React.FC = () => {
           onChapterChange={setSelectedChapter}
         />
         <Chessboard chessboardState={chessboardState} />
+
+        <Controls onNewLine={() => {}} onShowSolution={() => {}} />
       </main>
     </>
   );

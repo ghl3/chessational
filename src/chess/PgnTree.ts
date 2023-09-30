@@ -25,7 +25,7 @@ export type GameResult =
   | "THREEFOLD_REPETITION"
   | "DRAW";
 
-export interface MoveNode {
+export interface Move {
   // The move that was made.
   move: string;
   piece: string;
@@ -38,6 +38,9 @@ export interface MoveNode {
   isGameOver: boolean;
   gameResult?: GameResult;
   comments?: string[];
+}
+
+export interface MoveNode extends Move {
   children: MoveNode[];
 }
 
