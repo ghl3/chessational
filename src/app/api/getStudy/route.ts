@@ -13,7 +13,5 @@ export async function POST(req: NextRequest) {
 
   const pgns: PgnTree[] = parsePgnString(pgn);
 
-  console.log(pgns);
-
   return NextResponse.json({ pgns: pgns });
 }

@@ -113,7 +113,10 @@ const Home: React.FC = () => {
     setLine(newLine);
 
     // Update the line in our game state and on the board
-    gameObject.current.move(newLine.move);
+    const moveResult = gameObject.current.move(newLine.move);
+    if (moveResult == null) {
+      throw new Error("Move is null");
+    }
     chessboardState.addMove(newLine);
   };
 
@@ -123,7 +126,6 @@ const Home: React.FC = () => {
     }
 
     // Check that it's a valid move
-
     const moveResult = gameObject.current.move({
       from: sourceSquare,
       to: targetSquare,
@@ -143,8 +145,6 @@ const Home: React.FC = () => {
         setLine(move);
         // Add it to the game state
         chessboardState.addMove(move);
-        // Update the game state
-        gameObject.current.move(move.move);
 
         // Pick the next move in the line,
         // or finish if this is the last move in the line
@@ -155,13 +155,16 @@ const Home: React.FC = () => {
           return true;
         } else {
           // Pick the next move in the line
-          const nextMoveIndex = Math.floor(
-            Math.random() * move.children.length
-          );
-          const nextMove = move.children[nextMoveIndex];
-          setLine(nextMove);
-          gameObject.current.move(nextMove.move);
-          chessboardState.addMove(nextMove);
+
+          setTimeout(async () => {
+            const nextMoveIndex = Math.floor(
+              Math.random() * move.children.length
+            );
+            const nextMove = move.children[nextMoveIndex];
+            setLine(nextMove);
+            gameObject.current.move(nextMove.move);
+            chessboardState.addMove(nextMove);
+          }, 500);
           return true;
         }
       }
@@ -169,6 +172,9 @@ const Home: React.FC = () => {
 
     // If we got here, the move is not correct
     console.log("Move is incorrect");
+
+    // We have to undo the move we did above
+    gameObject.current.undo();
     return false;
   };
 
