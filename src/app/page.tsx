@@ -10,7 +10,7 @@ import { useRef, useState } from "react";
 import { StudySelector } from "@/components/StudySelector";
 import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
 import { Controls } from "@/components/Controls";
-import { Move, MoveNode, PgnTree } from "@/chess/PgnTree";
+import { MoveNode, PgnTree } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess } from "chess.js";
 
@@ -101,7 +101,10 @@ const Home: React.FC = () => {
     const chapterIndex = Math.floor(Math.random() * study.length);
     const chapter: PgnTree = study[chapterIndex];
 
-    setSelectedChapter(chapter.headers["Event"]);
+    setSelectedChapter(chapter.chapter);
+    chessboardState.setOrientation(
+      chapter.orientation == "w" ? "white" : "black"
+    );
 
     // Initialize the line.  There are two cases:
     // - We are white and we have the first move

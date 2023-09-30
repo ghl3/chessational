@@ -111,11 +111,16 @@ const convertMovesToTree = (moves: PgnMove[], chess: Chess): MoveNode[] => {
 };
 
 export const convertGameToTree = (game: ParsedPGN): PgnTree => {
-  const chess = new Chess();
-
+  const headers = convertHeaders(game.headers);
+  const study = headers.Event.split(":")[0];
+  const chapter = headers.Event.split(":")[1];
+  const orientation = headers.Orientation.toLowerCase() == "white" ? "w" : "b";
   return {
-    headers: convertHeaders(game.headers),
-    moveTree: convertMovesToTree(game.moves, chess),
+    study: study,
+    chapter: chapter,
+    headers: headers,
+    orientation: orientation,
+    moveTree: convertMovesToTree(game.moves, new Chess()),
   };
 };
 

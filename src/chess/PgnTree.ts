@@ -46,6 +46,9 @@ export interface MoveNode extends Move {
 
 // A Tree Representation
 export interface PgnTree {
+  study: string;
+  chapter: string;
+  orientation: Color;
   headers: { [key: string]: string };
   moveTree: MoveNode[];
 }

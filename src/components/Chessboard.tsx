@@ -73,8 +73,6 @@ const Chessboard: React.FC<ChessboardProps> = ({
   chessboardState: chessboardData,
   onDrop,
 }) => {
-  const [orientation, setOrientation] = useState<"white" | "black">("white");
-
   const setGamePositionFromIndex = useCallback(
     (moveIndex: number) => {
       chessboardData.setPositionFromIndex(moveIndex);
@@ -83,7 +81,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
   );
 
   const handleFlipBoard = useCallback(() => {
-    setOrientation((prevOrientation) =>
+    chessboardData.setOrientation((prevOrientation) =>
       prevOrientation === "white" ? "black" : "white"
     );
   }, []);
@@ -134,7 +132,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
             customDarkSquareStyle={{ backgroundColor: "#34495e" }}
             boardWidth={chessboardData.boardSize}
             areArrowsAllowed={true}
-            boardOrientation={orientation}
+            boardOrientation={chessboardData.orientation}
             onPieceDrop={onDrop}
           />
         </div>
