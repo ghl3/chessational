@@ -13,6 +13,8 @@ import { Controls } from "@/components/Controls";
 import { Move, MoveNode, PgnTree } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
+import DescriptionArea from "@/components/DescriptionArea";
+import { LineResult } from "@/components/MoveDescription";
 
 type Study = PgnTree[];
 
@@ -64,12 +66,17 @@ const Home: React.FC = () => {
   );
   const [study, setStudy] = useState<Study | undefined>(undefined);
 
+  const [lastMoveResult, setLastMoveResult] = useState<LineResult>("Unknown");
+
   const chessboardState: ChessboardState = useChessboardState();
 
-  let gameObject = useRef<Chess>(new Chess());
+  const [showComments, setShowComments] = useState<boolean>(false);
+  const [showSolution, setShowSolution] = useState<boolean>(false);
 
   // Set the latest move in the line
   const [line, setLine] = useState<MoveNode | null>(null);
+
+  let gameObject = useRef<Chess>(new Chess());
 
   const fetchStudyData = useCallback(async () => {
     // Exit if no study selected
@@ -125,6 +132,7 @@ const Home: React.FC = () => {
     // Reset the game
     gameObject.current = new Chess();
     setLine(null);
+    setLastMoveResult("Unknown");
 
     if (study == null) {
       throw new Error("study is null");
@@ -180,9 +188,9 @@ const Home: React.FC = () => {
 
           // If this is the end of the line, we're done.
           if (move.children.length == 0) {
-            // We've reached the end of the line
-            console.log("End of the line");
+            setLastMoveResult("Line Complete");
           } else {
+            setLastMoveResult("Correct");
             // Otherwise, pick the opponent's next move in the line
             // Do this in a delay to simulate a game.
             setTimeout(async () => {
@@ -195,7 +203,7 @@ const Home: React.FC = () => {
       }
 
       // If we got here, the move is not correct
-      console.log("Move is incorrect");
+      setLastMoveResult("Incorrect");
 
       // We have to undo the move we did above
       gameObject.current.undo();
@@ -204,8 +212,13 @@ const Home: React.FC = () => {
     [line, chessboardState]
   );
 
-  const onShowSolution = useCallback(() => {}, []);
-  const onShowComments = useCallback(() => {}, []);
+  const onShowSolution = useCallback(() => {
+    setShowSolution(true);
+  }, []);
+
+  const onShowComments = useCallback(() => {
+    setShowComments(true);
+  }, []);
 
   return (
     <>
@@ -231,11 +244,26 @@ const Home: React.FC = () => {
             onChapterChange={setSelectedChapter}
             className="mb-6"
           />
-          <Chessboard
-            chessboardState={chessboardState}
-            onPieceDrop={onPieceDrop}
-            className="mb-6"
-          />
+          <div
+            className="flex items-start space-x-6 w-full max-w-screen-xl"
+            style={{ width: `calc(${chessboardState.boardSize}px + 30%)` }}
+          >
+            <Chessboard
+              chessboardState={chessboardState}
+              onPieceDrop={onPieceDrop}
+              className="flex-none"
+            />
+            <div
+              className="flex-none ml-6 bg-gray-800 p-4 overflow-hidden whitespace-normal"
+              style={{ height: chessboardState.boardSize }}
+            >
+              <DescriptionArea
+                result={lastMoveResult}
+                comments={line?.comments || []}
+                showComments={showComments}
+              />
+            </div>
+          </div>
           <Controls
             onNewLine={onNewLine}
             onShowSolution={onShowSolution}
