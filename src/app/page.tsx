@@ -115,10 +115,22 @@ const Home: React.FC = () => {
     }
   };
 
+  const applyMove = (move: MoveNode) => {
+    const moveResult = moveOrNull(move.from, move.to);
+    //const moveResult = gameObject.current.move(nextMoveNode.move);
+    if (moveResult == null) {
+      throw new Error("Move is null");
+    }
+    setLine(move);
+    chessboardState.addMove(move);
+  };
+
   const pickAndApplyMove = (moveNodes: MoveNode[]) => {
     const moveIndex = Math.floor(Math.random() * moveNodes.length);
     const nextMoveNode = moveNodes[moveIndex];
 
+    applyMove(nextMoveNode);
+    /*
     const moveResult = moveOrNull(nextMoveNode.from, nextMoveNode.to);
     //const moveResult = gameObject.current.move(nextMoveNode.move);
     if (moveResult == null) {
@@ -126,6 +138,7 @@ const Home: React.FC = () => {
     }
     setLine(nextMoveNode);
     chessboardState.addMove(nextMoveNode);
+    */
   };
 
   const onNewLine = useCallback(() => {
@@ -165,6 +178,20 @@ const Home: React.FC = () => {
     }
   };
 
+  const playOpponentNextMoveIfLineContinues = (line: MoveNode) => {
+    // If this is the end of the line, we're done.
+    if (line.children.length == 0) {
+      setLastMoveResult("Line Complete");
+    } else {
+      setLastMoveResult("Correct");
+      // Otherwise, pick the opponent's next move in the line
+      // Do this in a delay to simulate a game.
+      setTimeout(async () => {
+        pickAndApplyMove(line.children);
+      }, OPPONENT_MOVE_DELAY);
+    }
+  };
+
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square): boolean => {
       if (line == null) {
@@ -186,6 +213,8 @@ const Home: React.FC = () => {
           setLine(move);
           chessboardState.addMove(move);
 
+          playOpponentNextMoveIfLineContinues(move);
+          /*
           // If this is the end of the line, we're done.
           if (move.children.length == 0) {
             setLastMoveResult("Line Complete");
@@ -197,6 +226,8 @@ const Home: React.FC = () => {
               pickAndApplyMove(move.children);
             }, OPPONENT_MOVE_DELAY);
           }
+          */
+
           // Return true to accept the move
           return true;
         }
@@ -217,8 +248,19 @@ const Home: React.FC = () => {
   }, []);
 
   const onShowSolution = useCallback(() => {
+    const bestMove = line?.children[0];
+
+    if (bestMove == null) {
+      throw new Error("bestMove is null");
+    }
+
+    setTimeout(async () => {
+      applyMove(bestMove);
+      playOpponentNextMoveIfLineContinues(bestMove);
+    }, OPPONENT_MOVE_DELAY);
+
     setShowSolution(true);
-  }, []);
+  }, [line]);
 
   return (
     <>
