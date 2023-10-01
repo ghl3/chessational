@@ -212,12 +212,12 @@ const Home: React.FC = () => {
     [line, chessboardState]
   );
 
-  const onShowSolution = useCallback(() => {
-    setShowSolution(true);
-  }, []);
-
   const onShowComments = useCallback(() => {
     setShowComments(true);
+  }, []);
+
+  const onShowSolution = useCallback(() => {
+    setShowSolution(true);
   }, []);
 
   return (
@@ -266,8 +266,8 @@ const Home: React.FC = () => {
           </div>
           <Controls
             onNewLine={onNewLine}
-            onShowSolution={onShowSolution}
             onShowComments={onShowComments}
+            onShowSolution={onShowSolution}
           />
         </div>
       </main>

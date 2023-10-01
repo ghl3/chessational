@@ -15,37 +15,37 @@ interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
-  chessboardState: chessboardData,
+  chessboardState,
   onPieceDrop,
 }) => {
   const setGamePositionFromIndex = useCallback(
     (moveIndex: number) => {
-      chessboardData.setPositionFromIndex(moveIndex);
+      chessboardState.setPositionFromIndex(moveIndex);
     },
-    [chessboardData]
+    [chessboardState]
   );
 
   const handleFlipBoard = useCallback(() => {
-    chessboardData.setOrientation((prevOrientation) =>
+    chessboardState.setOrientation((prevOrientation) =>
       prevOrientation === "white" ? "black" : "white"
     );
   }, []);
 
   const handleLeftClick = useCallback(() => {
-    if (chessboardData.moveIndex <= 0) {
+    if (chessboardState.moveIndex <= 0) {
       return;
     }
-    setGamePositionFromIndex(chessboardData.moveIndex - 1);
-  }, [chessboardData.moveIndex, setGamePositionFromIndex]);
+    setGamePositionFromIndex(chessboardState.moveIndex - 1);
+  }, [chessboardState.moveIndex, setGamePositionFromIndex]);
 
   const handleRightClick = useCallback(() => {
-    if (chessboardData.moveIndex + 1 == chessboardData.moves.length) {
+    if (chessboardState.moveIndex + 1 == chessboardState.moves.length) {
       return;
     }
-    setGamePositionFromIndex(chessboardData.moveIndex + 1);
+    setGamePositionFromIndex(chessboardState.moveIndex + 1);
   }, [
-    chessboardData.moveIndex,
-    chessboardData.moves,
+    chessboardState.moveIndex,
+    chessboardState.moves,
     setGamePositionFromIndex,
   ]);
 
@@ -54,13 +54,13 @@ const Chessboard: React.FC<ChessboardProps> = ({
   }, [setGamePositionFromIndex]);
 
   const handleJumpToEnd = useCallback(() => {
-    if (chessboardData.moves.length === 0) {
+    if (chessboardState.moves.length === 0) {
       setGamePositionFromIndex(0);
     } else {
-      const endIndex = chessboardData.moves.length - 1;
+      const endIndex = chessboardState.moves.length - 1;
       setGamePositionFromIndex(endIndex);
     }
-  }, [chessboardData.moves, setGamePositionFromIndex]);
+  }, [chessboardState.moves, setGamePositionFromIndex]);
 
   // Inside your Review component
   useArrowKeys({
@@ -73,12 +73,13 @@ const Chessboard: React.FC<ChessboardProps> = ({
       <div className="flex flex-col items-center space-y-4">
         <div>
           <ReactChessboard
-            position={chessboardData.position}
+            position={chessboardState.position}
             customDarkSquareStyle={{ backgroundColor: "#34495e" }}
-            boardWidth={chessboardData.boardSize}
+            boardWidth={chessboardState.boardSize}
             areArrowsAllowed={true}
-            boardOrientation={chessboardData.orientation}
+            boardOrientation={chessboardState.orientation}
             onPieceDrop={onPieceDrop}
+            customArrows={chessboardState.arrows}
           />
         </div>
 
