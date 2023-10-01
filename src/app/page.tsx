@@ -45,7 +45,7 @@ const getChapters = (pgnTrees: Study): Chapter[] => {
     const pgnTree = pgnTrees[i];
     const chapter: Chapter = {
       index: i,
-      name: pgnTree.headers["Event"] || "Unknown Chapter",
+      name: pgnTree.chapter || "Unknown Chapter",
     };
 
     chapters.push(chapter);
@@ -157,7 +157,7 @@ const Home: React.FC = () => {
     }
   };
 
-  const onDrop = useCallback(
+  const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square): boolean => {
       if (line == null) {
         throw new Error("Line is null");
@@ -169,29 +169,28 @@ const Home: React.FC = () => {
         return false;
       }
 
-      // If so, check whether it's the correct move (or one of the correct moves)
-      // If so, get the next move and add it to the line
-
+      // Check whether the attempted move is one of the acceptable
+      // moves in the line.
       for (const move of line.children) {
         if (move.from === sourceSquare && move.to === targetSquare) {
-          // Add it to the line
+          // If it matches a child node, it's an acceptable move
+          // and we update the current line and the board state.
           setLine(move);
-          // Add it to the game state
           chessboardState.addMove(move);
 
           // If this is the end of the line, we're done.
           if (move.children.length == 0) {
             // We've reached the end of the line
             console.log("End of the line");
-            return true;
           } else {
             // Otherwise, pick the opponent's next move in the line
             // Do this in a delay to simulate a game.
             setTimeout(async () => {
               pickAndApplyMove(move.children);
             }, OPPONENT_MOVE_DELAY);
-            return true;
           }
+          // Return true to accept the move
+          return true;
         }
       }
 
@@ -206,6 +205,7 @@ const Home: React.FC = () => {
   );
 
   const onShowSolution = useCallback(() => {}, []);
+  const onShowComments = useCallback(() => {}, []);
 
   return (
     <>
@@ -217,20 +217,31 @@ const Home: React.FC = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main>
-        <StudySelector
-          selectedStudy={selectedStudy}
-          onStudyChange={setSelectedStudy}
-          onStudySubmit={fetchStudyData}
-        />
-        <ChapterSelector
-          chapters={chapters}
-          selectedChapter={selectedChapter}
-          onChapterChange={setSelectedChapter}
-        />
-        <Chessboard chessboardState={chessboardState} onDrop={onDrop} />
-
-        <Controls onNewLine={onNewLine} onShowSolution={onShowSolution} />
+      <main className="charcoal-bg text-white min-h-screen flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center space-y-6">
+          <StudySelector
+            selectedStudy={selectedStudy}
+            onStudyChange={setSelectedStudy}
+            onStudySubmit={fetchStudyData}
+            className="mb-6"
+          />
+          <ChapterSelector
+            chapters={chapters}
+            selectedChapter={selectedChapter}
+            onChapterChange={setSelectedChapter}
+            className="mb-6"
+          />
+          <Chessboard
+            chessboardState={chessboardState}
+            onPieceDrop={onPieceDrop}
+            className="mb-6"
+          />
+          <Controls
+            onNewLine={onNewLine}
+            onShowSolution={onShowSolution}
+            onShowComments={onShowComments}
+          />
+        </div>
       </main>
     </>
   );

@@ -25,3 +25,7 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.charcoal-bg {
+  background-color: #1e1e1e;
+}

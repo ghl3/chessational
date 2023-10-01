@@ -1,10 +1,10 @@
 import React from "react";
 
-type ChapterProps = {
+interface ChapterProps extends React.HTMLAttributes<HTMLDivElement> {
   chapters?: Chapter[];
   selectedChapter?: string;
   onChapterChange?: (chapter: string) => void;
-};
+}
 
 export type Chapter = {
   index: number;
@@ -20,14 +20,18 @@ export const ChapterSelector: React.FC<ChapterProps> = ({
     onChapterChange?.(e.target.value);
   };
 
-  return chapters && chapters.length > 0 ? (
-    <select value={selectedChapter || ""} onChange={handleChapterChange}>
+  return (
+    <select
+      className="bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
+      value={selectedChapter || ""}
+      onChange={handleChapterChange}
+    >
       <option value="">All Chapters</option>
-      {chapters.map((chapter) => (
+      {(chapters || []).map((chapter) => (
         <option key={chapter.name} value={chapter.name}>
           {chapter.name}
         </option>
       ))}
     </select>
-  ) : null;
+  );
 };
