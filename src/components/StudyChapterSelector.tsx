@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Study, StudyData } from "@/hooks/UseStudyData";
 import { StudyAdder } from "./StudyAdder";
 import { ChapterSelector } from "./ChapterSelector";
@@ -34,6 +34,24 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
     (chapter) => chapter.name
   );
 
+  const onStudyChange = useCallback(
+    (studyName: string) => {
+      setSelectedStudyName(studyName);
+
+      // TODO: Clean this up
+      const selectedStudy: Study | undefined = studies.find(
+        (study) => study.name === studyName
+      );
+      const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
+        (chapter) => chapter.name
+      );
+
+      // Default all the chapters to selected
+      setSelectedChapterNames(chapterNames || []);
+    },
+    [selectedStudy]
+  );
+
   return (
     <div className="flex flex-col space-y-4">
       <StudyAdder
@@ -44,7 +62,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
       <StudySelector
         studies={studies}
         selectedStudy={selectedStudyName}
-        onStudyChange={setSelectedStudyName}
+        onStudyChange={onStudyChange}
       />
 
       <ChapterSelector
