@@ -62,13 +62,19 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     async (studyUrl: string) => {
       try {
         const trees: PgnTree[] = await getStudy(studyUrl);
+        if (trees.length === 0) {
+          throw new Error("Study has no trees");
+        }
+
+        const studyName = trees[0].study;
         const chapters: Chapter[] = getChapters(trees);
         addStudy({
           url: studyUrl,
-          name: "study",
+          name: studyName,
           chapters: chapters,
         });
-        setSelectedStudyName(studyUrl);
+        setSelectedStudyName(studyName);
+        setStudyUrl("");
       } catch (error) {
         console.error("Failed to get study:", error);
       }
@@ -146,7 +152,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
         </option>
         {studies.map((study) => (
           <option key={study.name} value={study.name}>
-            {study.url}
+            {study.name}
           </option>
         ))}
       </select>
@@ -198,7 +204,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
   } = studyData;
 
   const selectedStudy: Study | undefined = studies.find(
-    (study) => study.url === selectedStudyName
+    (study) => study.name === selectedStudyName
   );
 
   const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
