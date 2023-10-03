@@ -21,6 +21,11 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
     setSelectedChapterNames,
   } = studyData;
 
+  // Set a default study
+  if (studies.length > 0 && selectedStudyName === undefined) {
+    setSelectedStudyName(studies[0].name);
+  }
+
   const selectedStudy: Study | undefined = studies.find(
     (study) => study.name === selectedStudyName
   );
