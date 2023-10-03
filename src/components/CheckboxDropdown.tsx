@@ -36,7 +36,8 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     const handleClickOutside = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
+        !dropdownRef.current.contains(e.target as Node) &&
+        e.target !== buttonRef.current
       ) {
         setIsOpen(false);
       }
@@ -50,7 +51,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   }, []);
 
   const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((isOpen) => !isOpen);
   };
 
   const toggleOption = (optionValue: string) => {
@@ -61,8 +62,12 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     );
   };
 
-  const closeDropdown = () => {
-    setIsOpen(false);
+  const selectAll = () => {
+    setSelectedOptions(options.map((option) => option.value));
+  };
+
+  const clearAll = () => {
+    setSelectedOptions([]);
   };
 
   return (
@@ -91,9 +96,14 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
               <label htmlFor={option.value}>{option.label}</label>
             </div>
           ))}
-          <button className="border rounded p-2 mt-2" onClick={closeDropdown}>
-            Select
-          </button>
+          <div className="flex justify-between mt-2">
+            <button className="border rounded p-2" onClick={selectAll}>
+              Select All
+            </button>
+            <button className="border rounded p-2" onClick={clearAll}>
+              Clear All
+            </button>
+          </div>
         </div>
       )}
     </div>

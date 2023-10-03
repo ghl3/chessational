@@ -33,16 +33,17 @@ const addPostSetAction = <T>(
   postSetAction: (items: T) => void
 ): React.Dispatch<React.SetStateAction<T>> => {
   return (action: React.SetStateAction<T>) => {
+    // An 'action' is either a function that takes a T
+    // or a value of type T.
     if (typeof action === "function") {
-      setter((prevStudies) => {
-        const updatedStudies = (action as Function)(prevStudies);
-        localStorage.setItem("studies", JSON.stringify(updatedStudies));
-        return updatedStudies;
+      setter((previousValue) => {
+        const updatedValue = (action as Function)(previousValue);
+        postSetAction(updatedValue);
+        return updatedValue;
       });
     } else {
       setter(action);
       postSetAction(action);
-      //localStorage.setItem("studies", JSON.stringify(action));
     }
   };
 };
@@ -72,24 +73,6 @@ export const useStudyData = (): StudyData => {
     }
   );
 
-  /*
-  const setAndStoreStudies: React.Dispatch<React.SetStateAction<Study[]>> = (
-    newStudies: React.SetStateAction<Study[]>
-  ) => {
-    if (typeof newStudies === "function") {
-      setStudies((prevStudies) => {
-        const updatedStudies = (newStudies as Function)(prevStudies);
-        localStorage.setItem("studies", JSON.stringify(updatedStudies));
-        return updatedStudies;
-      });
-    } else {
-      setStudies(newStudies);
-      localStorage.setItem("studies", JSON.stringify(newStudies));
-    }
-  };
-  */
-
-  //  const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudyName, setSelectedStudyName] = useState<
     string | undefined
   >(parseOrDefault(localStorage.getItem("selected-study"), undefined));
