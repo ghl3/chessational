@@ -7,19 +7,23 @@ import {
 } from "@/hooks/UseChessboardState";
 import Head from "next/head";
 import { useCallback, useRef, useState } from "react";
-import { StudySelector } from "@/components/StudySelector";
-import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
+import {
+  StudyChapterSelector,
+  StudySelector,
+} from "@/components/StudySelector";
+//import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
 import { Controls } from "@/components/Controls";
 import { Move, MoveNode, PgnTree } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import DescriptionArea from "@/components/DescriptionArea";
 import { LineResult } from "@/components/MoveDescription";
+import { Chapter, Study, useStudyData } from "@/hooks/UseStudyData";
 
-type Study = PgnTree[];
+//type Study = PgnTree[];
 
 const OPPONENT_MOVE_DELAY = 250;
-
+/*
 const getStudy = async (studyId: string): Promise<Study> => {
   const res = await fetch("http://localhost:3000/api/getStudy", {
     method: "POST",
@@ -55,16 +59,28 @@ const getChapters = (pgnTrees: Study): Chapter[] => {
 
   return chapters;
 };
+*/
 
 const Home: React.FC = () => {
-  const [selectedStudy, setSelectedStudy] = useState<string | undefined>(
-    undefined
+  const studyData = useStudyData();
+
+  const selectedStudy: Study | undefined = studyData.studies.find(
+    (study) => study.name == studyData.selectedStudyName
   );
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [selectedChapter, setSelectedChapter] = useState<string | undefined>(
-    undefined
-  );
-  const [study, setStudy] = useState<Study | undefined>(undefined);
+
+  const selectedChapters: Chapter[] | undefined =
+    selectedStudy?.chapters.filter((chapter) =>
+      studyData.selectedChapterNames.includes(chapter.name)
+    );
+
+  // const [selectedStudy, setSelectedStudy] = useState<string | undefined>(
+  //   undefined
+  // );
+  // const [chapters, setChapters] = useState<Chapter[]>([]);
+  // const [selectedChapter, setSelectedChapter] = useState<string | undefined>(
+  //   undefined
+  // );
+  // const [study, setStudy] = useState<Study | undefined>(undefined);
 
   const [lastMoveResult, setLastMoveResult] = useState<LineResult>("Unknown");
 
@@ -78,6 +94,7 @@ const Home: React.FC = () => {
 
   let gameObject = useRef<Chess>(new Chess());
 
+  /*
   const fetchStudyData = useCallback(async () => {
     // Exit if no study selected
     if (!selectedStudy) {
@@ -92,9 +109,21 @@ const Home: React.FC = () => {
       console.error("Failed to get study:", error);
     }
   }, [selectedStudy]);
+  */
 
   // Find the chapter with the given name, or choose a random chapter
   // if the name is null.
+
+  const selectChapter = (): Chapter => {
+    if (selectedChapters == null) {
+      throw new Error("selectedChapters is null");
+    }
+
+    const chapterIndex = Math.floor(Math.random() * selectedChapters.length);
+    return selectedChapters[chapterIndex];
+  };
+
+  /*
   const findOrChooseChapter = (
     study: Study,
     selectedChapter: string | null
@@ -114,6 +143,7 @@ const Home: React.FC = () => {
       return chapter;
     }
   };
+*/
 
   const applyMove = (move: MoveNode) => {
     const moveResult = moveOrNull(move.from, move.to);
@@ -147,21 +177,22 @@ const Home: React.FC = () => {
     setLine(null);
     setLastMoveResult("Unknown");
 
-    if (study == null) {
+    if (selectedStudy == null) {
       throw new Error("study is null");
     }
 
-    const chapter = findOrChooseChapter(study, selectedChapter || null);
+    //const chapter = findOrChooseChapter(study, selectedChapter || null);
+    const chapter: Chapter = selectChapter();
 
     chessboardState.setOrientation(
-      chapter.orientation == "w" ? "white" : "black"
+      chapter.tree.orientation == "w" ? "white" : "black"
     );
 
     // If we are black, we first have to do white's move
-    if (chapter.orientation == "b") {
-      pickAndApplyMove(chapter.moveTree);
+    if (chapter.tree.orientation == "b") {
+      pickAndApplyMove(chapter.tree.moveTree);
     }
-  }, [study, selectedChapter, chessboardState]);
+  }, [studyData, chessboardState]);
 
   const moveOrNull = (
     sourceSquare: Square,
@@ -274,18 +305,7 @@ const Home: React.FC = () => {
       </Head>
       <main className="charcoal-bg text-white min-h-screen flex flex-col items-center justify-center">
         <div className="flex flex-col items-center space-y-6">
-          <StudySelector
-            selectedStudy={selectedStudy}
-            onStudyChange={setSelectedStudy}
-            onStudySubmit={fetchStudyData}
-            className="mb-6"
-          />
-          <ChapterSelector
-            chapters={chapters}
-            selectedChapter={selectedChapter}
-            onChapterChange={setSelectedChapter}
-            className="mb-6"
-          />
+          <StudyChapterSelector studyData={studyData} />
           <div
             className="flex items-start space-x-6 w-full max-w-screen-xl"
             style={{ width: `calc(${chessboardState.boardSize}px + 30%)` }}

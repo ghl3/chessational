@@ -42,9 +42,15 @@ const getChapters = (pgnTrees: PgnTree[]): Chapter[] => {
 
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
+  setSelectedStudyName: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
 }
 
-export const StudyAdder: React.FC<StudyAdderProps> = ({ setStudies }) => {
+export const StudyAdder: React.FC<StudyAdderProps> = ({
+  setStudies,
+  setSelectedStudyName,
+}) => {
   const [studyUrl, setStudyUrl] = useState("");
 
   // TODO: Don't re-add the same study
@@ -62,11 +68,12 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({ setStudies }) => {
           name: "study",
           chapters: chapters,
         });
+        setSelectedStudyName(studyUrl);
       } catch (error) {
         console.error("Failed to get study:", error);
       }
     },
-    [setStudies]
+    [setStudies, setSelectedStudyName]
   );
 
   // Handle when the user is typing a new URL
@@ -98,7 +105,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({ setStudies }) => {
         className="bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
         type="text"
         placeholder="Enter Lichess Study URL"
-        value={"Enter Lichess URL"}
+        value={studyUrl}
         onChange={handleStudyUrlChange}
         onKeyDown={handleKeyDown}
       />
@@ -127,8 +134,6 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
     onStudyChange?.(e.target.value);
   };
 
-  const onStudySubmit = () => {};
-
   return (
     <div className="flex space-x-4">
       <select
@@ -145,13 +150,6 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
           </option>
         ))}
       </select>
-
-      <button
-        className="bg-blue-500 hover:bg-blue-700 text-white p-2 rounded"
-        onClick={onStudySubmit}
-      >
-        Get Study
-      </button>
     </div>
   );
 };
@@ -182,16 +180,25 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   );
 };
 
-export const StudyChapterSelector: React.FC<StudyData> = ({
-  studies,
-  setStudies,
-  selectedStudyName,
-  setSelectedStudyName,
-  selectedChaptersNames,
-  setSelectedChaptersNames,
+interface StudyChapterSelectorProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  studyData: StudyData;
+}
+
+export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
+  studyData,
 }) => {
+  const {
+    studies,
+    setStudies,
+    selectedStudyName,
+    setSelectedStudyName,
+    selectedChapterNames,
+    setSelectedChapterNames,
+  } = studyData;
+
   const selectedStudy: Study | undefined = studies.find(
-    (study) => study.name === selectedStudyName
+    (study) => study.url === selectedStudyName
   );
 
   const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
@@ -200,7 +207,10 @@ export const StudyChapterSelector: React.FC<StudyData> = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      <StudyAdder setStudies={setStudies} />
+      <StudyAdder
+        setStudies={setStudies}
+        setSelectedStudyName={setSelectedStudyName}
+      />
 
       <StudySelector
         studies={studies}
@@ -210,8 +220,8 @@ export const StudyChapterSelector: React.FC<StudyData> = ({
 
       <ChapterSelector
         chapters={chapterNames || []}
-        selectedChapters={selectedChaptersNames}
-        setSelectedChapters={setSelectedChaptersNames}
+        selectedChapters={selectedChapterNames}
+        setSelectedChapters={setSelectedChapterNames}
       />
     </div>
   );

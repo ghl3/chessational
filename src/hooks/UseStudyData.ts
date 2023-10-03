@@ -19,28 +19,28 @@ export interface StudyData {
   studies: Study[];
   selectedStudyName?: string;
   // If null, all chapters are selected
-  selectedChaptersNames: string[];
+  selectedChapterNames: string[];
 
   setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
   setSelectedStudyName: React.Dispatch<
     React.SetStateAction<string | undefined>
   >;
-  setSelectedChaptersNames: React.Dispatch<React.SetStateAction<string[]>>;
+  setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export const useStudyData = (): StudyData => {
   const [studies, setStudies] = useState<Study[]>([]);
   const [selectedStudyName, setSelectedStudyName] = useState<string>();
-  const [selectedChaptersNames, setSelectedChaptersNames] = useState<string[]>(
+  const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
     []
   );
 
   return {
     studies,
     selectedStudyName,
-    selectedChaptersNames,
+    selectedChapterNames,
     setStudies,
     setSelectedStudyName,
-    setSelectedChaptersNames,
+    setSelectedChapterNames,
   };
 };
