@@ -1,33 +1,96 @@
-import React, { useState } from "react";
-import CheckboxDropdown from "./CheckboxDropdown"; // Import the CheckboxDropdown component
+import React, { useCallback, useState } from "react";
+import CheckboxDropdown, { Option } from "./CheckboxDropdown";
+import { PgnTree } from "@/chess/PgnTree";
+import { Study, Chapter, StudyData } from "@/hooks/UseStudyData";
 
-interface Option {
-  value: string;
-  label: string;
+const getStudy = async (studyId: string): Promise<PgnTree[]> => {
+  const res = await fetch("http://localhost:3000/api/getStudy", {
+    method: "POST",
+    cache: "force-cache",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ studyId: studyId }),
+  });
+
+  if (res.status !== 200) {
+    console.log("Error");
+    throw new Error("Error");
+  }
+
+  const { pgns } = await res.json();
+
+  return pgns;
+};
+
+const getChapters = (pgnTrees: PgnTree[]): Chapter[] => {
+  const chapters: Chapter[] = [];
+
+  for (let i = 0; i < pgnTrees.length; i++) {
+    const pgnTree = pgnTrees[i];
+    const chapter: Chapter = {
+      index: i,
+      name: pgnTree.chapter || "Unknown Chapter",
+      tree: pgnTree,
+    };
+
+    chapters.push(chapter);
+  }
+
+  return chapters;
+};
+
+interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
+  setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
 }
 
-///
+export const StudyAdder: React.FC<StudyAdderProps> = ({ setStudies }) => {
+  const [studyUrl, setStudyUrl] = useState("");
 
-interface StudyFetcherProps extends React.HTMLAttributes<HTMLDivElement> {
-  //selectedStudy?: string;
-  onStudyChange?: (study: string) => void;
-  onStudySubmit?: () => void;
-}
-
-export const StudyFetcher: React.FC<StudyFetcherProps> = ({
-  //selectedStudy,
-  onStudyChange,
-  onStudySubmit,
-}) => {
-  const handleStudyUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onStudyChange?.(e.target.value);
+  // TODO: Don't re-add the same study
+  const addStudy = (study: Study) => {
+    setStudies((prevStudies) => [...prevStudies, study]);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onStudySubmit?.();
-    }
-  };
+  const fetchStudyData = useCallback(
+    async (studyUrl: string) => {
+      try {
+        const trees: PgnTree[] = await getStudy(studyUrl);
+        const chapters: Chapter[] = getChapters(trees);
+        addStudy({
+          url: studyUrl,
+          name: "study",
+          chapters: chapters,
+        });
+      } catch (error) {
+        console.error("Failed to get study:", error);
+      }
+    },
+    [setStudies]
+  );
+
+  // Handle when the user is typing a new URL
+  const handleStudyUrlChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setStudyUrl(e.target.value);
+    },
+    []
+  );
+
+  // Handle when the user presses enter
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        fetchStudyData(studyUrl);
+      }
+    },
+    [studyUrl]
+  );
+
+  // Handle when the user presses enter
+  const onStudySubmit = useCallback(() => {
+    fetchStudyData(studyUrl);
+  }, [studyUrl]);
 
   return (
     <div className="flex space-x-4">
@@ -49,47 +112,106 @@ export const StudyFetcher: React.FC<StudyFetcherProps> = ({
   );
 };
 
-///
-
-interface StudyProps extends React.HTMLAttributes<HTMLDivElement> {
+interface StudySelectorProps extends React.HTMLAttributes<HTMLDivElement> {
+  studies: Study[];
   selectedStudy?: string;
   onStudyChange?: (study: string) => void;
-  onStudySubmit?: () => void;
 }
 
-export const StudySelector: React.FC<StudyProps> = ({
+export const StudySelector: React.FC<StudySelectorProps> = ({
+  studies,
   selectedStudy,
   onStudyChange,
-  onStudySubmit,
 }) => {
-  // Existing studies, you might populate this from API or local storage
-  const [existingStudies, setExistingStudies] = useState<Option[]>([
-    { value: "study1", label: "Study 1" },
-    { value: "study2", label: "Study 2" },
-    // ... more studies
-  ]);
-
-  // Selected studies from CheckboxDropdown
-  const [selectedStudies, setSelectedStudies] = useState<string[]>([]);
-
-  const handleStudyUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onStudyChange?.(e.target.value);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      onStudySubmit?.();
-    }
-  };
+  const onStudySubmit = () => {};
+
+  return (
+    <div className="flex space-x-4">
+      <select
+        className="bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
+        value={selectedStudy}
+        onChange={handleDropdownChange}
+      >
+        <option value="" disabled>
+          Select a study
+        </option>
+        {studies.map((study) => (
+          <option key={study.name} value={study.name}>
+            {study.url}
+          </option>
+        ))}
+      </select>
+
+      <button
+        className="bg-blue-500 hover:bg-blue-700 text-white p-2 rounded"
+        onClick={onStudySubmit}
+      >
+        Get Study
+      </button>
+    </div>
+  );
+};
+
+interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
+  chapters: string[];
+  selectedChapters: string[] | null;
+  setSelectedChapters: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
+  chapters,
+  selectedChapters,
+  setSelectedChapters,
+}) => {
+  const options: Option[] = chapters.map((chapter) => ({
+    value: chapter,
+    label: chapter,
+  }));
+
+  return (
+    <CheckboxDropdown
+      text={"Select Chapters"}
+      options={options}
+      selectedOptions={selectedChapters || []}
+      setSelectedOptions={setSelectedChapters}
+    />
+  );
+};
+
+export const StudyChapterSelector: React.FC<StudyData> = ({
+  studies,
+  setStudies,
+  selectedStudyName,
+  setSelectedStudyName,
+  selectedChaptersNames,
+  setSelectedChaptersNames,
+}) => {
+  const selectedStudy: Study | undefined = studies.find(
+    (study) => study.name === selectedStudyName
+  );
+
+  const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
+    (chapter) => chapter.name
+  );
 
   return (
     <div className="flex flex-col space-y-4">
-      <StudyFetcher />
-      <CheckboxDropdown
-        text={"Select Active Studies"}
-        options={existingStudies}
-        selectedOptions={selectedStudies}
-        setSelectedOptions={setSelectedStudies}
+      <StudyAdder setStudies={setStudies} />
+
+      <StudySelector
+        studies={studies}
+        selectedStudy={selectedStudyName}
+        onStudyChange={setSelectedStudyName}
+      />
+
+      <ChapterSelector
+        chapters={chapterNames || []}
+        selectedChapters={selectedChaptersNames}
+        setSelectedChapters={setSelectedChaptersNames}
       />
     </div>
   );

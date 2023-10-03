@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-interface Option {
+export interface Option {
   value: string;
   label: string;
 }
@@ -10,6 +10,7 @@ interface CheckboxDropdownProps {
   options: Option[];
   selectedOptions: string[];
   setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
+  defaultOn?: boolean;
 }
 
 const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
