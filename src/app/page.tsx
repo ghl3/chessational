@@ -7,59 +7,16 @@ import {
 } from "@/hooks/UseChessboardState";
 import Head from "next/head";
 import { useCallback, useRef, useState } from "react";
-import {
-  StudyChapterSelector,
-  StudySelector,
-} from "@/components/StudySelector";
-//import { ChapterSelector, Chapter } from "@/components/ChapterSelector";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
-import { Move, MoveNode, PgnTree } from "@/chess/PgnTree";
+import { MoveNode } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import DescriptionArea from "@/components/DescriptionArea";
 import { LineResult } from "@/components/MoveDescription";
 import { Chapter, Study, useStudyData } from "@/hooks/UseStudyData";
 
-//type Study = PgnTree[];
-
 const OPPONENT_MOVE_DELAY = 250;
-/*
-const getStudy = async (studyId: string): Promise<Study> => {
-  const res = await fetch("http://localhost:3000/api/getStudy", {
-    method: "POST",
-    cache: "force-cache",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ studyId: studyId }),
-  });
-
-  if (res.status !== 200) {
-    console.log("Error");
-    throw new Error("Error");
-  }
-
-  const { pgns } = await res.json();
-
-  return pgns;
-};
-
-const getChapters = (pgnTrees: Study): Chapter[] => {
-  const chapters: Chapter[] = [];
-
-  for (let i = 0; i < pgnTrees.length; i++) {
-    const pgnTree = pgnTrees[i];
-    const chapter: Chapter = {
-      index: i,
-      name: pgnTree.chapter || "Unknown Chapter",
-    };
-
-    chapters.push(chapter);
-  }
-
-  return chapters;
-};
-*/
 
 const Home: React.FC = () => {
   const studyData = useStudyData();
@@ -73,15 +30,6 @@ const Home: React.FC = () => {
       studyData.selectedChapterNames.includes(chapter.name)
     );
 
-  // const [selectedStudy, setSelectedStudy] = useState<string | undefined>(
-  //   undefined
-  // );
-  // const [chapters, setChapters] = useState<Chapter[]>([]);
-  // const [selectedChapter, setSelectedChapter] = useState<string | undefined>(
-  //   undefined
-  // );
-  // const [study, setStudy] = useState<Study | undefined>(undefined);
-
   const [lastMoveResult, setLastMoveResult] = useState<LineResult>("Unknown");
 
   const chessboardState: ChessboardState = useChessboardState();
@@ -94,26 +42,6 @@ const Home: React.FC = () => {
 
   let gameObject = useRef<Chess>(new Chess());
 
-  /*
-  const fetchStudyData = useCallback(async () => {
-    // Exit if no study selected
-    if (!selectedStudy) {
-      return;
-    }
-
-    try {
-      const newStudy = await getStudy(selectedStudy);
-      setStudy(newStudy);
-      setChapters(getChapters(newStudy));
-    } catch (error) {
-      console.error("Failed to get study:", error);
-    }
-  }, [selectedStudy]);
-  */
-
-  // Find the chapter with the given name, or choose a random chapter
-  // if the name is null.
-
   const selectChapter = (): Chapter => {
     if (selectedChapters == null) {
       throw new Error("selectedChapters is null");
@@ -123,31 +51,8 @@ const Home: React.FC = () => {
     return selectedChapters[chapterIndex];
   };
 
-  /*
-  const findOrChooseChapter = (
-    study: Study,
-    selectedChapter: string | null
-  ): PgnTree => {
-    if (selectedChapter == null) {
-      // Randomly pick a chapter
-      const chapterIndex = Math.floor(Math.random() * study.length);
-      return study[chapterIndex];
-    } else {
-      // Find the chapter
-      const chapter = study.find(
-        (chapter) => chapter.headers["Event"] == selectedChapter
-      );
-      if (chapter == null) {
-        throw new Error("chapter is null");
-      }
-      return chapter;
-    }
-  };
-*/
-
   const applyMove = (move: MoveNode) => {
     const moveResult = moveOrNull(move.from, move.to);
-    //const moveResult = gameObject.current.move(nextMoveNode.move);
     if (moveResult == null) {
       throw new Error("Move is null");
     }
@@ -160,15 +65,6 @@ const Home: React.FC = () => {
     const nextMoveNode = moveNodes[moveIndex];
 
     applyMove(nextMoveNode);
-    /*
-    const moveResult = moveOrNull(nextMoveNode.from, nextMoveNode.to);
-    //const moveResult = gameObject.current.move(nextMoveNode.move);
-    if (moveResult == null) {
-      throw new Error("Move is null");
-    }
-    setLine(nextMoveNode);
-    chessboardState.addMove(nextMoveNode);
-    */
   };
 
   const onNewLine = useCallback(() => {
@@ -181,7 +77,6 @@ const Home: React.FC = () => {
       throw new Error("study is null");
     }
 
-    //const chapter = findOrChooseChapter(study, selectedChapter || null);
     const chapter: Chapter = selectChapter();
 
     chessboardState.setOrientation(
@@ -243,22 +138,7 @@ const Home: React.FC = () => {
           // and we update the current line and the board state.
           setLine(move);
           chessboardState.addMove(move);
-
           playOpponentNextMoveIfLineContinues(move);
-          /*
-          // If this is the end of the line, we're done.
-          if (move.children.length == 0) {
-            setLastMoveResult("Line Complete");
-          } else {
-            setLastMoveResult("Correct");
-            // Otherwise, pick the opponent's next move in the line
-            // Do this in a delay to simulate a game.
-            setTimeout(async () => {
-              pickAndApplyMove(move.children);
-            }, OPPONENT_MOVE_DELAY);
-          }
-          */
-
           // Return true to accept the move
           return true;
         }

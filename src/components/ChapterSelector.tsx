@@ -1,37 +1,27 @@
-import React from "react";
+import CheckboxDropdown, { Option } from "./CheckboxDropdown";
 
-interface ChapterProps extends React.HTMLAttributes<HTMLDivElement> {
-  chapters?: Chapter[];
-  selectedChapter?: string;
-  onChapterChange?: (chapter: string) => void;
+interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
+  chapters: string[];
+  selectedChapters: string[] | null;
+  setSelectedChapters: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export type Chapter = {
-  index: number;
-  name: string;
-};
-
-export const ChapterSelector: React.FC<ChapterProps> = ({
+export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   chapters,
-  selectedChapter,
-  onChapterChange,
+  selectedChapters,
+  setSelectedChapters,
 }) => {
-  const handleChapterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChapterChange?.(e.target.value);
-  };
+  const options: Option[] = chapters.map((chapter) => ({
+    value: chapter,
+    label: chapter,
+  }));
 
   return (
-    <select
-      className="bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
-      value={selectedChapter || ""}
-      onChange={handleChapterChange}
-    >
-      <option value="">All Chapters</option>
-      {(chapters || []).map((chapter) => (
-        <option key={chapter.name} value={chapter.name}>
-          {chapter.name}
-        </option>
-      ))}
-    </select>
+    <CheckboxDropdown
+      text={"Select Chapters"}
+      options={options}
+      selectedOptions={selectedChapters || []}
+      setSelectedOptions={setSelectedChapters}
+    />
   );
 };
