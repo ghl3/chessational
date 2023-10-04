@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Modal from "react-modal";
 
 import { Study } from "@/hooks/UseStudyData";
 
@@ -9,6 +10,19 @@ interface StudySelectorProps {
   onDelete?: (study: string) => void;
 }
 
+const modalStyle = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    bottom: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "400px",
+    height: "200px",
+  },
+};
+
 export const StudySelector2: React.FC<StudySelectorProps> = ({
   studies,
   selectedStudy,
@@ -17,11 +31,35 @@ export const StudySelector2: React.FC<StudySelectorProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      containerRef.current &&
+      !containerRef.current.contains(event.target as Node)
+    ) {
+      setIsOpen(false);
+    }
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleClickInButton = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
   const handleDropdownChange = (studyName: string) => {
     onStudyChange?.(studyName);
     setIsOpen(false);
@@ -42,10 +80,10 @@ export const StudySelector2: React.FC<StudySelectorProps> = ({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={containerRef}>
       <div
         className="w-full bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none cursor-pointer  flex justify-between items-center"
-        onClick={toggleDropdown}
+        onClick={handleClickInButton}
       >
         <span>{selectedStudy || "Select a study"}</span>
         <svg
@@ -84,13 +122,24 @@ export const StudySelector2: React.FC<StudySelectorProps> = ({
         </div>
       )}
       {showDialog && (
-        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-white p-4 rounded">
-            <p>Are you sure you want to delete this study?</p>
-            <button className="mr-2" onClick={confirmDelete}>
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded p-4">
+            <h2 className="text-lg font-bold mb-4 text-black">
+              Confirm Delete
+            </h2>
+
+            <button
+              className="bg-blue-500 text-white rounded px-4 py-2 mr-2"
+              onClick={confirmDelete}
+            >
               Yes
             </button>
-            <button onClick={() => setShowDialog(false)}>No</button>
+            <button
+              className="bg-gray-300 text-black rounded px-4 py-2"
+              onClick={() => setShowDialog(false)}
+            >
+              No
+            </button>
           </div>
         </div>
       )}
