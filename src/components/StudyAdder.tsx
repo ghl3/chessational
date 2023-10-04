@@ -46,6 +46,12 @@ interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   >;
 }
 
+const extractStudyName = (url: string) => {
+  const regex = /(?:https?:\/\/(?:www\.)?lichess\.org\/study\/)?([a-zA-Z0-9]+)/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+};
+
 export const StudyAdder: React.FC<StudyAdderProps> = ({
   setStudies,
   setSelectedStudyName,
@@ -101,7 +107,14 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
 
   // Handle when the user presses enter
   const onStudySubmit = useCallback(() => {
-    fetchStudyData(studyUrl);
+    if (!studyUrl || studyUrl === "") {
+      throw new Error("Study URL is empty");
+    }
+    const studyName = extractStudyName(studyUrl);
+    if (studyName === null) {
+      throw new Error("Please enter a valid Lichess study URL");
+    }
+    fetchStudyData(studyName);
   }, [studyUrl]);
 
   return (
@@ -115,8 +128,13 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         onKeyDown={handleKeyDown}
       />
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white p-2 rounded"
+        className={`p-2 rounded ${
+          studyUrl
+            ? "bg-blue-500 hover:bg-blue-700 text-white"
+            : "bg-gray-500 text-gray-300 cursor-not-allowed"
+        }`}
         onClick={onStudySubmit}
+        disabled={!studyUrl || studyUrl === ""}
       >
         Add Study
       </button>
