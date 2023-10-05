@@ -85,7 +85,21 @@ export const useStudyData = (): StudyData => {
   );
 
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
-    []
+    parseOrDefault(localStorage.getItem("selected-chapters"), [])
+  );
+
+  const setAndStoreSelectedChapterNames = useMemo(
+    () =>
+      addPostSetAction(
+        setSelectedChapterNames,
+        (selectedChapterNames: string[]) => {
+          localStorage.setItem(
+            "selected-chapters",
+            JSON.stringify(selectedChapterNames)
+          );
+        }
+      ),
+    [setSelectedStudyName]
   );
 
   return {
@@ -94,6 +108,6 @@ export const useStudyData = (): StudyData => {
     selectedChapterNames,
     setStudies: setAndStoreStudies,
     setSelectedStudyName: setAndStoreSelectedStudyName,
-    setSelectedChapterNames,
+    setSelectedChapterNames: setAndStoreSelectedChapterNames,
   };
 };

@@ -68,6 +68,7 @@ const Home: React.FC = () => {
 
   const onNewLine = useCallback(() => {
     // Reset the game
+    chessboardState.clearGame();
     gameObject.current = new Chess();
     setLine(null);
     setLineState({});
