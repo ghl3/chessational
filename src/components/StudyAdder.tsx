@@ -30,6 +30,7 @@ interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   setSelectedStudyName: React.Dispatch<
     React.SetStateAction<string | undefined>
   >;
+  setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const extractStudyName = (url: string) => {
@@ -41,6 +42,7 @@ const extractStudyName = (url: string) => {
 export const StudyAdder: React.FC<StudyAdderProps> = ({
   setStudies,
   setSelectedStudyName,
+  setSelectedChapterNames,
 }) => {
   const [studyUrl, setStudyUrl] = useState("");
 
@@ -59,6 +61,8 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
 
         addStudy(study);
         setSelectedStudyName(study.name);
+        // Default all the chapters to selected
+        setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
         setStudyUrl("");
       } catch (error) {
         console.error("Failed to get study:", error);

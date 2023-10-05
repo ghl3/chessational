@@ -37,18 +37,20 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
 
   const onStudyChange = useCallback(
     (studyName: string) => {
-      setSelectedStudyName(studyName);
-
       // TODO: Clean this up
       const selectedStudy: Study | undefined = studies.find(
         (study) => study.name === studyName
       );
-      const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
-        (chapter) => chapter.name
-      );
 
+      if (selectedStudy === undefined) {
+        throw new Error("Selected study is undefined");
+      }
+
+      setSelectedStudyName(studyName);
       // Default all the chapters to selected
-      setSelectedChapterNames(chapterNames || []);
+      setSelectedChapterNames(
+        selectedStudy.chapters.map((chapter) => chapter.name)
+      );
     },
     [studies, selectedStudy]
   );
@@ -70,6 +72,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
       <StudyAdder
         setStudies={setStudies}
         setSelectedStudyName={setSelectedStudyName}
+        setSelectedChapterNames={setSelectedChapterNames}
       />
 
       <StudySelector

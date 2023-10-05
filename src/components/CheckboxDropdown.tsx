@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 export interface Option {
   value: string;
@@ -21,9 +21,11 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Ensure that the dropdown is sized appropriately
-  const [buttonWidth, setButtonWidth] = useState(0);
   const buttonRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Ensure that the button and dropdown are  sized appropriately
+  const [buttonWidth, setButtonWidth] = useState(0);
   useEffect(() => {
     if (buttonRef.current) {
       setButtonWidth(buttonRef.current.offsetWidth);
@@ -31,14 +33,20 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   }, [buttonRef]);
 
   // Close dropdown when clicking outside
-  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
+      const isClickOnButton =
+        buttonRef.current &&
+        (e.target === buttonRef.current ||
+          buttonRef.current.contains(e.target as Node));
+
+      const isClickOnDropdown =
         dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node) &&
-        e.target !== buttonRef.current
-      ) {
+        (e.target === buttonRef.current ||
+          dropdownRef.current.contains(e.target as Node));
+
+      if (!isClickOnButton && !isClickOnDropdown) {
         setIsOpen(false);
       }
     };
@@ -50,9 +58,9 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     };
   }, []);
 
-  const toggleDropdown = () => {
+  const toggleDropdown = useCallback(() => {
     setIsOpen((isOpen) => !isOpen);
-  };
+  }, [isOpen]);
 
   const toggleOption = (optionValue: string) => {
     setSelectedOptions((prevSelectedOptions) =>
