@@ -1,4 +1,3 @@
-import { PgnTree } from "@/chess/PgnTree";
 import { NextRequest, NextResponse } from "next/server";
 import { parsePgnStringToChapters } from "@/chess/PgnParser";
 import { Chapter } from "@/chess/Chapter";

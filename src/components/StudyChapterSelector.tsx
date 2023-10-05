@@ -1,8 +1,9 @@
 import React, { useCallback } from "react";
-import { Study, StudyData } from "@/hooks/UseStudyData";
+import { StudyData } from "@/hooks/UseStudyData";
 import { StudyAdder } from "./StudyAdder";
 import { ChapterSelector } from "./ChapterSelector";
-import { StudySelector2 } from "./StudySelector2";
+import { StudySelector } from "./StudySelector";
+import { Study } from "@/chess/Study";
 
 interface StudyChapterSelectorProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -71,7 +72,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         setSelectedStudyName={setSelectedStudyName}
       />
 
-      <StudySelector2
+      <StudySelector
         studies={studies}
         selectedStudy={selectedStudyName}
         onStudyChange={onStudyChange}

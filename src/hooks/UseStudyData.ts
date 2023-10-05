@@ -61,14 +61,6 @@ export const useStudyData = (): StudyData => {
       }),
     [setStudies]
   );
-  /*
-  const setAndStoreStudies = addPostSetAction(
-    setStudies,
-    (studies: Study[]) => {
-      localStorage.setItem("studies", JSON.stringify(studies));
-    }
-  );
-  */
 
   const [selectedStudyName, setSelectedStudyName] = useState<
     string | undefined
@@ -91,21 +83,6 @@ export const useStudyData = (): StudyData => {
       ),
     [setSelectedStudyName]
   );
-
-  /*
-  const setAndStoreSelectedStudyName = addPostSetAction(
-    setSelectedStudyName,
-    (selectedStudyName: string | undefined) => {
-      if (selectedStudyName == null) {
-        localStorage.removeItem("selected-study");
-      } else
-        localStorage.setItem(
-          "selected-study",
-          JSON.stringify(selectedStudyName)
-        );
-    }
-  );
-  */
 
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
     []

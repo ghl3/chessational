@@ -5,9 +5,7 @@ import {
   Move as PgnMove,
   Comment as PgnComment,
 } from "pgn-parser";
-
 import { Chess } from "chess.js";
-//import { PgnTree, MoveNode, GameResult } from "./Chapter";
 import { Chapter, MoveNode } from "./Chapter";
 import { GameResult } from "./Move";
 

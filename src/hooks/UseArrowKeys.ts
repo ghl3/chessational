@@ -1,5 +1,3 @@
-// hooks/useArrowKeys.ts
-
 import { useEffect } from "react";
 
 type ArrowKeysHandler = {

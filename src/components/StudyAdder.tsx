@@ -23,28 +23,7 @@ const getStudy = async (studyId: string): Promise<Study> => {
     url: studyId,
     chapters: chapters,
   };
-
-  //  return pgns;
 };
-
-/*
-const getChapters = (pgnTrees: PgnTree[]): Chapter[] => {
-  const chapters: Chapter[] = [];
-
-  for (let i = 0; i < pgnTrees.length; i++) {
-    const pgnTree: PgnTree = pgnTrees[i];
-    const chapter: Chapter = {
-      index: i,
-      name: pgnTree.chapter || "Unknown Chapter",
-      tree: pgnTree,
-    };
-
-    chapters.push(chapter);
-  }
-
-  return chapters;
-};
-*/
 
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   setStudies: React.Dispatch<React.SetStateAction<Study[]>>;

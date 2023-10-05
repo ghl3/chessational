@@ -1,5 +1,5 @@
 import { describe } from "node:test";
-import { parsePgnString } from "./PgnParser";
+import { parsePgnStringToChapters } from "./PgnParser";
 
 const pgnFischerSpassky = `[Event "F/S Return Match"]
 [Site "Belgrade, Serbia JUG"]
@@ -20,14 +20,14 @@ Nf2 42. g4 Bd3 43. Re6 1/2-1/2`;
 
 describe("PgnParser", () => {
   it("should parse a linear PGN", () => {
-    const tree = parsePgnString(pgnFischerSpassky);
+    const tree = parsePgnStringToChapters(pgnFischerSpassky);
     expect(tree.length).toEqual(1);
   });
 
   it("should parse a simple pgn with alternate move", () => {
     const pgn = `[Foo "Bar"]
     1. e4 e5 2. Nf3 Nc6 (Nf6) *`;
-    const tree = parsePgnString(pgn);
+    const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
         headers: { Foo: "Bar" },
@@ -59,7 +59,7 @@ describe("PgnParser", () => {
     const pgn = `[Foo "Bar"]
     1. e4 e5 {The standard response}
     2. Nf3 Nc6 {Defending the pawn} (Nf6 {Going into the Petrov} 3. Nxe5) 3. Bb5 {The Ruy Lopez} *`;
-    const tree = parsePgnString(pgn);
+    const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
         headers: { Foo: "Bar" },

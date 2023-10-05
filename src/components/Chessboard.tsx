@@ -1,10 +1,6 @@
-// components/Chessboard.tsx
-
 import React, { HTMLAttributes, useCallback, useState } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
-
 import { Square } from "react-chessboard/dist/chessboard/types";
-//import styles from "../styles/Chessboard.module.css";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import ChessboardButtons from "./ChessboardButtons";

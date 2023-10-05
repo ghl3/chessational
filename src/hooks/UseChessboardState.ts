@@ -1,4 +1,4 @@
-import { Fen, Move } from "@/chess/PgnTree";
+import { Fen, Move } from "@/chess/Move";
 import { useState, useEffect } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
