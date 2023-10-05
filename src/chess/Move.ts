@@ -34,22 +34,3 @@ export interface Move {
   gameResult?: GameResult;
   comments?: string[];
 }
-
-//export interface RootNode {
-//  children: MoveNode[];
-//}
-
-export interface MoveNode extends Move {
-  children: MoveNode[];
-}
-
-//export type LineNode = RootNode | MoveNode;
-
-// A Tree Representation
-export interface PgnTree {
-  study: string;
-  chapter: string;
-  orientation: Color;
-  headers: { [key: string]: string };
-  moveTree: MoveNode[];
-}

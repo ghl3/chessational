@@ -1,8 +1,7 @@
-import { PgnTree } from "@/chess/PgnTree";
-import { Chapter, Study } from "@/chess/Study";
+import { Study } from "@/chess/Study";
 import { useCallback, useState } from "react";
 
-const getStudy = async (studyId: string): Promise<PgnTree[]> => {
+const getStudy = async (studyId: string): Promise<Study> => {
   const res = await fetch("http://localhost:3000/api/getStudy", {
     method: "POST",
     cache: "force-cache",
@@ -17,16 +16,23 @@ const getStudy = async (studyId: string): Promise<PgnTree[]> => {
     throw new Error("Error");
   }
 
-  const { pgns } = await res.json();
+  const { studyName, chapters } = await res.json();
 
-  return pgns;
+  return {
+    name: studyName,
+    url: studyId,
+    chapters: chapters,
+  };
+
+  //  return pgns;
 };
 
+/*
 const getChapters = (pgnTrees: PgnTree[]): Chapter[] => {
   const chapters: Chapter[] = [];
 
   for (let i = 0; i < pgnTrees.length; i++) {
-    const pgnTree = pgnTrees[i];
+    const pgnTree: PgnTree = pgnTrees[i];
     const chapter: Chapter = {
       index: i,
       name: pgnTree.chapter || "Unknown Chapter",
@@ -38,6 +44,7 @@ const getChapters = (pgnTrees: PgnTree[]): Chapter[] => {
 
   return chapters;
 };
+*/
 
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
@@ -66,19 +73,13 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   const fetchStudyData = useCallback(
     async (studyUrl: string) => {
       try {
-        const trees: PgnTree[] = await getStudy(studyUrl);
-        if (trees.length === 0) {
-          throw new Error("Study has no trees");
+        const study: Study = await getStudy(studyUrl);
+        if (study.chapters.length === 0) {
+          throw new Error("Study has no chapters");
         }
 
-        const studyName = trees[0].study;
-        const chapters: Chapter[] = getChapters(trees);
-        addStudy({
-          url: studyUrl,
-          name: studyName,
-          chapters: chapters,
-        });
-        setSelectedStudyName(studyName);
+        addStudy(study);
+        setSelectedStudyName(study.name);
         setStudyUrl("");
       } catch (error) {
         console.error("Failed to get study:", error);

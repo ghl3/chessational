@@ -1,10 +1,4 @@
-import { PgnTree } from "./PgnTree";
-
-export type Chapter = {
-  index: number;
-  name: string;
-  tree: PgnTree;
-};
+import { Chapter } from "./Chapter";
 
 export interface Study {
   name: string;

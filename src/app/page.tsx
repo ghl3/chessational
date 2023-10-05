@@ -9,18 +9,22 @@ import Head from "next/head";
 import { useCallback, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
-import { LineNode, MoveNode } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import DescriptionArea from "@/components/DescriptionArea";
 import { LineState } from "@/components/MoveDescription";
 import { useStudyData } from "@/hooks/UseStudyData";
-import { Chapter, Study } from "@/chess/Study";
+import { Study } from "@/chess/Study";
+import { Chapter, LineNode, MoveNode } from "@/chess/Chapter";
 
 const OPPONENT_MOVE_DELAY = 250;
 
 const Home: React.FC = () => {
   const studyData = useStudyData();
+
+  // Set the latest move in the line
+  const [line, setLine] = useState<LineNode | null>(null);
+  const [lineState, setLineState] = useState<LineState>({});
 
   const selectedStudy: Study | undefined = studyData.studies.find(
     (study) => study.name == studyData.selectedStudyName
@@ -31,15 +35,10 @@ const Home: React.FC = () => {
       studyData.selectedChapterNames.includes(chapter.name)
     );
 
-  const [lineState, setLineState] = useState<LineState>({});
-
   const chessboardState: ChessboardState = useChessboardState();
 
   const [showComments, setShowComments] = useState<boolean>(false);
   const [showSolution, setShowSolution] = useState<boolean>(false);
-
-  // Set the latest move in the line
-  const [line, setLine] = useState<LineNode | null>(null);
 
   let gameObject = useRef<Chess>(new Chess());
 
@@ -90,14 +89,15 @@ const Home: React.FC = () => {
     const chapter: Chapter = randomlyPickChapter(selectedChapters);
 
     chessboardState.setOrientation(
-      chapter.tree.orientation == "w" ? "white" : "black"
+      chapter.orientation == "w" ? "white" : "black"
     );
 
     // If we are black, we first have to do white's move
-    if (chapter.tree.orientation == "b") {
-      pickAndApplyMove(chapter.tree.moveTree.children);
+    if (chapter.orientation == "b") {
+      pickAndApplyMove(chapter.moveTree.children);
+      setLineState({ status: "SELECT_MOVE_FOR_BLACK" });
     } else {
-      setLine(chapter.tree.moveTree);
+      setLine(chapter.moveTree);
       setLineState({ status: "SELECT_MOVE_FOR_WHITE" });
     }
   }, [studyData, chessboardState, selectedChapters]);

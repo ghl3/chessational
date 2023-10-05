@@ -7,7 +7,9 @@ import {
 } from "pgn-parser";
 
 import { Chess } from "chess.js";
-import { PgnTree, MoveNode, GameResult } from "./PgnTree";
+//import { PgnTree, MoveNode, GameResult } from "./Chapter";
+import { Chapter, MoveNode } from "./Chapter";
+import { GameResult } from "./Move";
 
 const convertHeaders = (
   headers: PgnHeader[] | null
@@ -110,21 +112,21 @@ const convertMovesToTree = (moves: PgnMove[], chess: Chess): MoveNode[] => {
   return moveNodes;
 };
 
-export const convertGameToTree = (game: ParsedPGN): PgnTree => {
+export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   const headers = convertHeaders(game.headers);
   const study = headers.Event.split(":")[0];
   const chapter = headers.Event.split(":")[1];
   const orientation = headers.Orientation.toLowerCase() == "white" ? "w" : "b";
   return {
-    study: study,
-    chapter: chapter,
-    headers: headers,
+    name: chapter,
+    studyName: study,
     orientation: orientation,
-    moveTree: convertMovesToTree(game.moves, new Chess()),
+    headers: headers,
+    moveTree: { children: convertMovesToTree(game.moves, new Chess()) },
   };
 };
 
-export const parsePgnString = (pgn: string): PgnTree[] => {
+export const parsePgnStringToChapters = (pgn: string): Chapter[] => {
   const parsedGames = parse(pgn);
-  return parsedGames.map(convertGameToTree);
+  return parsedGames.map(convertParsedPgnToChapter);
 };
