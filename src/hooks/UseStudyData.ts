@@ -1,17 +1,5 @@
-import { PgnTree } from "@/chess/PgnTree";
-import { useState } from "react";
-
-export type Chapter = {
-  index: number;
-  name: string;
-  tree: PgnTree;
-};
-
-export interface Study {
-  name: string;
-  url: string;
-  chapters: Chapter[];
-}
+import { Study } from "@/chess/Study";
+import { useMemo, useState } from "react";
 
 const parseOrDefault = <T>(jsonString: string | null, d: T) => {
   if (jsonString != null) {
@@ -66,23 +54,58 @@ export const useStudyData = (): StudyData => {
     parseOrDefault(localStorage.getItem("studies"), [])
   );
 
+  const setAndStoreStudies = useMemo(
+    () =>
+      addPostSetAction(setStudies, (studies: Study[]) => {
+        localStorage.setItem("studies", JSON.stringify(studies));
+      }),
+    [setStudies]
+  );
+  /*
   const setAndStoreStudies = addPostSetAction(
     setStudies,
     (studies: Study[]) => {
       localStorage.setItem("studies", JSON.stringify(studies));
     }
   );
+  */
 
   const [selectedStudyName, setSelectedStudyName] = useState<
     string | undefined
   >(parseOrDefault(localStorage.getItem("selected-study"), undefined));
 
+  const setAndStoreSelectedStudyName = useMemo(
+    () =>
+      addPostSetAction(
+        setSelectedStudyName,
+        (selectedStudyName: string | undefined) => {
+          if (selectedStudyName == null) {
+            localStorage.removeItem("selected-study");
+          } else {
+            localStorage.setItem(
+              "selected-study",
+              JSON.stringify(selectedStudyName)
+            );
+          }
+        }
+      ),
+    [setSelectedStudyName]
+  );
+
+  /*
   const setAndStoreSelectedStudyName = addPostSetAction(
     setSelectedStudyName,
     (selectedStudyName: string | undefined) => {
-      localStorage.setItem("selected-study", JSON.stringify(selectedStudyName));
+      if (selectedStudyName == null) {
+        localStorage.removeItem("selected-study");
+      } else
+        localStorage.setItem(
+          "selected-study",
+          JSON.stringify(selectedStudyName)
+        );
     }
   );
+  */
 
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
     []

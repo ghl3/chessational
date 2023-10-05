@@ -35,9 +35,15 @@ export interface Move {
   comments?: string[];
 }
 
+export interface RootNode {
+  children: MoveNode[];
+}
+
 export interface MoveNode extends Move {
   children: MoveNode[];
 }
+
+export type LineNode = RootNode | MoveNode;
 
 // A Tree Representation
 export interface PgnTree {
@@ -45,5 +51,5 @@ export interface PgnTree {
   chapter: string;
   orientation: Color;
   headers: { [key: string]: string };
-  moveTree: MoveNode[];
+  moveTree: RootNode;
 }

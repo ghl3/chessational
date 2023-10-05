@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import { Study, StudyData } from "@/hooks/UseStudyData";
 import { StudyAdder } from "./StudyAdder";
 import { ChapterSelector } from "./ChapterSelector";
-import { StudySelector } from "./StudySelector";
 import { StudySelector2 } from "./StudySelector2";
 
 interface StudyChapterSelectorProps
@@ -50,7 +49,19 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
       // Default all the chapters to selected
       setSelectedChapterNames(chapterNames || []);
     },
-    [selectedStudy]
+    [studies, selectedStudy]
+  );
+
+  const onStudyDelete = useCallback(
+    (studyName: string) => {
+      const newStudies = studies.filter((study) => study.name !== studyName);
+      setStudies(newStudies);
+      if (selectedStudyName === studyName) {
+        setSelectedStudyName(undefined);
+        setSelectedChapterNames([]);
+      }
+    },
+    [studies, selectedStudyName]
   );
 
   return (
@@ -60,16 +71,11 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         setSelectedStudyName={setSelectedStudyName}
       />
 
-      <StudySelector
-        studies={studies}
-        selectedStudy={selectedStudyName}
-        onStudyChange={onStudyChange}
-      />
-
       <StudySelector2
         studies={studies}
         selectedStudy={selectedStudyName}
         onStudyChange={onStudyChange}
+        onStudyDelete={onStudyDelete}
       />
 
       <ChapterSelector

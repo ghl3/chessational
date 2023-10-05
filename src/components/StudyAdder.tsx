@@ -1,5 +1,5 @@
 import { PgnTree } from "@/chess/PgnTree";
-import { Chapter, Study } from "@/hooks/UseStudyData";
+import { Chapter, Study } from "@/chess/Study";
 import { useCallback, useState } from "react";
 
 const getStudy = async (studyId: string): Promise<PgnTree[]> => {

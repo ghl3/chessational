@@ -1,46 +1,33 @@
-import React, { useEffect, useRef, useState } from "react";
-import Modal from "react-modal";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { Study } from "@/hooks/UseStudyData";
 
-interface StudySelectorProps {
+interface StudySelector2Props {
   studies: Study[];
   selectedStudy?: string;
-  onStudyChange?: (study: string) => void;
-  onDelete?: (study: string) => void;
+  onStudyChange: (study: string) => void;
+  onStudyDelete: (study: string) => void;
 }
 
-const modalStyle = {
-  content: {
-    top: "50%",
-    left: "50%",
-    right: "auto",
-    bottom: "auto",
-    marginRight: "-50%",
-    transform: "translate(-50%, -50%)",
-    width: "400px",
-    height: "200px",
-  },
-};
-
-export const StudySelector2: React.FC<StudySelectorProps> = ({
+export const StudySelector2: React.FC<StudySelector2Props> = ({
   studies,
   selectedStudy,
   onStudyChange,
-  onDelete,
+  onStudyDelete,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
+  const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback((event: MouseEvent) => {
     if (
       containerRef.current &&
       !containerRef.current.contains(event.target as Node)
     ) {
       setIsOpen(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -54,30 +41,40 @@ export const StudySelector2: React.FC<StudySelectorProps> = ({
     };
   }, [isOpen]);
 
-  const handleClickInButton = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    e.stopPropagation();
-    setIsOpen(!isOpen);
-  };
-  const handleDropdownChange = (studyName: string) => {
-    onStudyChange?.(studyName);
+  const handleClickInButton = useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      e.stopPropagation();
+      setIsOpen(!isOpen);
+    },
+    [isOpen]
+  );
+
+  const handleDropdownChange = useCallback((studyName: string) => {
+    onStudyChange(studyName);
     setIsOpen(false);
-  };
+  }, []);
 
-  const handleDelete = (studyName: string) => {
+  const handleDelete = useCallback((studyName: string) => {
+    setStudyToDelete(studyName);
     setShowDialog(true);
-    // You might want to set which study to delete here
-  };
+  }, []);
 
-  const confirmDelete = () => {
-    if (selectedStudy == null) {
+  const onConfirmDeleteYes = useCallback(() => {
+    if (studyToDelete == null) {
       throw new Error("selectedStudy is null");
     }
     // Perform delete action here
-    onDelete?.(selectedStudy);
+    onStudyDelete(studyToDelete);
     setShowDialog(false);
-  };
+    setIsOpen(false);
+    setStudyToDelete(null);
+  }, [studyToDelete]);
+
+  const onConfirmDeleteNo = useCallback(() => {
+    setShowDialog(false);
+    setIsOpen(false);
+    setStudyToDelete(null);
+  }, []);
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -127,16 +124,15 @@ export const StudySelector2: React.FC<StudySelectorProps> = ({
             <h2 className="text-lg font-bold mb-4 text-black">
               Confirm Delete
             </h2>
-
             <button
               className="bg-blue-500 text-white rounded px-4 py-2 mr-2"
-              onClick={confirmDelete}
+              onClick={onConfirmDeleteYes}
             >
               Yes
             </button>
             <button
               className="bg-gray-300 text-black rounded px-4 py-2"
-              onClick={() => setShowDialog(false)}
+              onClick={onConfirmDeleteNo}
             >
               No
             </button>

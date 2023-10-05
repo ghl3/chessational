@@ -1,9 +1,9 @@
 import React from "react";
-import { MoveDescription, LineResult } from "./MoveDescription";
+import { MoveDescription, LineState } from "./MoveDescription";
 import CommentArea from "./CommentArea";
 
 interface DescriptionAreaProps {
-  result: LineResult;
+  result: LineState;
   comments: string[];
   showComments: boolean;
 }
@@ -15,7 +15,7 @@ const DescriptionArea: React.FC<DescriptionAreaProps> = ({
 }) => {
   return (
     <div>
-      <MoveDescription result={result} />
+      <MoveDescription status={result.status} result={result.result} />
       <CommentArea comments={comments} showComments={showComments} />
     </div>
   );

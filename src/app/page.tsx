@@ -9,12 +9,13 @@ import Head from "next/head";
 import { useCallback, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
-import { MoveNode } from "@/chess/PgnTree";
+import { LineNode, MoveNode } from "@/chess/PgnTree";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import DescriptionArea from "@/components/DescriptionArea";
-import { LineResult } from "@/components/MoveDescription";
-import { Chapter, Study, useStudyData } from "@/hooks/UseStudyData";
+import { LineState } from "@/components/MoveDescription";
+import { useStudyData } from "@/hooks/UseStudyData";
+import { Chapter, Study } from "@/chess/Study";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -30,7 +31,7 @@ const Home: React.FC = () => {
       studyData.selectedChapterNames.includes(chapter.name)
     );
 
-  const [lastMoveResult, setLastMoveResult] = useState<LineResult>("Unknown");
+  const [lineState, setLineState] = useState<LineState>({});
 
   const chessboardState: ChessboardState = useChessboardState();
 
@@ -38,11 +39,11 @@ const Home: React.FC = () => {
   const [showSolution, setShowSolution] = useState<boolean>(false);
 
   // Set the latest move in the line
-  const [line, setLine] = useState<MoveNode | null>(null);
+  const [line, setLine] = useState<LineNode | null>(null);
 
   let gameObject = useRef<Chess>(new Chess());
 
-  const selectChapter = (): Chapter => {
+  const randomlyPickChapter = (chapters: Chapter[]): Chapter => {
     if (selectedChapters == null) {
       throw new Error("selectedChapters is null");
     }
@@ -71,13 +72,22 @@ const Home: React.FC = () => {
     // Reset the game
     gameObject.current = new Chess();
     setLine(null);
-    setLastMoveResult("Unknown");
+    setLineState({});
 
     if (selectedStudy == null) {
       throw new Error("study is null");
     }
 
-    const chapter: Chapter = selectChapter();
+    if (selectedChapters == null) {
+      throw new Error("selectedChapters is null");
+    }
+
+    // TODO: Make this into a nicer dialog
+    if (selectedChapters.length == 0) {
+      throw new Error("selectedChapters is empty");
+    }
+
+    const chapter: Chapter = randomlyPickChapter(selectedChapters);
 
     chessboardState.setOrientation(
       chapter.tree.orientation == "w" ? "white" : "black"
@@ -85,9 +95,12 @@ const Home: React.FC = () => {
 
     // If we are black, we first have to do white's move
     if (chapter.tree.orientation == "b") {
-      pickAndApplyMove(chapter.tree.moveTree);
+      pickAndApplyMove(chapter.tree.moveTree.children);
+    } else {
+      setLine(chapter.tree.moveTree);
+      setLineState({ status: "SELECT_MOVE_FOR_WHITE" });
     }
-  }, [studyData, chessboardState]);
+  }, [studyData, chessboardState, selectedChapters]);
 
   const moveOrNull = (
     sourceSquare: Square,
@@ -107,9 +120,18 @@ const Home: React.FC = () => {
   const playOpponentNextMoveIfLineContinues = (line: MoveNode) => {
     // If this is the end of the line, we're done.
     if (line.children.length == 0) {
-      setLastMoveResult("Line Complete");
+      setLineState({
+        result: "CORRECT",
+        status: "LINE_COMPLETE",
+      });
     } else {
-      setLastMoveResult("Correct");
+      setLineState({
+        result: "CORRECT",
+        status:
+          line.player == "w"
+            ? "SELECT_MOVE_FOR_BLACK"
+            : "SELECT_MOVE_FOR_WHITE",
+      });
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
@@ -145,7 +167,8 @@ const Home: React.FC = () => {
       }
 
       // If we got here, the move is not correct
-      setLastMoveResult("Incorrect");
+      // TODO: This logic is just wrong.
+      setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
 
       // We have to undo the move we did above
       gameObject.current.undo();
@@ -172,6 +195,15 @@ const Home: React.FC = () => {
 
     setShowSolution(true);
   }, [line]);
+
+  // TODO: This is a hack.  Fix.
+  const isMoveNode = (line: any): line is MoveNode => {
+    return line && "children" in line && "move" in line;
+  };
+  let comments: string[] = [];
+  if (isMoveNode(line)) {
+    comments = line.comments || [];
+  }
 
   return (
     <>
@@ -200,8 +232,8 @@ const Home: React.FC = () => {
               style={{ height: chessboardState.boardSize }}
             >
               <DescriptionArea
-                result={lastMoveResult}
-                comments={line?.comments || []}
+                result={lineState}
+                comments={comments}
                 showComments={showComments}
               />
             </div>
