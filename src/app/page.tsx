@@ -38,7 +38,6 @@ const Home: React.FC = () => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const [showComments, setShowComments] = useState<boolean>(false);
-  const [showSolution, setShowSolution] = useState<boolean>(false);
 
   let gameObject = useRef<Chess>(new Chess());
 
@@ -118,8 +117,16 @@ const Home: React.FC = () => {
   };
 
   const playOpponentNextMoveIfLineContinues = (line: MoveNode) => {
+    // Line is over if either if either it has no children
+    // or if any of the children have no children.
+    // (Why "if any of the children have no children"?  Because
+    // we want to avoid lines that end on the opponent's move).
+    const endOfLine =
+      line.children.length == 0 ||
+      line.children.some((child) => child.children.length == 0);
+
     // If this is the end of the line, we're done.
-    if (line.children.length == 0) {
+    if (endOfLine) {
       setLineState({
         result: "CORRECT",
         status: "LINE_COMPLETE",
@@ -192,8 +199,6 @@ const Home: React.FC = () => {
       applyMove(bestMove);
       playOpponentNextMoveIfLineContinues(bestMove);
     }, OPPONENT_MOVE_DELAY);
-
-    setShowSolution(true);
   }, [line]);
 
   // TODO: This is a hack.  Fix.
