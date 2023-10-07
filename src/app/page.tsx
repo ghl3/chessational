@@ -88,9 +88,7 @@ const Home: React.FC = () => {
 
     const chapter: Chapter = randomlyPickChapter(selectedChapters);
 
-    chessboardState.setOrientation(
-      chapter.orientation == "w" ? "white" : "black"
-    );
+    chessboardState.setOrientation(chapter.orientation);
 
     // If we are black, we first have to do white's move
     if (chapter.orientation == "b") {

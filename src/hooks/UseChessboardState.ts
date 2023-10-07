@@ -1,9 +1,8 @@
-import { Fen, Move } from "@/chess/Move";
+import { DEFAULT_FEN, Fen } from "@/chess/Fen";
+import { Move } from "@/chess/Move";
 import { useState, useEffect } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
-
-const defaultFen: Fen =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+import { Color, WHITE } from "chess.js";
 
 export interface Arrow {
   from: Square;
@@ -19,10 +18,10 @@ export interface ChessboardState {
   arrows: Arrow[];
   moves: Move[];
   boardSize: number;
-  orientation: "white" | "black";
+  orientation: Color;
 
   setPositionFromIndex: (moveIndex: number) => void;
-  setOrientation: React.Dispatch<React.SetStateAction<"white" | "black">>;
+  setOrientation: React.Dispatch<React.SetStateAction<Color>>;
   setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
   addMove: (move: Move) => void;
   clearGame: () => void;
@@ -66,8 +65,8 @@ const useBoardSize = (): number => {
 export const useChessboardState = (): ChessboardState => {
   const [moves, setMoves] = useState<Move[]>([]);
   const [moveIndex, setMoveIndex] = useState<number>(0);
-  const [position, setPosition] = useState<Fen>(defaultFen);
-  const [orientation, setOrientation] = useState<"white" | "black">("white");
+  const [position, setPosition] = useState<Fen>(DEFAULT_FEN);
+  const [orientation, setOrientation] = useState<Color>(WHITE);
   const [arrows, setArrows] = useState<Arrow[]>([]);
   const boardSize = useBoardSize();
 
@@ -81,7 +80,7 @@ export const useChessboardState = (): ChessboardState => {
   const clearGame = () => {
     setMoves([]);
     setMoveIndex(0);
-    setPosition(defaultFen);
+    setPosition(DEFAULT_FEN);
   };
 
   const addMove = (move: Move) => {

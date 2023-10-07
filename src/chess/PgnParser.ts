@@ -1,4 +1,4 @@
-import { Color } from "chess.js";
+import { Color, WHITE, BLACK } from "chess.js";
 
 import {
   parse,
@@ -128,7 +128,19 @@ const getStudyAndChapter = (headers: {
 const getOrientation = (headers: { [key: string]: string }): Color | null => {
   const orientation = headers.Orientation;
   if (orientation) {
-    return orientation.toLowerCase() == "white" ? "w" : "b";
+    if (
+      orientation.toLowerCase() == "white" ||
+      orientation.toLowerCase() == "w"
+    ) {
+      return WHITE;
+    } else if (
+      orientation.toLowerCase() == "black" ||
+      orientation.toLowerCase() == "b"
+    ) {
+      return BLACK;
+    } else {
+      return null;
+    }
   }
   return null;
 };
@@ -136,7 +148,7 @@ const getOrientation = (headers: { [key: string]: string }): Color | null => {
 export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   const headers = convertHeaders(game.headers);
   const [study, chapter] = getStudyAndChapter(headers) ?? ["", ""];
-  const orientation = getOrientation(headers) ?? "w";
+  const orientation = getOrientation(headers) ?? WHITE;
 
   return {
     name: chapter,
