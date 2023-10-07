@@ -214,7 +214,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Review Chess Game</title>
+        <title>Opening Learner</title>
         <meta
           name="description"
           content="Enter a chess.com game ID to review"
@@ -222,6 +222,7 @@ const Home: React.FC = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="charcoal-bg text-white min-h-screen flex flex-col items-center justify-center">
+        <h1 className="text-4xl mb-6">Opening Learner</h1>
         <div className="flex flex-col items-center space-y-6">
           <StudyChapterSelector studyData={studyData} />
           <div
