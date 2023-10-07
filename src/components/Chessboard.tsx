@@ -6,50 +6,12 @@ import { ChessboardState } from "@/hooks/UseChessboardState";
 import ChessboardButtons from "./ChessboardButtons";
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
 import { PieceSymbol, Color, WHITE, BLACK } from "chess.js";
+import { MaterialDiff } from "./MaterialDiff";
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardState: ChessboardState;
   onPieceDrop: (source: Square, target: Square) => boolean;
 }
-
-const pieceToUnicode = (piece: PieceSymbol, color: Color): string => {
-  const pieceMap = {
-    k: "♔",
-    q: "♕",
-    r: "♖",
-    b: "♗",
-    n: "♘",
-    p: "♙",
-  };
-
-  const unicode = pieceMap[piece];
-  return color === BLACK ? unicode.toLowerCase() : unicode;
-};
-
-const renderPieceDiff = (pieceCount: PieceCount, baseColor: Color) => {
-  const diffs: Map<PieceSymbol, number> = new Map();
-  const primary = baseColor === WHITE ? pieceCount.white : pieceCount.black;
-  const opposite = baseColor === WHITE ? pieceCount.black : pieceCount.white;
-
-  primary.forEach((count, piece) => {
-    const diff = count - (opposite.get(piece) || 0);
-    if (diff > 0) {
-      diffs.set(piece, diff);
-    }
-  });
-
-  return (
-    <>
-      {Array.from(diffs).map(([piece, num]) => (
-        <span key={piece}>
-          {Array.from({ length: Math.abs(num) }).map((_, i) => (
-            <span key={i}>{pieceToUnicode(piece, baseColor)}</span>
-          ))}
-        </span>
-      ))}
-    </>
-  );
-};
 
 const Chessboard: React.FC<ChessboardProps> = ({
   chessboardState,
@@ -110,30 +72,23 @@ const Chessboard: React.FC<ChessboardProps> = ({
   return (
     <>
       <div className="flex flex-col items-center space-y-4">
-        <div className="piece-diff">
-          {renderPieceDiff(
-            pieceCount,
-            chessboardState.orientation == WHITE ? BLACK : WHITE
-          )}
-        </div>
-        <div>
-          <ReactChessboard
-            position={chessboardState.position}
-            customDarkSquareStyle={{ backgroundColor: "#34495e" }}
-            boardWidth={chessboardState.boardSize}
-            areArrowsAllowed={true}
-            boardOrientation={chessboardState.orientation}
-            onPieceDrop={onPieceDrop}
-            customArrows={chessboardState.arrows}
-          />
-        </div>
-        <div className="piece-diff">
-          {renderPieceDiff(
-            pieceCount,
-            chessboardState.orientation == WHITE ? WHITE : BLACK
-          )}
-        </div>
-
+        <MaterialDiff
+          pieceCount={pieceCount}
+          color={chessboardState.orientation == WHITE ? BLACK : WHITE}
+        />
+        <ReactChessboard
+          position={chessboardState.position}
+          customDarkSquareStyle={{ backgroundColor: "#34495e" }}
+          boardWidth={chessboardState.boardSize}
+          areArrowsAllowed={true}
+          boardOrientation={chessboardState.orientation}
+          onPieceDrop={onPieceDrop}
+          customArrows={chessboardState.arrows}
+        />
+        <MaterialDiff
+          pieceCount={pieceCount}
+          color={chessboardState.orientation == WHITE ? WHITE : BLACK}
+        />
         <ChessboardButtons
           isDisabled={false}
           handleJumpToStart={handleJumpToStart}
