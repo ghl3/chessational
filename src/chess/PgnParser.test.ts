@@ -31,26 +31,66 @@ describe("PgnParser", () => {
     expect(tree).toEqual([
       {
         headers: { Foo: "Bar" },
-        perspective: "w",
-        moveTree: [
-          {
-            move: "e4",
-            children: [
-              {
-                move: "e5",
-                children: [
-                  {
-                    move: "Nf3",
-                    children: [
-                      { move: "Nc6", children: [] },
-                      { move: "Nf6", children: [] },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
+        name: "",
+        orientation: "w",
+        studyName: "",
+        moveTree: {
+          children: [
+            {
+              move: "e4",
+              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+              from: "e2",
+              isGameOver: false,
+              piece: "p",
+              player: "w",
+              to: "e4",
+              children: [
+                {
+                  move: "e5",
+                  fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                  from: "e7",
+                  isGameOver: false,
+                  piece: "p",
+                  player: "b",
+                  to: "e5",
+                  children: [
+                    {
+                      move: "Nf3",
+                      fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                      from: "g1",
+                      isGameOver: false,
+                      piece: "n",
+                      player: "w",
+                      to: "f3",
+                      children: [
+                        {
+                          move: "Nc6",
+                          fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                          from: "b8",
+                          isGameOver: false,
+                          piece: "n",
+                          player: "b",
+                          to: "c6",
+                          children: [],
+                        },
+                        {
+                          move: "Nf6",
+                          fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                          from: "g8",
+                          isGameOver: false,
+                          piece: "n",
+                          player: "b",
+                          to: "f6",
+                          children: [],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       },
     ]);
   });
@@ -63,41 +103,92 @@ describe("PgnParser", () => {
     expect(tree).toEqual([
       {
         headers: { Foo: "Bar" },
-        perspective: "w",
-        moveTree: [
-          {
-            move: "e4",
-            children: [
-              {
-                move: "e5",
-                comments: ["The standard response"],
-                children: [
-                  {
-                    move: "Nf3",
-                    children: [
-                      {
-                        move: "Nc6",
-                        comments: ["Defending the pawn"],
-                        children: [
-                          {
-                            move: "Bb5",
-                            comments: ["The Ruy Lopez"],
-                            children: [],
-                          },
-                        ],
-                      },
-                      {
-                        move: "Nf6",
-                        comments: ["Going into the Petrov"],
-                        children: [{ move: "Nxe5", children: [] }],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
+        name: "",
+        orientation: "w",
+        studyName: "",
+        moveTree: {
+          children: [
+            {
+              move: "e4",
+              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+              from: "e2",
+              isGameOver: false,
+              piece: "p",
+              player: "w",
+              to: "e4",
+              children: [
+                {
+                  move: "e5",
+                  fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                  from: "e7",
+                  isGameOver: false,
+                  piece: "p",
+                  player: "b",
+                  to: "e5",
+                  comments: ["The standard response"],
+                  children: [
+                    {
+                      move: "Nf3",
+                      fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                      from: "g1",
+                      isGameOver: false,
+                      piece: "n",
+                      player: "w",
+                      to: "f3",
+                      children: [
+                        {
+                          move: "Nc6",
+                          fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                          from: "b8",
+                          isGameOver: false,
+                          piece: "n",
+                          player: "b",
+                          to: "c6",
+                          comments: ["Defending the pawn"],
+                          children: [
+                            {
+                              move: "Bb5",
+                              fen: "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+                              from: "f1",
+                              isGameOver: false,
+                              piece: "b",
+                              player: "w",
+                              to: "b5",
+                              comments: ["The Ruy Lopez"],
+                              children: [],
+                            },
+                          ],
+                        },
+                        {
+                          move: "Nf6",
+                          fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                          from: "g8",
+                          isGameOver: false,
+                          piece: "n",
+                          player: "b",
+                          to: "f6",
+                          comments: ["Going into the Petrov"],
+                          children: [
+                            {
+                              move: "Nxe5",
+                              fen: "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
+                              from: "f3",
+                              isGameOver: false,
+                              piece: "n",
+                              player: "w",
+                              to: "e5",
+                              children: [],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       },
     ]);
   });

@@ -1,3 +1,5 @@
+import { Color } from "chess.js";
+
 import {
   parse,
   ParsedPGN,
@@ -110,11 +112,32 @@ const convertMovesToTree = (moves: PgnMove[], chess: Chess): MoveNode[] => {
   return moveNodes;
 };
 
+const getStudyAndChapter = (headers: {
+  [key: string]: string;
+}): [string, string] | null => {
+  const event = headers.Event;
+  if (event) {
+    const split = event.split(":");
+    if (split.length === 2) {
+      return [split[0], split[1]];
+    }
+  }
+  return null;
+};
+
+const getOrientation = (headers: { [key: string]: string }): Color | null => {
+  const orientation = headers.Orientation;
+  if (orientation) {
+    return orientation.toLowerCase() == "white" ? "w" : "b";
+  }
+  return null;
+};
+
 export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   const headers = convertHeaders(game.headers);
-  const study = headers.Event.split(":")[0];
-  const chapter = headers.Event.split(":")[1];
-  const orientation = headers.Orientation.toLowerCase() == "white" ? "w" : "b";
+  const [study, chapter] = getStudyAndChapter(headers) ?? ["", ""];
+  const orientation = getOrientation(headers) ?? "w";
+
   return {
     name: chapter,
     studyName: study,

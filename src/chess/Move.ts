@@ -1,16 +1,9 @@
 import { Square, PieceSymbol, Color } from "chess.js";
+import { Fen } from "./Fen";
 
 export const getOppositeColor = (color: Color): Color => {
   return color === "w" ? "b" : "w";
 };
-
-export type Fen = string;
-
-export class FenUtil {
-  static getTurn = (fen: Fen): Color => {
-    return fen.split(" ")[1] as Color;
-  };
-}
 
 export type GameResult =
   | "UNKNOWN"
