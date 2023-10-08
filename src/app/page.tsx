@@ -76,6 +76,7 @@ const Home: React.FC = () => {
     gameObject.current = new Chess();
     setLine(null);
     setLineState({});
+    setExploreMode(false);
 
     if (selectedStudy == null) {
       throw new Error("study is null");
@@ -129,7 +130,7 @@ const Home: React.FC = () => {
         };
       }
     } catch (error) {
-      console.error("Invalid Move:", error);
+      console.log("Invalid Move:", error);
       return null;
     }
   };
@@ -227,6 +228,9 @@ const Home: React.FC = () => {
       for (const move of moves) {
         chessboardState.move(move, true);
       }
+      gameObject.current.load(
+        chessboardState.moves[chessboardState.moves.length - 1].fen
+      );
     } else {
       setExploreMode(true);
     }
