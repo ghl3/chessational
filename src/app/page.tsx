@@ -228,13 +228,15 @@ const Home: React.FC = () => {
       for (const move of moves) {
         chessboardState.move(move, true);
       }
-      gameObject.current.load(
-        chessboardState.moves[chessboardState.moves.length - 1].fen
-      );
+      if (chessboardState.moves.length > 0) {
+        gameObject.current.load(
+          chessboardState.moves[chessboardState.moves.length - 1].fen
+        );
+      }
     } else {
       setExploreMode(true);
     }
-  }, [line, exploreMode]);
+  }, [line, exploreMode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
     const bestMove = line?.children[0];

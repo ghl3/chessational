@@ -25,15 +25,25 @@ export const Controls: React.FC<ControlProps> = ({
       </button>
 
       <button
-        className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
-        onClick={onShowSolution}
+        className={`px-4 py-2 text-lg ${
+          exploreMode
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-blue-500 text-white"
+        } rounded`}
+        onClick={!exploreMode ? onShowSolution : undefined}
+        disabled={exploreMode}
       >
         Show Solution
       </button>
 
       <button
-        className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
-        onClick={onShowComments}
+        className={`px-4 py-2 text-lg ${
+          exploreMode
+            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+            : "bg-blue-500 text-white"
+        } rounded`}
+        onClick={!exploreMode ? onShowComments : undefined}
+        disabled={exploreMode}
       >
         Show Comments
       </button>
