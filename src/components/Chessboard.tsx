@@ -10,7 +10,11 @@ import { MaterialDiff } from "./MaterialDiff";
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardState: ChessboardState;
-  onPieceDrop: (source: Square, target: Square) => boolean;
+  onPieceDrop: (
+    source: Square,
+    target: Square,
+    promotion?: PieceSymbol
+  ) => boolean;
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
@@ -84,6 +88,10 @@ const Chessboard: React.FC<ChessboardProps> = ({
           boardOrientation={chessboardState.orientation}
           onPieceDrop={onPieceDrop}
           customArrows={chessboardState.arrows}
+          autoPromoteToQueen={true}
+          // TODO: Handle promotion
+          //          onPromotionCheck
+          // showPromotionDialog = {true}
         />
         <MaterialDiff
           pieceCount={pieceCount}

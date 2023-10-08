@@ -30,6 +30,40 @@ if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 18, 3, false);
 }
 
+// This does NOT update the chess object.
+const createMoveOrNull = (
+  chess: Chess,
+  sourceSquare: Square,
+  targetSquare: Square
+): Move | null => {
+  try {
+    const moveResult = chess.move({
+      from: sourceSquare,
+      to: targetSquare,
+    });
+
+    if (moveResult == null) {
+      return null;
+    } else {
+      const move: Move = {
+        move: moveResult.san,
+        piece: moveResult.piece,
+        from: moveResult.from,
+        to: moveResult.to,
+        player: moveResult.color,
+        fen: chess.fen(),
+        isGameOver: chess.isGameOver(),
+        gameResult: getGameResult(chess),
+      };
+      chess.undo();
+      return move;
+    }
+  } catch (error) {
+    console.log("Invalid Move:", error);
+    return null;
+  }
+};
+
 const Home: React.FC = () => {
   const studyData = useStudyData();
   useEffect(studyData.populateCachedValues, []);
@@ -75,37 +109,47 @@ const Home: React.FC = () => {
     return selectedChapters[chapterIndex];
   };
 
-  const handleEngineEvaluation = (evaluation: EvaluatedPosition) => {
-    console.log("Evaluation");
-    console.log(evaluation);
-  };
-
   const toggleEngine = useCallback(() => {
     setShowEngine(!showEngine);
-  }, [showEngine]);
-
-  const applyMove = (move: MoveNode) => {
-    const moveResult = moveOrNull(gameObject.current, move.from, move.to);
-    if (moveResult == null) {
-      throw new Error("Move is null");
-    }
-    setMoves([...moves, moveResult]);
-    setLine(move);
-    chessboardState.move(move, false);
 
     if (engine && showEngine) {
       engine.cancel();
+      setPositionEvaluation(null);
       engine
         .evaluatePosition(gameObject.current.fen())
-        .then(handleEngineEvaluation);
+        .then(setPositionEvaluation);
     }
-  };
+  }, [showEngine]);
 
-  const pickAndApplyMove = (moveNodes: MoveNode[]) => {
+  // Apply a move.  The move must be a valid move or an
+  // error will be thrown.
+  const applyMove = useCallback(
+    (chess: Chess, move: Move): void => {
+      // Throws an error if the move is invalid
+      chess.move(move);
+
+      // Update the history of moves
+      setMoves((moves) => [...moves, move]);
+      // Update the state of the shown board
+      chessboardState.move(move, false);
+
+      // If we're in engine mode, start processing the new board state
+      if (engine && showEngine) {
+        engine.cancel();
+        setPositionEvaluation(null);
+        engine
+          .evaluatePosition(gameObject.current.fen())
+          .then(setPositionEvaluation);
+      }
+    },
+    [chessboardState]
+  );
+
+  const pickAndApplyMove = (chess: Chess, moveNodes: MoveNode[]): MoveNode => {
     const moveIndex = Math.floor(Math.random() * moveNodes.length);
     const nextMoveNode = moveNodes[moveIndex];
-
-    applyMove(nextMoveNode);
+    applyMove(chess, nextMoveNode);
+    return nextMoveNode;
   };
 
   const onNewLine = useCallback(() => {
@@ -135,44 +179,17 @@ const Home: React.FC = () => {
 
     // If we are black, we first have to do white's move
     if (chapter.orientation == "b") {
-      pickAndApplyMove(chapter.moveTree.children);
+      const newLine = pickAndApplyMove(
+        gameObject.current,
+        chapter.moveTree.children
+      );
+      setLine(newLine);
       setLineState({ status: "SELECT_MOVE_FOR_BLACK" });
     } else {
       setLine(chapter.moveTree);
       setLineState({ status: "SELECT_MOVE_FOR_WHITE" });
     }
   }, [studyData, chessboardState, selectedChapters]);
-
-  const moveOrNull = (
-    chess: Chess,
-    sourceSquare: Square,
-    targetSquare: Square
-  ): Move | null => {
-    try {
-      const moveResult = chess.move({
-        from: sourceSquare,
-        to: targetSquare,
-      });
-
-      if (moveResult == null) {
-        return null;
-      } else {
-        return {
-          move: moveResult.san,
-          piece: moveResult.piece,
-          from: moveResult.from,
-          to: moveResult.to,
-          player: moveResult.color,
-          fen: chess.fen(),
-          isGameOver: chess.isGameOver(),
-          gameResult: getGameResult(chess),
-        };
-      }
-    } catch (error) {
-      console.log("Invalid Move:", error);
-      return null;
-    }
-  };
 
   const playOpponentNextMoveIfLineContinues = (line: MoveNode) => {
     // Line is over if either if either it has no children
@@ -200,37 +217,34 @@ const Home: React.FC = () => {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
-        pickAndApplyMove(line.children);
+        const newLine = pickAndApplyMove(gameObject.current, line.children);
+        setLine(newLine);
       }, OPPONENT_MOVE_DELAY);
     }
   };
 
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square): boolean => {
-      // Check that it's a valid move
-      const moveResult: Move | null = moveOrNull(
+      // Determine if it's a valid move.
+      // This does NOT update the gameObject
+      const move: Move | null = createMoveOrNull(
         gameObject.current,
         sourceSquare,
         targetSquare
       );
-      if (moveResult == null) {
-        return false;
-      }
 
-      if (engine && showEngine) {
-        engine.cancel();
-        engine
-          .evaluatePosition(gameObject.current.fen())
-          .then(handleEngineEvaluation);
+      if (move == null) {
+        return false;
       }
 
       if (exploreMode) {
         // In explore mode, we just make the move
         // TODO: In the chessboard state, when making a move, we need
         // the ability to go back and change, and then that becomes the current line.
-        chessboardState.move(moveResult, true);
-        return true;
+        applyMove(gameObject.current, move);
       }
+
+      // Otherwise, we're in line mode.
 
       if (line == null) {
         throw new Error("Line is null");
@@ -238,25 +252,24 @@ const Home: React.FC = () => {
 
       // Check whether the attempted move is one of the acceptable
       // moves in the line.
-      for (const move of line.children) {
-        if (move.from === sourceSquare && move.to === targetSquare) {
+      for (const nextMoveInLine of line.children) {
+        if (
+          nextMoveInLine.from === sourceSquare &&
+          nextMoveInLine.to === targetSquare
+        ) {
           // If it matches a child node, it's an acceptable move
           // and we update the current line and the board state.
-          setMoves([...moves, moveResult]);
-          setLine(move);
-          chessboardState.move(move, false);
-          playOpponentNextMoveIfLineContinues(move);
+          applyMove(gameObject.current, move);
+          setLine(nextMoveInLine);
+          playOpponentNextMoveIfLineContinues(nextMoveInLine);
           // Return true to accept the move
           return true;
         }
       }
 
       // If we got here, the move is not correct
-      // TODO: This logic is just wrong.
       setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
 
-      // We have to undo the move we did above
-      gameObject.current.undo();
       return false;
     },
     [moves, line, chessboardState]
@@ -296,7 +309,7 @@ const Home: React.FC = () => {
     }
 
     setTimeout(async () => {
-      applyMove(bestMove);
+      applyMove(gameObject.current, bestMove);
       playOpponentNextMoveIfLineContinues(bestMove);
     }, OPPONENT_MOVE_DELAY);
   }, [line]);
