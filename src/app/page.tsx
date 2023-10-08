@@ -6,7 +6,7 @@ import {
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import Head from "next/head";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
 import { Square } from "react-chessboard/dist/chessboard/types";
@@ -18,11 +18,32 @@ import { Study } from "@/chess/Study";
 import { Chapter, LineNode, MoveNode } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
 import { getGameResult } from "@/chess/PgnParser";
+import { Engine } from "@/engine/Engine";
+import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
+import { PositionEvaluation } from "@/components/PositionEvaluation";
 
 const OPPONENT_MOVE_DELAY = 250;
 
+// Only run the engine on the client.
+let engine: Engine | null = null;
+if (typeof window !== "undefined") {
+  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 18, 3, false);
+}
+
 const Home: React.FC = () => {
   const studyData = useStudyData();
+  useEffect(studyData.populateCachedValues, []);
+
+  // Set up the engine
+  const [positionEvaluation, setPositionEvaluation] =
+    useState<EvaluatedPosition | null>(null);
+  useEffect(() => {
+    if (engine) {
+      engine.listener = (position: EvaluatedPosition) => {
+        setPositionEvaluation(position);
+      };
+    }
+  }, []);
 
   // Set the latest move in the line
   const [moves, setMoves] = useState<Move[]>([]);
@@ -52,6 +73,11 @@ const Home: React.FC = () => {
 
     const chapterIndex = Math.floor(Math.random() * selectedChapters.length);
     return selectedChapters[chapterIndex];
+  };
+
+  const handleEngineEvaluation = (evaluation: EvaluatedPosition) => {
+    console.log("Evaluation");
+    console.log(evaluation);
   };
 
   const applyMove = (move: MoveNode) => {
@@ -173,6 +199,12 @@ const Home: React.FC = () => {
       const moveResult: Move | null = moveOrNull(sourceSquare, targetSquare);
       if (moveResult == null) {
         return false;
+      }
+
+      if (engine && showEngine) {
+        engine
+          .evaluatePosition(gameObject.current.fen())
+          .then(handleEngineEvaluation);
       }
 
       if (exploreMode) {
@@ -303,6 +335,10 @@ const Home: React.FC = () => {
             toggleExploreMode={toggleExploreMode}
             engineIsEnabled={showEngine}
             toggleEngine={() => setShowEngine(!showEngine)}
+          />
+
+          <PositionEvaluation
+            positionEvaluation={positionEvaluation || undefined}
           />
         </div>
       </main>

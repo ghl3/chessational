@@ -1,6 +1,25 @@
 import { Study } from "@/chess/Study";
 import { useMemo, useState } from "react";
 
+const localStorageGet = (key: string): string | null => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem(key);
+  }
+  return null;
+};
+
+const localStorageSet = (key: string, value: string) => {
+  if (typeof window !== "undefined") {
+    return localStorage.setItem(key, value);
+  }
+};
+
+const localStorageRemove = (key: string) => {
+  if (typeof window !== "undefined") {
+    return localStorage.removeItem(key);
+  }
+};
+
 const parseOrDefault = <T>(jsonString: string | null, d: T) => {
   if (jsonString != null) {
     try {
@@ -47,24 +66,25 @@ export interface StudyData {
     React.SetStateAction<string | undefined>
   >;
   setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
+  populateCachedValues: () => void;
 }
 
 export const useStudyData = (): StudyData => {
-  const [studies, setStudies] = useState<Study[]>(
-    parseOrDefault(localStorage.getItem("studies"), [])
-  );
+  const [studies, setStudies] = useState<Study[]>([]);
+  //    parseOrDefault(localStorageGet("studies"), [])
 
   const setAndStoreStudies = useMemo(
     () =>
       addPostSetAction(setStudies, (studies: Study[]) => {
-        localStorage.setItem("studies", JSON.stringify(studies));
+        localStorageSet("studies", JSON.stringify(studies));
       }),
     [setStudies]
   );
 
   const [selectedStudyName, setSelectedStudyName] = useState<
     string | undefined
-  >(parseOrDefault(localStorage.getItem("selected-study"), undefined));
+  >(undefined);
+  //parseOrDefault(localStorageGet("selected-study"), undefined));
 
   const setAndStoreSelectedStudyName = useMemo(
     () =>
@@ -72,9 +92,9 @@ export const useStudyData = (): StudyData => {
         setSelectedStudyName,
         (selectedStudyName: string | undefined) => {
           if (selectedStudyName == null) {
-            localStorage.removeItem("selected-study");
+            localStorageRemove("selected-study");
           } else {
-            localStorage.setItem(
+            localStorageSet(
               "selected-study",
               JSON.stringify(selectedStudyName)
             );
@@ -85,15 +105,17 @@ export const useStudyData = (): StudyData => {
   );
 
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
-    parseOrDefault(localStorage.getItem("selected-chapters"), [])
+    []
   );
+  //    parseOrDefault(localStorageGet("selected-chapters"), [])
+  //  );
 
   const setAndStoreSelectedChapterNames = useMemo(
     () =>
       addPostSetAction(
         setSelectedChapterNames,
         (selectedChapterNames: string[]) => {
-          localStorage.setItem(
+          localStorageSet(
             "selected-chapters",
             JSON.stringify(selectedChapterNames)
           );
@@ -102,6 +124,16 @@ export const useStudyData = (): StudyData => {
     [setSelectedStudyName]
   );
 
+  const populateCachedValues = () => {
+    setStudies(parseOrDefault(localStorageGet("studies"), []));
+    setSelectedStudyName(
+      parseOrDefault(localStorageGet("selected-study"), undefined)
+    );
+    setSelectedChapterNames(
+      parseOrDefault(localStorageGet("selected-chapters"), [])
+    );
+  };
+
   return {
     studies,
     selectedStudyName,
@@ -109,5 +141,6 @@ export const useStudyData = (): StudyData => {
     setStudies: setAndStoreStudies,
     setSelectedStudyName: setAndStoreSelectedStudyName,
     setSelectedChapterNames: setAndStoreSelectedChapterNames,
+    populateCachedValues,
   };
 };

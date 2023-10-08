@@ -17,6 +17,7 @@ export type PieceMove = {
   color: Color;
   from: string;
   to: string;
+  san?: string;
   promotion?: string;
 };
 
@@ -27,9 +28,16 @@ export class Engine {
   resolvers: PositionResolver[];
   movesAndEvals: MoveAndEvaluation[];
   worker: WebWorker;
+  listener?: (evaluation: EvaluatedPosition) => any;
 
   // Defined using: new Worker(engine_path);
-  constructor(worker: WebWorker, depth = 10, num_lines = 1, debug = false) {
+  constructor(
+    worker: WebWorker,
+    depth = 10,
+    num_lines = 1,
+    debug = false,
+    listener = undefined
+  ) {
     this.depth = depth;
     this.debug = debug;
 
@@ -105,6 +113,28 @@ export class Engine {
     this.worker.postMessage("stop");
   };
 
+  _createPositionEvaluation = (fen: Fen, color: Color): EvaluatedPosition => {
+    // Determine the evaluation of the current position
+    const bestMoves = Engine.selectBestMoves(color, this.movesAndEvals);
+
+    const bestMovesDecorated: MoveAndEvaluation[] = [];
+    for (const { move, evaluation } of bestMoves) {
+      const chessObj = new Chess(fen);
+      const m = chessObj.move(move);
+      if (m == null) {
+        throw new Error("Invalid move");
+      } else {
+        bestMovesDecorated.push({ move: m, evaluation: evaluation });
+      }
+    }
+
+    return {
+      fen,
+      color,
+      best_moves: bestMovesDecorated,
+    };
+  };
+
   _handleEvent = (e: MessageEvent<any>) => {
     const msg = e.data;
     const parsed = EventParser.parse(msg);
@@ -117,15 +147,18 @@ export class Engine {
 
       // Get the resolved position
       const fen: Fen = this.positions[0];
+      const color = FenUtil.getTurn(fen);
 
-      // 'w' for white, 'b' for black
-      const color = FenUtil.getTurn(fen); //fen.split(' ')[1] as Color;
-
-      const moveAndEval = Engine.buildMoveAndEvaluationFromInfo(parsed, color);
+      const moveAndEval: MoveAndEvaluation | null =
+        Engine.buildMoveAndEvaluationFromInfo(parsed, color);
       if (moveAndEval == null) {
         throw new Error(`Invalid Parsed Move: ${parsed}`);
       } else {
         this.movesAndEvals.push(moveAndEval);
+        if (this.listener) {
+          const positionEvaluation = this._createPositionEvaluation(fen, color);
+          this.listener(positionEvaluation);
+        }
       }
     }
 
@@ -140,7 +173,6 @@ export class Engine {
       }
 
       // Get the resolved position
-      // Cast
       const fen: Fen = this.positions.shift() as string;
 
       // 'w' for white, 'b' for black
@@ -174,25 +206,8 @@ export class Engine {
         this._sendEvalMessage(nextFen);
       }
 
-      // Determine the evaluation of the current position
-      const bestMoves = Engine.selectBestMoves(color, this.movesAndEvals);
+      const positionEvaluation = this._createPositionEvaluation(fen, color);
 
-      const bestMovesDecorated: MoveAndEvaluation[] = [];
-      for (const { move, evaluation } of bestMoves) {
-        const chessObj = new Chess(fen);
-        const m = chessObj.move(move);
-        if (m == null) {
-          throw new Error("Invalid move");
-        } else {
-          bestMovesDecorated.push({ move: m, evaluation: evaluation });
-        }
-      }
-
-      const positionEvaluation: EvaluatedPosition = {
-        fen,
-        color,
-        best_moves: bestMovesDecorated,
-      };
       // Reset movesAndEvals and resolve the result
       this.movesAndEvals = [];
       resolver(positionEvaluation);
