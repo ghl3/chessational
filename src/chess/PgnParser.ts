@@ -33,7 +33,7 @@ const extractComment = (comment: string | PgnComment): string => {
   }
 };
 
-const getGameResult = (chess: Chess): GameResult => {
+export const getGameResult = (chess: Chess): GameResult => {
   if (chess.isCheckmate()) {
     return "CHECKMATE";
   } else if (chess.isStalemate()) {

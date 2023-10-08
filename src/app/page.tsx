@@ -16,6 +16,8 @@ import { LineState } from "@/components/MoveDescription";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter, LineNode, MoveNode } from "@/chess/Chapter";
+import { Move } from "@/chess/Move";
+import { getGameResult } from "@/chess/PgnParser";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -23,6 +25,7 @@ const Home: React.FC = () => {
   const studyData = useStudyData();
 
   // Set the latest move in the line
+  const [moves, setMoves] = useState<Move[]>([]);
   const [line, setLine] = useState<LineNode | null>(null);
   const [lineState, setLineState] = useState<LineState>({});
 
@@ -55,8 +58,9 @@ const Home: React.FC = () => {
     if (moveResult == null) {
       throw new Error("Move is null");
     }
+    setMoves([...moves, moveResult]);
     setLine(move);
-    chessboardState.addMove(move);
+    chessboardState.move(move, false);
   };
 
   const pickAndApplyMove = (moveNodes: MoveNode[]) => {
@@ -103,12 +107,27 @@ const Home: React.FC = () => {
   const moveOrNull = (
     sourceSquare: Square,
     targetSquare: Square
-  ): MoveResult | null => {
+  ): Move | null => {
     try {
-      return gameObject.current.move({
+      const moveResult = gameObject.current.move({
         from: sourceSquare,
         to: targetSquare,
       });
+
+      if (moveResult == null) {
+        return null;
+      } else {
+        return {
+          move: moveResult.san,
+          piece: moveResult.piece,
+          from: moveResult.from,
+          to: moveResult.to,
+          player: moveResult.color,
+          fen: gameObject.current.fen(),
+          isGameOver: gameObject.current.isGameOver(),
+          gameResult: getGameResult(gameObject.current),
+        };
+      }
     } catch (error) {
       console.error("Invalid Move:", error);
       return null;
@@ -148,14 +167,22 @@ const Home: React.FC = () => {
 
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square): boolean => {
-      if (line == null) {
-        throw new Error("Line is null");
-      }
-
       // Check that it's a valid move
-      const moveResult = moveOrNull(sourceSquare, targetSquare);
+      const moveResult: Move | null = moveOrNull(sourceSquare, targetSquare);
       if (moveResult == null) {
         return false;
+      }
+
+      if (exploreMode) {
+        // In explore mode, we just make the move
+        // TODO: In the chessboard state, when making a move, we need
+        // the ability to go back and change, and then that becomes the current line.
+        chessboardState.move(moveResult, true);
+        return true;
+      }
+
+      if (line == null) {
+        throw new Error("Line is null");
       }
 
       // Check whether the attempted move is one of the acceptable
@@ -164,8 +191,9 @@ const Home: React.FC = () => {
         if (move.from === sourceSquare && move.to === targetSquare) {
           // If it matches a child node, it's an acceptable move
           // and we update the current line and the board state.
+          setMoves([...moves, moveResult]);
           setLine(move);
-          chessboardState.addMove(move);
+          chessboardState.move(move, false);
           playOpponentNextMoveIfLineContinues(move);
           // Return true to accept the move
           return true;
@@ -180,12 +208,29 @@ const Home: React.FC = () => {
       gameObject.current.undo();
       return false;
     },
-    [line, chessboardState]
+    [moves, line, chessboardState]
   );
 
   const onShowComments = useCallback(() => {
     setShowComments(true);
   }, []);
+
+  const [exploreMode, setExploreMode] = useState<boolean>(false);
+
+  const toggleExploreMode = useCallback(() => {
+    if (exploreMode) {
+      // If we're in explore mode, we return to the current line
+      setExploreMode(false);
+
+      // Recreate the original line
+      chessboardState.clearGame();
+      for (const move of moves) {
+        chessboardState.move(move, true);
+      }
+    } else {
+      setExploreMode(true);
+    }
+  }, [line, exploreMode]);
 
   const onShowSolution = useCallback(() => {
     const bestMove = line?.children[0];
@@ -247,6 +292,8 @@ const Home: React.FC = () => {
             onNewLine={onNewLine}
             onShowComments={onShowComments}
             onShowSolution={onShowSolution}
+            exploreMode={exploreMode}
+            toggleExploreMode={toggleExploreMode}
           />
         </div>
       </main>

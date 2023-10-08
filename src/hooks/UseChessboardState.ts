@@ -23,7 +23,7 @@ export interface ChessboardState {
   setPositionFromIndex: (moveIndex: number) => void;
   setOrientation: React.Dispatch<React.SetStateAction<Color>>;
   setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
-  addMove: (move: Move) => void;
+  move: (move: Move, overwrite: boolean) => void;
   clearGame: () => void;
 }
 
@@ -83,10 +83,23 @@ export const useChessboardState = (): ChessboardState => {
     setPosition(DEFAULT_FEN);
   };
 
-  const addMove = (move: Move) => {
-    setMoves((moves) => [...moves, move]);
-    setMoveIndex((moveIndex) => moveIndex + 1);
-    setPosition(move.fen);
+  const move = (move: Move, overwriteLine: boolean = false) => {
+    if (moveIndex === moves.length) {
+      // If we are at the end of the line and we move, we just add it to the set of moves
+      setMoves((moves) => [...moves, move]);
+      setMoveIndex((moveIndex) => moveIndex + 1);
+      setPosition(move.fen);
+    } else if (overwriteLine) {
+      // If we are not at the end of the line and we move, we overwrite the line
+      // with the new move and all subsequent moves
+      setMoves((moves) => moves.slice(0, moveIndex).concat(move));
+      setMoveIndex((moveIndex) => moveIndex + 1);
+      setPosition(move.fen);
+    } else {
+      throw new Error(
+        "Cannot move from a previous position or this will overwrite the line"
+      );
+    }
   };
 
   return {
@@ -100,7 +113,7 @@ export const useChessboardState = (): ChessboardState => {
     setPositionFromIndex,
     setOrientation,
     setArrows,
-    addMove,
+    move: move,
     clearGame,
   };
 };
