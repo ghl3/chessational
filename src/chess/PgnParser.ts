@@ -66,6 +66,7 @@ const makeMoveAndChildren = (moves: PgnMove[], chess: Chess): MoveNode => {
     piece: moveResult.piece,
     from: moveResult.from,
     to: moveResult.to,
+    promotion: moveResult.promotion,
     children: childMoves,
     player: turn,
     fen: chess.fen(),

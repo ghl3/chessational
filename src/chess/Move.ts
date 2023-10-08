@@ -32,6 +32,7 @@ export interface Move {
   piece: PieceSymbol;
   from: Square;
   to: Square;
+  promotion?: PieceSymbol;
   // The color of the player who made the move.
   player: Color;
   // The fen of the position after the move.
