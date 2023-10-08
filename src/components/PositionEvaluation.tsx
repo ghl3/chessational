@@ -129,16 +129,22 @@ const createMoveRow = (move: MoveAndEvaluation, idx: number) => {
 };
 
 interface PositionEvaluationProps extends React.HTMLAttributes<HTMLDivElement> {
+  showEngine: boolean;
   positionEvaluation?: EvaluatedPosition;
 }
 
 export const PositionEvaluation: React.FC<PositionEvaluationProps> = ({
+  showEngine,
   positionEvaluation,
 }) => {
   if (positionEvaluation == null) {
     return null;
   }
   const goodMoves = findGoodMoves(positionEvaluation.best_moves);
+
+  if (!showEngine || goodMoves.length === 0) {
+    return null;
+  }
 
   return (
     <table className="ui celled table">

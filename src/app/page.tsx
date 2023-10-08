@@ -80,14 +80,25 @@ const Home: React.FC = () => {
     console.log(evaluation);
   };
 
+  const toggleEngine = useCallback(() => {
+    setShowEngine(!showEngine);
+  }, [showEngine]);
+
   const applyMove = (move: MoveNode) => {
-    const moveResult = moveOrNull(move.from, move.to);
+    const moveResult = moveOrNull(gameObject.current, move.from, move.to);
     if (moveResult == null) {
       throw new Error("Move is null");
     }
     setMoves([...moves, moveResult]);
     setLine(move);
     chessboardState.move(move, false);
+
+    if (engine && showEngine) {
+      engine.cancel();
+      engine
+        .evaluatePosition(gameObject.current.fen())
+        .then(handleEngineEvaluation);
+    }
   };
 
   const pickAndApplyMove = (moveNodes: MoveNode[]) => {
@@ -133,11 +144,12 @@ const Home: React.FC = () => {
   }, [studyData, chessboardState, selectedChapters]);
 
   const moveOrNull = (
+    chess: Chess,
     sourceSquare: Square,
     targetSquare: Square
   ): Move | null => {
     try {
-      const moveResult = gameObject.current.move({
+      const moveResult = chess.move({
         from: sourceSquare,
         to: targetSquare,
       });
@@ -151,9 +163,9 @@ const Home: React.FC = () => {
           from: moveResult.from,
           to: moveResult.to,
           player: moveResult.color,
-          fen: gameObject.current.fen(),
-          isGameOver: gameObject.current.isGameOver(),
-          gameResult: getGameResult(gameObject.current),
+          fen: chess.fen(),
+          isGameOver: chess.isGameOver(),
+          gameResult: getGameResult(chess),
         };
       }
     } catch (error) {
@@ -196,12 +208,17 @@ const Home: React.FC = () => {
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square): boolean => {
       // Check that it's a valid move
-      const moveResult: Move | null = moveOrNull(sourceSquare, targetSquare);
+      const moveResult: Move | null = moveOrNull(
+        gameObject.current,
+        sourceSquare,
+        targetSquare
+      );
       if (moveResult == null) {
         return false;
       }
 
       if (engine && showEngine) {
+        engine.cancel();
         engine
           .evaluatePosition(gameObject.current.fen())
           .then(handleEngineEvaluation);
@@ -316,6 +333,10 @@ const Home: React.FC = () => {
               onPieceDrop={onPieceDrop}
               className="flex-none"
             />
+            <PositionEvaluation
+              showEngine={showEngine}
+              positionEvaluation={positionEvaluation || undefined}
+            />
             <div
               className="flex-none ml-6 bg-gray-800 p-4 overflow-hidden whitespace-normal"
               style={{ height: chessboardState.boardSize }}
@@ -334,11 +355,7 @@ const Home: React.FC = () => {
             exploreMode={exploreMode}
             toggleExploreMode={toggleExploreMode}
             engineIsEnabled={showEngine}
-            toggleEngine={() => setShowEngine(!showEngine)}
-          />
-
-          <PositionEvaluation
-            positionEvaluation={positionEvaluation || undefined}
+            toggleEngine={toggleEngine}
           />
         </div>
       </main>
