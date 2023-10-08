@@ -41,6 +41,7 @@ const Home: React.FC = () => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const [showComments, setShowComments] = useState<boolean>(false);
+  const [showEngine, setShowEngine] = useState<boolean>(false);
 
   let gameObject = useRef<Chess>(new Chess());
 
@@ -300,6 +301,8 @@ const Home: React.FC = () => {
             onShowSolution={onShowSolution}
             exploreMode={exploreMode}
             toggleExploreMode={toggleExploreMode}
+            engineIsEnabled={showEngine}
+            toggleEngine={() => setShowEngine(!showEngine)}
           />
         </div>
       </main>

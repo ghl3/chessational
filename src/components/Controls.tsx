@@ -6,6 +6,8 @@ type ControlProps = {
   onShowComments: () => void;
   exploreMode: boolean;
   toggleExploreMode: () => void;
+  engineIsEnabled: boolean;
+  toggleEngine: () => void;
 };
 
 export const Controls: React.FC<ControlProps> = ({
@@ -14,6 +16,8 @@ export const Controls: React.FC<ControlProps> = ({
   onShowComments,
   exploreMode,
   toggleExploreMode,
+  engineIsEnabled,
+  toggleEngine,
 }) => {
   return (
     <div className="space-x-4 p-5">
@@ -46,6 +50,13 @@ export const Controls: React.FC<ControlProps> = ({
         disabled={exploreMode}
       >
         Show Comments
+      </button>
+
+      <button
+        className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
+        onClick={toggleEngine}
+      >
+        {engineIsEnabled ? "Hide Engine" : "Show Engine"}
       </button>
 
       <button
