@@ -352,6 +352,7 @@ const Home: React.FC = () => {
               style={{ height: chessboardState.boardSize }}
             >
               <DescriptionArea
+                move={moves[moves.length - 1]}
                 result={lineState}
                 comments={comments}
                 showComments={showComments}

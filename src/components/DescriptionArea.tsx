@@ -1,21 +1,28 @@
 import React from "react";
-import { MoveDescription, LineState } from "./MoveDescription";
+import { MoveDescription, MoveDescriptionProps } from "./MoveDescription";
 import CommentArea from "./CommentArea";
+import { Move } from "@/chess/Move";
 
 interface DescriptionAreaProps {
-  result: LineState;
+  move?: Move;
+  result: MoveDescriptionProps;
   comments: string[];
   showComments: boolean;
 }
 
 const DescriptionArea: React.FC<DescriptionAreaProps> = ({
+  move,
   result,
   comments,
   showComments,
 }) => {
   return (
     <div>
-      <MoveDescription status={result.status} result={result.result} />
+      <MoveDescription
+        move={move}
+        status={result.status}
+        result={result.result}
+      />
       <CommentArea comments={comments} showComments={showComments} />
     </div>
   );

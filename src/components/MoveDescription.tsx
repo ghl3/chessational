@@ -1,4 +1,5 @@
-import React from "react";
+import { Move } from "@/chess/Move";
+import React, { useEffect } from "react";
 
 export type LineStatus =
   | "SELECT_MOVE_FOR_WHITE"
@@ -7,7 +8,8 @@ export type LineStatus =
 
 export type MoveResult = "CORRECT" | "INCORRECT";
 
-export interface LineState {
+export interface MoveDescriptionProps {
+  move?: Move;
   status?: LineStatus;
   result?: MoveResult;
 }
@@ -25,7 +27,11 @@ const getLineStatusText = (status: LineStatus | null): string => {
   }
 };
 
-const getMoveResultText = (result: MoveResult | null): string => {
+const getMoveResultText = (
+  result: MoveResult | null,
+  showResult: boolean
+): string => {
+  if (!showResult) return "";
   switch (result) {
     case "CORRECT":
       return "Correct";
@@ -47,12 +53,36 @@ const getMoveResultColor = (result: MoveResult | null): string => {
   }
 };
 
-export const MoveDescription: React.FC<LineState> = ({ status, result }) => {
+export const MoveDescription: React.FC<MoveDescriptionProps> = ({
+  move,
+  status,
+  result,
+}) => {
+  const [showResult, setShowResult] = React.useState<boolean>(true);
+
+  useEffect(() => {
+    // Show result immediately when either result or fen changes
+    setShowResult(true);
+
+    let timer: NodeJS.Timeout;
+    if (result) {
+      timer = setTimeout(() => {
+        setShowResult(false);
+      }, 2000);
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [result, move?.fen]);
+
   return (
     <div className="flex flex-col space-y-2">
       <div className="text-gray-400">{getLineStatusText(status || null)}</div>
       <div className={getMoveResultColor(result || null)}>
-        {getMoveResultText(result || null)}
+        {getMoveResultText(result || null, showResult)}
       </div>
     </div>
   );
