@@ -13,19 +13,15 @@ const CommentArea: React.FC<CommentAreaProps> = ({
     return null;
   }
 
-  if (comments.length === 0) {
-    return (
-      <div>
-        <div className="text-lg m-2">No comments for this line.</div>
-      </div>
-    );
-  } else {
-    return (
-      <div>
-        <div className="text-lg m-2">{comments}</div>
-      </div>
-    );
-  }
+  return (
+    <div className="text-gray-400">
+      {comments.length === 0 ? (
+        <div className="italic text-sm">No comments for this line.</div>
+      ) : (
+        <div className="text-lg">{comments.join(" ")}</div>
+      )}
+    </div>
+  );
 };
 
 export default CommentArea;
