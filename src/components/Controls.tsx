@@ -10,6 +10,28 @@ type ControlProps = {
   toggleEngine: () => void;
 };
 
+interface ButtonProps {
+  onClick?: () => void;
+  disabled?: boolean;
+  label: string;
+}
+
+const Button: React.FC<ButtonProps> = ({ onClick, disabled, label }) => {
+  return (
+    <button
+      className={`px-4 py-2 text-lg rounded ${
+        disabled
+          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+          : `bg-blue-500 text-white active:bg-blue-700`
+      }`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {label}
+    </button>
+  );
+};
+
 export const Controls: React.FC<ControlProps> = ({
   onNewLine,
   onShowSolution,
@@ -22,48 +44,27 @@ export const Controls: React.FC<ControlProps> = ({
   return (
     <div className="p-5">
       <div className="flex space-x-4 mb-2">
-        <button
-          className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
-          onClick={onNewLine}
-        >
-          New Line
-        </button>
-        <button
-          className={`px-4 py-2 text-lg ${
-            exploreMode
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-500 text-white"
-          } rounded`}
+        <Button onClick={onNewLine} label="New Line" />
+        <Button
           onClick={!exploreMode ? onShowSolution : undefined}
           disabled={exploreMode}
-        >
-          Show Solution
-        </button>
-        <button
-          className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
+          label="Show Solution"
+        />
+        <Button
           onClick={toggleExploreMode}
-        >
-          {exploreMode ? "Return to Line" : "Explore Mode"}
-        </button>
+          label={exploreMode ? "Return to Line" : "Explore Mode"}
+        />
       </div>
       <div className="flex space-x-4">
-        <button
-          className={`px-4 py-2 text-lg ${
-            exploreMode
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-blue-500 text-white"
-          } rounded`}
+        <Button
           onClick={!exploreMode ? onShowComments : undefined}
           disabled={exploreMode}
-        >
-          Show Comments
-        </button>
-        <button
-          className="px-4 py-2 text-lg bg-blue-500 text-white rounded"
+          label="Show Comments"
+        />
+        <Button
           onClick={toggleEngine}
-        >
-          {engineIsEnabled ? "Hide Engine" : "Show Engine"}
-        </button>
+          label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
+        />
       </div>
     </div>
   );

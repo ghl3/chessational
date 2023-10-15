@@ -275,7 +275,7 @@ const Home: React.FC = () => {
   );
 
   const onShowComments = useCallback(() => {
-    setShowComments(true);
+    setShowComments((showComments) => !showComments);
   }, []);
 
   const toggleExploreMode = useCallback(() => {

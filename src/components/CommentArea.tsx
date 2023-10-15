@@ -12,11 +12,20 @@ const CommentArea: React.FC<CommentAreaProps> = ({
   if (!showComments) {
     return null;
   }
-  return (
-    <div>
-      <div className="text-lg m-2">{comments}</div>
-    </div>
-  );
+
+  if (comments.length === 0) {
+    return (
+      <div>
+        <div className="text-lg m-2">No comments for this line.</div>
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <div className="text-lg m-2">{comments}</div>
+      </div>
+    );
+  }
 };
 
 export default CommentArea;
