@@ -95,6 +95,7 @@ const Home: React.FC = () => {
 
   const chessboardState: ChessboardState = useChessboardState();
 
+  const [exploreMode, setExploreMode] = useState<boolean>(false);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
 
@@ -245,7 +246,6 @@ const Home: React.FC = () => {
       }
 
       // Otherwise, we're in line mode.
-
       if (line == null) {
         throw new Error("Line is null");
       }
@@ -269,17 +269,14 @@ const Home: React.FC = () => {
 
       // If we got here, the move is not correct
       setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
-
       return false;
     },
-    [moves, line, chessboardState]
+    [moves, line, chessboardState, exploreMode]
   );
 
   const onShowComments = useCallback(() => {
     setShowComments(true);
   }, []);
-
-  const [exploreMode, setExploreMode] = useState<boolean>(false);
 
   const toggleExploreMode = useCallback(() => {
     if (exploreMode) {

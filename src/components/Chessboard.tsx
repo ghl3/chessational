@@ -85,7 +85,9 @@ const Chessboard: React.FC<ChessboardProps> = ({
           customDarkSquareStyle={{ backgroundColor: "#34495e" }}
           boardWidth={chessboardState.boardSize}
           areArrowsAllowed={true}
-          boardOrientation={chessboardState.orientation}
+          boardOrientation={
+            chessboardState.orientation == WHITE ? "white" : "black"
+          }
           onPieceDrop={onPieceDrop}
           customArrows={chessboardState.arrows}
           autoPromoteToQueen={true}
