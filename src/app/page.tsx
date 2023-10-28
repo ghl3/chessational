@@ -21,6 +21,7 @@ import { getGameResult } from "@/chess/PgnParser";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { PositionEvaluation } from "@/components/PositionEvaluation";
+import { Database } from "@/components/Database";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -98,6 +99,7 @@ const Home: React.FC = () => {
   const [exploreMode, setExploreMode] = useState<boolean>(false);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
+  const [showDatabase, setShowDatabase] = useState<boolean>(false);
 
   let gameObject = useRef<Chess>(new Chess());
 
@@ -121,6 +123,10 @@ const Home: React.FC = () => {
         .then(setPositionEvaluation);
     }
   }, [showEngine]);
+
+  const toggleDatabase = useCallback(() => {
+    setShowDatabase(!showDatabase);
+  }, [showDatabase]);
 
   // Apply a move.  The move must be a valid move or an
   // error will be thrown.
@@ -243,11 +249,13 @@ const Home: React.FC = () => {
         // TODO: In the chessboard state, when making a move, we need
         // the ability to go back and change, and then that becomes the current line.
         applyMove(gameObject.current, move);
+        return true;
       }
 
       // Otherwise, we're in line mode.
       if (line == null) {
-        throw new Error("Line is null");
+        window.alert('Please click "New Line" to start a new line.');
+        return false;
       }
 
       // Check whether the attempted move is one of the acceptable
@@ -347,6 +355,10 @@ const Home: React.FC = () => {
               showEngine={showEngine}
               positionEvaluation={positionEvaluation || undefined}
             />
+            <Database
+              showDatabase={showDatabase}
+              position={gameObject.current.fen()}
+            />
             <div
               className="flex-none ml-6 bg-gray-800 p-4 overflow-hidden whitespace-normal"
               style={{ height: chessboardState.boardSize }}
@@ -367,6 +379,8 @@ const Home: React.FC = () => {
             toggleExploreMode={toggleExploreMode}
             engineIsEnabled={showEngine}
             toggleEngine={toggleEngine}
+            databaseIsEnabled={showDatabase}
+            toggleDatabase={toggleDatabase}
           />
         </div>
       </main>

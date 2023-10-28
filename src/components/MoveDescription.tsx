@@ -8,7 +8,7 @@ export type LineStatus =
 
 export type MoveResult = "CORRECT" | "INCORRECT";
 
-export interface MoveDescriptionProps {
+export interface LineState {
   move?: Move;
   status?: LineStatus;
   result?: MoveResult;
@@ -53,7 +53,7 @@ const getMoveResultColor = (result: MoveResult | null): string => {
   }
 };
 
-export const MoveDescription: React.FC<MoveDescriptionProps> = ({
+export const MoveDescription: React.FC<LineState> = ({
   move,
   status,
   result,

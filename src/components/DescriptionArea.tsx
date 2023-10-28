@@ -1,11 +1,11 @@
 import React from "react";
-import { MoveDescription, MoveDescriptionProps } from "./MoveDescription";
+import { MoveDescription, LineState } from "./MoveDescription";
 import CommentArea from "./CommentArea";
 import { Move } from "@/chess/Move";
 
 interface DescriptionAreaProps {
   move?: Move;
-  result: MoveDescriptionProps;
+  result: LineState;
   comments: string[];
   showComments: boolean;
 }

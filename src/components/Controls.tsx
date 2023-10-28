@@ -8,6 +8,8 @@ type ControlProps = {
   toggleExploreMode: () => void;
   engineIsEnabled: boolean;
   toggleEngine: () => void;
+  databaseIsEnabled: boolean;
+  toggleDatabase: () => void;
 };
 
 interface ButtonProps {
@@ -40,6 +42,8 @@ export const Controls: React.FC<ControlProps> = ({
   toggleExploreMode,
   engineIsEnabled,
   toggleEngine,
+  databaseIsEnabled,
+  toggleDatabase,
 }) => {
   return (
     <div className="p-5">
@@ -64,6 +68,10 @@ export const Controls: React.FC<ControlProps> = ({
         <Button
           onClick={toggleEngine}
           label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
+        />
+        <Button
+          onClick={toggleDatabase}
+          label={databaseIsEnabled ? "Hide Database" : "Show Database"}
         />
       </div>
     </div>
