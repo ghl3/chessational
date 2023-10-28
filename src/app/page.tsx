@@ -342,33 +342,32 @@ const Home: React.FC = () => {
         <h1 className="text-4xl mb-6">Opening Learner</h1>
         <div className="flex flex-col items-center space-y-6">
           <StudyChapterSelector studyData={studyData} />
-          <div
-            className="flex items-start space-x-6 w-full max-w-screen-xl"
-            style={{ width: `calc(${chessboardState.boardSize}px + 30%)` }}
-          >
+          <div className="flex items-start w-full max-w-screen-xl">
             <Chessboard
               chessboardState={chessboardState}
               onPieceDrop={onPieceDrop}
               className="flex-none"
             />
-            <PositionEvaluation
-              showEngine={showEngine}
-              positionEvaluation={positionEvaluation || undefined}
-            />
-            <Database
-              showDatabase={showDatabase}
-              position={gameObject.current.fen()}
-            />
-            <div
-              className="flex-none ml-6 bg-gray-800 p-4 overflow-hidden whitespace-normal"
-              style={{ height: chessboardState.boardSize }}
-            >
-              <DescriptionArea
-                move={moves[moves.length - 1]}
-                result={lineState}
-                comments={comments}
-                showComments={showComments}
+            <div className="flex flex-col ml-6 space-y-6">
+              <PositionEvaluation
+                showEngine={showEngine}
+                positionEvaluation={positionEvaluation || undefined}
               />
+              <Database
+                showDatabase={showDatabase}
+                position={gameObject.current.fen()}
+              />
+              <div
+                className="bg-gray-800 p-4 overflow-hidden whitespace-normal"
+                style={{ height: chessboardState.boardSize }}
+              >
+                <DescriptionArea
+                  move={moves[moves.length - 1]}
+                  result={lineState}
+                  comments={comments}
+                  showComments={showComments}
+                />
+              </div>
             </div>
           </div>
           <Controls

@@ -35,7 +35,7 @@ interface MoveRowProps extends React.HTMLAttributes<HTMLDivElement> {
   database: LichessDatabase;
 }
 
-const MoveRow: React.FC<MoveRowProps> = ({ key, move, database }) => {
+const MoveRow: React.FC<MoveRowProps> = ({ move, database }) => {
   const { san, white, black, draws } = move;
   const totalGamesInPosition = database.black + database.white + database.draws;
   const totalGamesWithMove = white + black + draws;
