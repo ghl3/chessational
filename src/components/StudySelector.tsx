@@ -78,7 +78,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
-        className="w-full bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none cursor-pointer  flex justify-between items-center"
+        className="w-full bg-gray-700 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none cursor-pointer  flex justify-between items-center"
         onClick={handleClickInButton}
       >
         <span>{selectedStudy || "Select a study"}</span>
@@ -96,11 +96,11 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
         </svg>
       </div>
       {isOpen && (
-        <div className="absolute top-full left-0 w-full z-10 bg-gray-800 text-white border border-gray-700 rounded">
+        <div className="absolute top-full left-0 w-full z-10 bg-gray-700 text-white border border-gray-700 rounded">
           <ul>
             {studies.map((study) => (
               <li
-                className="flex justify-between p-2 border-t border-gray-700 hover:bg-gray-700"
+                className="flex justify-between p-2 border-t border-gray-700 hover:bg-gray-900"
                 key={study.name}
               >
                 <div onClick={() => handleDropdownChange(study.name)}>

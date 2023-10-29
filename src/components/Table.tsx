@@ -61,7 +61,7 @@ const Table: React.FC<TableProps> = ({
             overflowX: "hidden",
           }}
         >
-          <table className="min-w-full text-sm bg-gray-800 border border-gray-600">
+          <table className="min-w-full text-sm bg-gray-700 border border-gray-600">
             <thead>
               <tr className="text-white">
                 {headers.map((header, index) => (

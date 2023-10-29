@@ -64,7 +64,7 @@ export const ChessboardPanel: React.FC<ChessboardPanelProps> = ({
 
       {/* Right Column */}
       <div
-        className="w-1/3 ml-6 space-y-6 bg-gray-800 "
+        className="w-1/3 ml-6 space-y-6 bg-gray-700 "
         style={{ height: height ? `${height}px` : "auto" }}
       >
         <MoveDescription

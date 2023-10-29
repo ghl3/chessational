@@ -104,18 +104,19 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   return (
     <div className="flex space-x-4">
       <input
-        className="bg-gray-800 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
+        className="bg-gray-700 text-white p-2 rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
         type="text"
         placeholder="Enter Lichess Study URL"
         value={studyUrl}
         onChange={handleStudyUrlChange}
         onKeyDown={handleKeyDown}
       />
+
       <button
         className={`p-2 rounded ${
           studyUrl
             ? "bg-blue-500 hover:bg-blue-700 text-white"
-            : "bg-gray-500 text-gray-300 cursor-not-allowed"
+            : "bg-gray-500 text-gray-300 opacity-70 cursor-not-allowed"
         }`}
         onClick={onStudySubmit}
         disabled={!studyUrl || studyUrl === ""}
