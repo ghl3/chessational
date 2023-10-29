@@ -1,12 +1,12 @@
 import React from "react";
-import { MoveDescription, MoveResult } from "./MoveDescription";
+import { MoveDescription, LineMoveResult } from "./MoveDescription";
 import CommentArea from "./CommentArea";
 import { Move } from "@/chess/Move";
 import { LineStatus } from "@/chess/Line";
 
 interface DescriptionAreaProps {
   move?: Move;
-  moveResult?: MoveResult;
+  moveResult?: LineMoveResult;
   lineStatus?: LineStatus;
   //result: LineState;
   comments: string[];
@@ -21,9 +21,11 @@ const DescriptionArea: React.FC<DescriptionAreaProps> = ({
   showComments,
 }) => {
   return (
-    <div>
-      <MoveDescription move={move} status={lineStatus} result={moveResult} />
-      <CommentArea comments={comments} showComments={showComments} />
+    <div className="bg-gray-800 p-4 overflow-hidden whitespace-normal">
+      <div>
+        <MoveDescription move={move} status={lineStatus} result={moveResult} />
+        <CommentArea comments={comments} showComments={showComments} />
+      </div>
     </div>
   );
 };

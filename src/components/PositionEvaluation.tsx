@@ -4,6 +4,7 @@ import {
 } from "@/engine/EvaluatedPosition";
 import { Evaluation, EvaluationUtil } from "@/engine/Evaluation";
 import { Color } from "chess.js";
+import Table from "./Table";
 
 const MAX_NUM_MOVES_SHOWN = 3;
 
@@ -116,18 +117,6 @@ const findGoodMoves = (moves: MoveAndEvaluation[]): MoveAndEvaluation[] => {
   return goodMoves;
 };
 
-const createMoveRow = (move: MoveAndEvaluation, idx: number) => {
-  return (
-    <tr key={idx}>
-      <td data-label="Move Rank">{idx + 1}</td>
-      <td data-label="Move">{move.move.san}</td>
-      <td data-label="Evaluation">
-        {EvaluationUtil.toEvalString(move.evaluation)}
-      </td>
-    </tr>
-  );
-};
-
 interface PositionEvaluationProps extends React.HTMLAttributes<HTMLDivElement> {
   showEngine: boolean;
   positionEvaluation?: EvaluatedPosition;
@@ -142,22 +131,26 @@ export const PositionEvaluation: React.FC<PositionEvaluationProps> = ({
   }
   const goodMoves = findGoodMoves(positionEvaluation.best_moves);
 
+  const depth = goodMoves[0].evaluation.depth;
+
   if (!showEngine || goodMoves.length === 0) {
     return null;
   }
 
+  const rows = goodMoves.slice(0, MAX_NUM_MOVES_SHOWN).map((move, idx) => {
+    return [
+      <>{idx + 1}</>,
+      <>{move.move.san}</>,
+      <>{EvaluationUtil.toEvalString(move.evaluation)}</>,
+    ];
+  });
+
   return (
-    <table className="ui celled table">
-      <thead>
-        <tr>
-          <th>Move Rank</th>
-          <th>Move</th>
-          <th>Evaluation</th>
-        </tr>
-      </thead>
-      <tbody>
-        {goodMoves.slice(0, MAX_NUM_MOVES_SHOWN).map(createMoveRow)}
-      </tbody>
-    </table>
+    <Table
+      title={"Engine Analysis - Depth: " + depth}
+      headers={["Index", "Move", "Evaluation"]}
+      rows={rows}
+      loading={false}
+    />
   );
 };

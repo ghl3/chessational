@@ -42,27 +42,17 @@ export const ChessboardPanel: React.FC<ChessboardPanelProps> = ({
   lineStatus,
   showComments,
 }) => {
-  const chessboardRef = useRef<HTMLDivElement | null>(null);
-  const [height, setHeight] = useState(0);
+  const chessboardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   useEffect(() => {
-    const handleResize = () => {
-      if (chessboardRef.current) {
-        const newHeight = (chessboardRef.current as HTMLElement).clientHeight;
-        setHeight(newHeight);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize(); // Call it initially
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+    if (chessboardRef.current) {
+      setHeight(chessboardRef.current.clientHeight);
+    }
+  }, [chessboardRef.current, chessboardState.boardSize]);
 
   return (
-    <div className="flex flex-row justify-center items-start mb-6  max-w-screen-xl">
+    <div className="flex flex-row justify-center items-start mb-6  w-screen">
       {/* Left Column */}
       <div ref={chessboardRef}>
         <Chessboard
@@ -74,23 +64,21 @@ export const ChessboardPanel: React.FC<ChessboardPanelProps> = ({
 
       {/* Right Column */}
       <div
-        className="flex flex-col ml-6 space-y-6 bg-gray-800 "
-        style={{ height: `${height}px` }}
+        className="w-1/3 ml-6 space-y-6 bg-gray-800 "
+        style={{ height: height ? `${height}px` : "auto" }}
       >
         <PositionEvaluation
           showEngine={showEngine}
           positionEvaluation={positionEvaluation || undefined}
         />
         <Database showDatabase={showDatabase} position={position} />
-        <div className="bg-gray-800 p-4 overflow-hidden whitespace-normal">
-          <DescriptionArea
-            move={move}
-            moveResult={moveResult || undefined}
-            lineStatus={lineStatus}
-            comments={comments}
-            showComments={showComments}
-          />
-        </div>
+        <DescriptionArea
+          move={move}
+          moveResult={moveResult || undefined}
+          lineStatus={lineStatus}
+          comments={comments}
+          showComments={showComments}
+        />
       </div>
     </div>
   );

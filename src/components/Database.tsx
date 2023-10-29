@@ -1,5 +1,6 @@
 import { Fen } from "@/chess/Fen";
 import { useEffect, useState } from "react";
+import Table from "./Table";
 
 interface LichessMove {
   uci: string;
@@ -41,17 +42,17 @@ const MoveRow: React.FC<MoveRowProps> = ({ move, database }) => {
   const totalGamesWithMove = white + black + draws;
   return (
     <tr className="text-white">
-      <td className="py-2 px-4 border-b border-gray-600">{san}</td>
-      <td className="py-2 px-4 border-b border-gray-600">
+      <td className="py-1 px-2 border-b border-gray-600">{san}</td>
+      <td className="py-1 px-2 border-b border-gray-600">
         {((totalGamesWithMove / totalGamesInPosition) * 100).toFixed(2)}%
       </td>
-      <td className="py-2 px-4 border-b border-gray-600">
+      <td className="py-1 px-2 border-b border-gray-600">
         {((white / totalGamesWithMove) * 100).toFixed(2)}%
       </td>
-      <td className="py-2 px-4 border-b border-gray-600">
+      <td className="py-1 px-2 border-b border-gray-600">
         {((black / totalGamesWithMove) * 100).toFixed(2)}%
       </td>
-      <td className="py-2 px-4 border-b border-gray-600">
+      <td className="py-1 px-2 border-b border-gray-600">
         {((draws / totalGamesWithMove) * 100).toFixed(2)}%
       </td>
     </tr>
@@ -87,28 +88,27 @@ export const Database: React.FC<DatabaseProps> = ({
 
   if (!showDatabase || !position || !database) return null;
 
+  const rows = database.moves.map((move, index) => {
+    const { san, white, black, draws } = move;
+    const totalGamesInPosition =
+      database.black + database.white + database.draws;
+    const totalGamesWithMove = white + black + draws;
+
+    return [
+      <> {san}</>,
+      <> {((totalGamesWithMove / totalGamesInPosition) * 100).toFixed(2)}</>,
+      <> {((white / totalGamesWithMove) * 100).toFixed(2)}</>,
+      <> {((black / totalGamesWithMove) * 100).toFixed(2)}</>,
+      <> {((draws / totalGamesWithMove) * 100).toFixed(2)}</>,
+    ];
+  });
+
   return (
-    <div className="bg-gray-800 p-4 rounded">
-      {loading ? (
-        <div className="text-center text-gray-400">Loading...</div>
-      ) : (
-        <table className="min-w-full bg-gray-800 border border-gray-600">
-          <thead>
-            <tr className="text-white">
-              <th className="py-2 px-4 border-b border-gray-600">Move</th>
-              <th className="py-2 px-4 border-b border-gray-600">%</th>
-              <th className="py-2 px-4 border-b border-gray-600">White Wins</th>
-              <th className="py-2 px-4 border-b border-gray-600">Black Wins</th>
-              <th className="py-2 px-4 border-b border-gray-600">Draws</th>
-            </tr>
-          </thead>
-          <tbody>
-            {database.moves.map((move, index) => (
-              <MoveRow key={index} move={move} database={database} />
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <Table
+      title="Lichess Games Database"
+      headers={["Move", "%", "White Wins", "Black Wins", "Draws"]}
+      rows={rows}
+      loading={loading}
+    />
   );
 };
