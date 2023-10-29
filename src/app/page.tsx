@@ -82,7 +82,9 @@ const Home: React.FC = () => {
   const [moves, setMoves] = useState<Move[]>([]);
   const [line, setLine] = useState<Line | null>(null);
 
-  const [moveResult, setMoveResult] = useState<LineMoveResult | null>(null);
+  const [lineMoveResult, setLineMoveResult] = useState<LineMoveResult | null>(
+    null
+  );
   //const [lineState, setLineState] = useState<LineState | null>(null);
 
   // The line index is the index of the next move to play.
@@ -241,14 +243,14 @@ const Home: React.FC = () => {
         applyMove(gameObject.current, move);
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
         setLineIndex(lineIndex + 1);
-        setMoveResult("CORRECT");
+        setLineMoveResult("CORRECT");
         // Return true to accept the move
         return true;
       }
 
       // If we got here, the move is not correct
       //setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
-      setMoveResult("INCORRECT");
+      setLineMoveResult("INCORRECT");
       return false;
     },
     [moves, line, chessboardState, exploreMode]
@@ -260,6 +262,7 @@ const Home: React.FC = () => {
 
   const enterExploreMode = () => {
     setExploreMode(true);
+    setLineMoveResult(null);
   };
 
   const enterLineMode = useCallback(() => {
@@ -310,7 +313,8 @@ const Home: React.FC = () => {
     comments = line.comments || [];
   }
 
-  const lineStatus = line ? getLineStatus(line, lineIndex) : undefined;
+  const lineStatus =
+    line && !exploreMode ? getLineStatus(line, lineIndex) : undefined;
 
   return (
     <>
@@ -339,7 +343,7 @@ const Home: React.FC = () => {
             showEngine={showEngine}
             positionEvaluation={positionEvaluation}
             showDatabase={showDatabase}
-            moveResult={moveResult}
+            moveResult={lineMoveResult}
             comments={comments}
             position={gameObject.current.fen()}
             move={moves[moves.length - 1]}
