@@ -268,24 +268,29 @@ const Home: React.FC = () => {
     setShowComments((showComments) => !showComments);
   }, []);
 
-  const toggleExploreMode = useCallback(() => {
+  const enterExploreMode = () => {
+    setExploreMode(true);
+  };
+
+  const enterLineMode = useCallback(() => {
     if (exploreMode) {
-      // If we're in explore mode, we return to the current line
-      setExploreMode(false);
+      chessboardState.clearGame();
 
       // Recreate the original line
-      chessboardState.clearGame();
-      for (const move of moves) {
-        chessboardState.move(move, true);
+      if (line != null) {
+        for (const move of line.moves.slice(0, lineIndex)) {
+          chessboardState.move(move, true);
+        }
+        if (chessboardState.moves.length > 0) {
+          gameObject.current.load(
+            chessboardState.moves[chessboardState.moves.length - 1].fen
+          );
+        }
       }
-      if (chessboardState.moves.length > 0) {
-        gameObject.current.load(
-          chessboardState.moves[chessboardState.moves.length - 1].fen
-        );
-      }
-    } else {
-      setExploreMode(true);
     }
+    setExploreMode(false);
+    setShowDatabase(false);
+    setShowEngine(false);
   }, [line, exploreMode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
@@ -327,45 +332,53 @@ const Home: React.FC = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="charcoal-bg text-white min-h-screen flex flex-col items-center justify-center">
-        <h1 className="text-4xl mb-6">Opening Learner</h1>
-        <div className="flex flex-col items-center space-y-6">
+      <main className="charcoal-bg text-white min-h-screen flex flex-col items-center">
+        <div className="flex  mb-6">
+          <h1 className="text-4xl">Opening Learner</h1>
+        </div>
+
+        <div className="flex  mb-6">
           <StudyChapterSelector studyData={studyData} />
-          <div className="flex items-start w-full max-w-screen-xl">
-            <Chessboard
-              chessboardState={chessboardState}
-              onPieceDrop={onPieceDrop}
-              className="flex-none"
+        </div>
+
+        <div className="flex justify-center items-start mb-6 w-full max-w-screen-xl">
+          <Chessboard
+            chessboardState={chessboardState}
+            onPieceDrop={onPieceDrop}
+            className="flex-none"
+          />
+          <div className="flex flex-col ml-6 space-y-6">
+            <PositionEvaluation
+              showEngine={showEngine}
+              positionEvaluation={positionEvaluation || undefined}
             />
-            <div className="flex flex-col ml-6 space-y-6">
-              <PositionEvaluation
-                showEngine={showEngine}
-                positionEvaluation={positionEvaluation || undefined}
+            <Database
+              showDatabase={showDatabase}
+              position={gameObject.current.fen()}
+            />
+            <div
+              className="bg-gray-800 p-4 overflow-hidden whitespace-normal"
+              style={{ height: chessboardState.boardSize }}
+            >
+              <DescriptionArea
+                move={moves[moves.length - 1]}
+                moveResult={moveResult || undefined}
+                lineStatus={lineStatus}
+                comments={comments}
+                showComments={showComments}
               />
-              <Database
-                showDatabase={showDatabase}
-                position={gameObject.current.fen()}
-              />
-              <div
-                className="bg-gray-800 p-4 overflow-hidden whitespace-normal"
-                style={{ height: chessboardState.boardSize }}
-              >
-                <DescriptionArea
-                  move={moves[moves.length - 1]}
-                  moveResult={moveResult || undefined}
-                  lineStatus={lineStatus}
-                  comments={comments}
-                  showComments={showComments}
-                />
-              </div>
             </div>
           </div>
+        </div>
+
+        <div className="mb-6">
           <Controls
             onNewLine={onNewLine}
             onShowComments={onShowComments}
             onShowSolution={onShowSolution}
             exploreMode={exploreMode}
-            toggleExploreMode={toggleExploreMode}
+            enterExploreMode={enterExploreMode}
+            enterLineMode={enterLineMode}
             engineIsEnabled={showEngine}
             toggleEngine={toggleEngine}
             databaseIsEnabled={showDatabase}
