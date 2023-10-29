@@ -3,9 +3,50 @@ interface TableProps {
   headers: string[];
   rows: JSX.Element[][]; // Array of rows, each row is an array of JSX elements
   loading: boolean;
+  minRows?: number; // optional minRows prop
 }
 
-const Table: React.FC<TableProps> = ({ title, headers, rows, loading }) => {
+const Table: React.FC<TableProps> = ({
+  title,
+  headers,
+  rows,
+  loading,
+  minRows,
+}) => {
+  const renderRows = () => {
+    let renderedRows = rows.map((row, rowIndex) => (
+      <tr key={rowIndex} className="text-white">
+        {row.map((cell, cellIndex) => (
+          <td
+            key={cellIndex}
+            className="py-1 px-2 border-b border-gray-600 text-left"
+          >
+            {cell}
+          </td>
+        ))}
+      </tr>
+    ));
+
+    // Add empty rows if needed to meet minRows
+    if (minRows !== undefined) {
+      while (renderedRows.length < minRows) {
+        renderedRows.push(
+          <tr key={renderedRows.length} className="text-white">
+            {headers.map((_, cellIndex) => (
+              <td
+                key={cellIndex}
+                className="py-1 px-2 border-b border-gray-600 text-left"
+              >
+                &nbsp;
+              </td>
+            ))}
+          </tr>
+        );
+      }
+    }
+    return renderedRows;
+  };
+
   return (
     <div className="p-4 rounded">
       <div className="text-lg font-semibold mb-2">{title}</div>
@@ -26,27 +67,14 @@ const Table: React.FC<TableProps> = ({ title, headers, rows, loading }) => {
                 {headers.map((header, index) => (
                   <th
                     key={index}
-                    className="py-1 px-2 border-b border-gray-600"
+                    className="py-1 px-2 border-b border-gray-600 text-left"
                   >
                     {header}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {rows.map((row, rowIndex) => (
-                <tr key={rowIndex} className="text-white">
-                  {row.map((cell, cellIndex) => (
-                    <td
-                      key={cellIndex}
-                      className="py-1 px-2 border-b border-gray-600"
-                    >
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
+            <tbody>{renderRows()}</tbody>
           </table>
         </div>
       )}

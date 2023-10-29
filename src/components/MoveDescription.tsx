@@ -75,11 +75,16 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
   }, [result, move?.fen]);
 
   return (
-    <div className="flex flex-col space-y-2">
-      <div className="text-gray-400">{getLineStatusText(status || null)}</div>
-      <div className={getMoveResultColor(result || null)}>
+    <div className="flex flex-col space-y-2 p-4">
+      <p className="text-gray-400" style={{ minHeight: "1.5em" }}>
+        {getLineStatusText(status || null)}
+      </p>
+      <p
+        className={getMoveResultColor(result || null)}
+        style={{ minHeight: "1.5em" }}
+      >
         {getMoveResultText(result || null, showResult)}
-      </div>
+      </p>
     </div>
   );
 };

@@ -126,8 +126,20 @@ export const PositionEvaluation: React.FC<PositionEvaluationProps> = ({
   showEngine,
   positionEvaluation,
 }) => {
-  if (positionEvaluation == null) {
+  if (!showEngine) {
     return null;
+  }
+
+  if (positionEvaluation == null) {
+    return (
+      <Table
+        title={"Engine Analysis - Depth: " + 0}
+        headers={["Index", "Move", "Evaluation"]}
+        rows={[]}
+        loading={positionEvaluation == null}
+        minRows={MAX_NUM_MOVES_SHOWN}
+      />
+    );
   }
   const goodMoves = findGoodMoves(positionEvaluation.best_moves);
 
@@ -150,7 +162,8 @@ export const PositionEvaluation: React.FC<PositionEvaluationProps> = ({
       title={"Engine Analysis - Depth: " + depth}
       headers={["Index", "Move", "Evaluation"]}
       rows={rows}
-      loading={false}
+      loading={positionEvaluation == null}
+      minRows={MAX_NUM_MOVES_SHOWN}
     />
   );
 };

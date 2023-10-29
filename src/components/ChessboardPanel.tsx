@@ -3,13 +3,13 @@ import Chessboard from "./Chessboard";
 import { Move } from "@/chess/Move";
 import { PositionEvaluation } from "@/components/PositionEvaluation";
 import { Database } from "@/components/Database";
-import DescriptionArea from "@/components/DescriptionArea";
-import { LineMoveResult } from "@/components/MoveDescription";
+import { LineMoveResult, MoveDescription } from "@/components/MoveDescription";
 import { PieceSymbol, Square } from "chess.js";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
 import { useEffect, useRef, useState } from "react";
+import CommentArea from "./CommentArea";
 
 export interface ChessboardPanelProps {
   chessboardState: ChessboardState;
@@ -67,18 +67,18 @@ export const ChessboardPanel: React.FC<ChessboardPanelProps> = ({
         className="w-1/3 ml-6 space-y-6 bg-gray-800 "
         style={{ height: height ? `${height}px` : "auto" }}
       >
+        <MoveDescription
+          move={move}
+          status={lineStatus}
+          result={moveResult || undefined}
+        />
+        <CommentArea comments={comments} showComments={showComments} />
+
         <PositionEvaluation
           showEngine={showEngine}
           positionEvaluation={positionEvaluation || undefined}
         />
         <Database showDatabase={showDatabase} position={position} />
-        <DescriptionArea
-          move={move}
-          moveResult={moveResult || undefined}
-          lineStatus={lineStatus}
-          comments={comments}
-          showComments={showComments}
-        />
       </div>
     </div>
   );
