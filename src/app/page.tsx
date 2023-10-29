@@ -15,13 +15,14 @@ import DescriptionArea from "@/components/DescriptionArea";
 import { LineState } from "@/components/MoveDescription";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
-import { Chapter, LineNode, MoveNode } from "@/chess/Chapter";
+import { Chapter, MoveNode } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
 import { getGameResult } from "@/chess/PgnParser";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { PositionEvaluation } from "@/components/PositionEvaluation";
 import { Database } from "@/components/Database";
+import { Line, pickLine } from "@/chess/Line";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -82,7 +83,10 @@ const Home: React.FC = () => {
 
   // Set the latest move in the line
   const [moves, setMoves] = useState<Move[]>([]);
-  const [line, setLine] = useState<LineNode | null>(null);
+  const [line, setLine] = useState<Line | null>(null);
+
+  // The line index is the index of the next move to play.
+  const [lineIndex, setLineIndex] = useState<number>(-1);
   const [lineState, setLineState] = useState<LineState>({});
 
   const selectedStudy: Study | undefined = studyData.studies.find(
@@ -152,18 +156,12 @@ const Home: React.FC = () => {
     [chessboardState]
   );
 
-  const pickAndApplyMove = (chess: Chess, moveNodes: MoveNode[]): MoveNode => {
-    const moveIndex = Math.floor(Math.random() * moveNodes.length);
-    const nextMoveNode = moveNodes[moveIndex];
-    applyMove(chess, nextMoveNode);
-    return nextMoveNode;
-  };
-
   const onNewLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
     gameObject.current = new Chess();
     setLine(null);
+    setLineIndex(0);
     setLineState({});
     setExploreMode(false);
 
@@ -180,32 +178,26 @@ const Home: React.FC = () => {
       throw new Error("selectedChapters is empty");
     }
 
-    const chapter: Chapter = randomlyPickChapter(selectedChapters);
-
-    chessboardState.setOrientation(chapter.orientation);
+    // Pick the line
+    const line = pickLine(selectedChapters);
+    setLine(line);
+    chessboardState.setOrientation(line.chapter.orientation);
 
     // If we are black, we first have to do white's move
-    if (chapter.orientation == "b") {
-      const newLine = pickAndApplyMove(
-        gameObject.current,
-        chapter.moveTree.children
-      );
-      setLine(newLine);
+    if (line.chapter.orientation == "b") {
+      applyMove(gameObject.current, line.moves[0]);
+      setLineIndex(1);
       setLineState({ status: "SELECT_MOVE_FOR_BLACK" });
     } else {
-      setLine(chapter.moveTree);
       setLineState({ status: "SELECT_MOVE_FOR_WHITE" });
     }
-  }, [studyData, chessboardState, selectedChapters]);
+  }, [chessboardState, selectedStudy, selectedChapters]);
 
-  const playOpponentNextMoveIfLineContinues = (line: MoveNode) => {
-    // Line is over if either if either it has no children
-    // or if any of the children have no children.
-    // (Why "if any of the children have no children"?  Because
-    // we want to avoid lines that end on the opponent's move).
-    const endOfLine =
-      line.children.length == 0 ||
-      line.children.some((child) => child.children.length == 0);
+  const playOpponentNextMoveIfLineContinues = (
+    line: Line,
+    lineIndex: number
+  ) => {
+    const endOfLine = lineIndex >= line.moves.length - 1;
 
     // If this is the end of the line, we're done.
     if (endOfLine) {
@@ -217,15 +209,16 @@ const Home: React.FC = () => {
       setLineState({
         result: "CORRECT",
         status:
-          line.player == "w"
+          line.chapter.orientation == "w"
             ? "SELECT_MOVE_FOR_BLACK"
             : "SELECT_MOVE_FOR_WHITE",
       });
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
-        const newLine = pickAndApplyMove(gameObject.current, line.children);
-        setLine(newLine);
+        const nextMove = line.moves[lineIndex];
+        applyMove(gameObject.current, nextMove);
+        setLineIndex(lineIndex + 1);
       }, OPPONENT_MOVE_DELAY);
     }
   };
@@ -258,21 +251,20 @@ const Home: React.FC = () => {
         return false;
       }
 
-      // Check whether the attempted move is one of the acceptable
-      // moves in the line.
-      for (const nextMoveInLine of line.children) {
-        if (
-          nextMoveInLine.from === sourceSquare &&
-          nextMoveInLine.to === targetSquare
-        ) {
-          // If it matches a child node, it's an acceptable move
-          // and we update the current line and the board state.
-          applyMove(gameObject.current, move);
-          setLine(nextMoveInLine);
-          playOpponentNextMoveIfLineContinues(nextMoveInLine);
-          // Return true to accept the move
-          return true;
-        }
+      // Check whether the attempted move is the next move in the line.
+      //for (const nextMoveInLine of line.children) {
+      const nextMoveInLine = line.moves[lineIndex];
+      if (
+        nextMoveInLine.from === sourceSquare &&
+        nextMoveInLine.to === targetSquare
+      ) {
+        // If it matches a child node, it's an acceptable move
+        // and we update the current line and the board state.
+        applyMove(gameObject.current, move);
+        playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
+        setLineIndex(lineIndex + 1);
+        // Return true to accept the move
+        return true;
       }
 
       // If we got here, the move is not correct
@@ -307,7 +299,11 @@ const Home: React.FC = () => {
   }, [line, exploreMode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
-    const bestMove = line?.children[0];
+    if (line == null) {
+      throw new Error("line is null");
+    }
+
+    const bestMove = line.moves[lineIndex];
 
     if (bestMove == null) {
       throw new Error("bestMove is null");
@@ -315,7 +311,7 @@ const Home: React.FC = () => {
 
     setTimeout(async () => {
       applyMove(gameObject.current, bestMove);
-      playOpponentNextMoveIfLineContinues(bestMove);
+      playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
     }, OPPONENT_MOVE_DELAY);
   }, [line]);
 
@@ -323,6 +319,7 @@ const Home: React.FC = () => {
   const isMoveNode = (line: any): line is MoveNode => {
     return line && "children" in line && "move" in line;
   };
+
   let comments: string[] = [];
   if (isMoveNode(line)) {
     comments = line.comments || [];
