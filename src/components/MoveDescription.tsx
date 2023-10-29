@@ -1,17 +1,13 @@
+import { LineStatus } from "@/chess/Line";
 import { Move } from "@/chess/Move";
 import React, { useEffect } from "react";
 
-export type LineStatus =
-  | "SELECT_MOVE_FOR_WHITE"
-  | "SELECT_MOVE_FOR_BLACK"
-  | "LINE_COMPLETE";
+export type LineMoveResult = "CORRECT" | "INCORRECT";
 
-export type MoveResult = "CORRECT" | "INCORRECT";
-
-export interface LineState {
+export interface MoveDescriptionProps {
   move?: Move;
   status?: LineStatus;
-  result?: MoveResult;
+  result?: LineMoveResult;
 }
 
 const getLineStatusText = (status: LineStatus | null): string => {
@@ -28,7 +24,7 @@ const getLineStatusText = (status: LineStatus | null): string => {
 };
 
 const getMoveResultText = (
-  result: MoveResult | null,
+  result: LineMoveResult | null,
   showResult: boolean
 ): string => {
   if (!showResult) return "";
@@ -42,7 +38,7 @@ const getMoveResultText = (
   }
 };
 
-const getMoveResultColor = (result: MoveResult | null): string => {
+const getMoveResultColor = (result: LineMoveResult | null): string => {
   switch (result) {
     case "CORRECT":
       return "text-green-400";
@@ -53,7 +49,7 @@ const getMoveResultColor = (result: MoveResult | null): string => {
   }
 };
 
-export const MoveDescription: React.FC<LineState> = ({
+export const MoveDescription: React.FC<MoveDescriptionProps> = ({
   move,
   status,
   result,

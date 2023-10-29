@@ -9,7 +9,7 @@ export interface MoveNode extends Move {
   children: MoveNode[];
 }
 
-export type LineNode = RootNode | MoveNode;
+export type Node = RootNode | MoveNode;
 
 export type Chapter = {
   //index: number;

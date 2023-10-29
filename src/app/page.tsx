@@ -12,7 +12,6 @@ import { Controls } from "@/components/Controls";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import DescriptionArea from "@/components/DescriptionArea";
-import { LineState } from "@/components/MoveDescription";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter, MoveNode } from "@/chess/Chapter";
@@ -22,7 +21,8 @@ import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { PositionEvaluation } from "@/components/PositionEvaluation";
 import { Database } from "@/components/Database";
-import { Line, pickLine } from "@/chess/Line";
+import { Line, getLineStatus, pickLine } from "@/chess/Line";
+import { LineMoveResult } from "@/components/MoveDescription";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -85,9 +85,11 @@ const Home: React.FC = () => {
   const [moves, setMoves] = useState<Move[]>([]);
   const [line, setLine] = useState<Line | null>(null);
 
+  const [moveResult, setMoveResult] = useState<LineMoveResult | null>(null);
+  //const [lineState, setLineState] = useState<LineState | null>(null);
+
   // The line index is the index of the next move to play.
   const [lineIndex, setLineIndex] = useState<number>(-1);
-  const [lineState, setLineState] = useState<LineState>({});
 
   const selectedStudy: Study | undefined = studyData.studies.find(
     (study) => study.name == studyData.selectedStudyName
@@ -161,8 +163,7 @@ const Home: React.FC = () => {
     chessboardState.clearGame();
     gameObject.current = new Chess();
     setLine(null);
-    setLineIndex(0);
-    setLineState({});
+    setLineIndex(-1);
     setExploreMode(false);
 
     if (selectedStudy == null) {
@@ -187,9 +188,8 @@ const Home: React.FC = () => {
     if (line.chapter.orientation == "b") {
       applyMove(gameObject.current, line.moves[0]);
       setLineIndex(1);
-      setLineState({ status: "SELECT_MOVE_FOR_BLACK" });
     } else {
-      setLineState({ status: "SELECT_MOVE_FOR_WHITE" });
+      setLineIndex(0);
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
 
@@ -200,19 +200,7 @@ const Home: React.FC = () => {
     const endOfLine = lineIndex >= line.moves.length - 1;
 
     // If this is the end of the line, we're done.
-    if (endOfLine) {
-      setLineState({
-        result: "CORRECT",
-        status: "LINE_COMPLETE",
-      });
-    } else {
-      setLineState({
-        result: "CORRECT",
-        status:
-          line.chapter.orientation == "w"
-            ? "SELECT_MOVE_FOR_BLACK"
-            : "SELECT_MOVE_FOR_WHITE",
-      });
+    if (!endOfLine) {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
@@ -263,12 +251,14 @@ const Home: React.FC = () => {
         applyMove(gameObject.current, move);
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
         setLineIndex(lineIndex + 1);
+        setMoveResult("CORRECT");
         // Return true to accept the move
         return true;
       }
 
       // If we got here, the move is not correct
-      setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
+      //setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
+      setMoveResult("INCORRECT");
       return false;
     },
     [moves, line, chessboardState, exploreMode]
@@ -325,6 +315,8 @@ const Home: React.FC = () => {
     comments = line.comments || [];
   }
 
+  const lineStatus = line ? getLineStatus(line, lineIndex) : undefined;
+
   return (
     <>
       <Head>
@@ -360,7 +352,8 @@ const Home: React.FC = () => {
               >
                 <DescriptionArea
                   move={moves[moves.length - 1]}
-                  result={lineState}
+                  moveResult={moveResult || undefined}
+                  lineStatus={lineStatus}
                   comments={comments}
                   showComments={showComments}
                 />
