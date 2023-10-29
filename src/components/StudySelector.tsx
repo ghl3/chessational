@@ -48,10 +48,13 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
     [isOpen]
   );
 
-  const handleDropdownChange = useCallback((studyName: string) => {
-    onStudyChange(studyName);
-    setIsOpen(false);
-  }, []);
+  const handleDropdownChange = useCallback(
+    (studyName: string) => {
+      onStudyChange(studyName);
+      setIsOpen(false);
+    },
+    [onStudyChange]
+  );
 
   const handleDelete = useCallback((studyName: string) => {
     setStudyToDelete(studyName);

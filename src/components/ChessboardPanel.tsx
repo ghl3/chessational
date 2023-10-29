@@ -72,13 +72,15 @@ export const ChessboardPanel: React.FC<ChessboardPanelProps> = ({
           status={lineStatus}
           result={moveResult || undefined}
         />
-        <CommentArea comments={comments} showComments={showComments} />
 
         <PositionEvaluation
           showEngine={showEngine}
           positionEvaluation={positionEvaluation || undefined}
         />
+
         <Database showDatabase={showDatabase} position={position} />
+
+        <CommentArea comments={comments} showComments={showComments} />
       </div>
     </div>
   );

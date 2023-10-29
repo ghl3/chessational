@@ -106,19 +106,12 @@ const Home: React.FC = () => {
 
   let gameObject = useRef<Chess>(new Chess());
 
-  const randomlyPickChapter = (chapters: Chapter[]): Chapter => {
-    if (selectedChapters == null) {
-      throw new Error("selectedChapters is null");
-    }
-
-    const chapterIndex = Math.floor(Math.random() * selectedChapters.length);
-    return selectedChapters[chapterIndex];
-  };
-
   const toggleEngine = useCallback(() => {
-    setShowEngine(!showEngine);
+    const previousShowEngine = showEngine;
+    const newShowEngine = !previousShowEngine;
+    setShowEngine(newShowEngine);
 
-    if (engine && showEngine) {
+    if (engine && newShowEngine) {
       engine.cancel();
       setPositionEvaluation(null);
       engine
