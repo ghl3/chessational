@@ -1,6 +1,5 @@
 "use client";
 
-import Chessboard from "@/components/Chessboard";
 import {
   ChessboardState,
   useChessboardState,
@@ -10,8 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { Chess, Move as MoveResult } from "chess.js";
-import DescriptionArea from "@/components/DescriptionArea";
+import { Chess } from "chess.js";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter, MoveNode } from "@/chess/Chapter";
@@ -19,10 +17,9 @@ import { Move } from "@/chess/Move";
 import { getGameResult } from "@/chess/PgnParser";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { PositionEvaluation } from "@/components/PositionEvaluation";
-import { Database } from "@/components/Database";
 import { Line, getLineStatus, pickLine } from "@/chess/Line";
 import { LineMoveResult } from "@/components/MoveDescription";
+import { ChessboardPanel } from "@/components/ChessboardPanel";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -332,43 +329,30 @@ const Home: React.FC = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <main className="charcoal-bg text-white min-h-screen flex flex-col items-center">
-        <div className="flex  mb-6">
+        <div className="mb-6">
           <h1 className="text-4xl">Opening Learner</h1>
         </div>
 
-        <div className="flex  mb-6">
+        <div className="mb-6">
           <StudyChapterSelector studyData={studyData} />
         </div>
 
         <div className="flex justify-center items-start mb-6 w-full max-w-screen-xl">
-          <Chessboard
+          <ChessboardPanel
             chessboardState={chessboardState}
             onPieceDrop={onPieceDrop}
-            className="flex-none"
+            showEngine={showEngine}
+            positionEvaluation={positionEvaluation}
+            showDatabase={showDatabase}
+            moveResult={moveResult}
+            comments={comments}
+            position={gameObject.current.fen()}
+            move={moves[moves.length - 1]}
+            lineStatus={lineStatus}
+            showComments={showComments}
           />
-          <div className="flex flex-col ml-6 space-y-6">
-            <PositionEvaluation
-              showEngine={showEngine}
-              positionEvaluation={positionEvaluation || undefined}
-            />
-            <Database
-              showDatabase={showDatabase}
-              position={gameObject.current.fen()}
-            />
-            <div
-              className="bg-gray-800 p-4 overflow-hidden whitespace-normal"
-              style={{ height: chessboardState.boardSize }}
-            >
-              <DescriptionArea
-                move={moves[moves.length - 1]}
-                moveResult={moveResult || undefined}
-                lineStatus={lineStatus}
-                comments={comments}
-                showComments={showComments}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="mb-6">

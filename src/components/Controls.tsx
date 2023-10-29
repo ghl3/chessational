@@ -47,10 +47,10 @@ export const Controls: React.FC<ControlProps> = ({
   databaseIsEnabled,
   toggleDatabase,
 }) => {
-  const exploreModeButtons = <div className="space-x-4"></div>;
+  const exploreModeButtons = <div className="flex space-x-4"></div>;
 
   const lineModeButtons = (
-    <div className="space-x-4">
+    <div className="flex space-x-4">
       {/* Buttons for Line Mode */}
       <Button onClick={onNewLine} label="New Line" />
       <Button onClick={onShowSolution} label="Show Solution" />
@@ -58,33 +58,31 @@ export const Controls: React.FC<ControlProps> = ({
   );
 
   return (
-    <div className="p-5 space-x-4">
-      <div className="mb-4 flex flex-col items-center ">
-        <div>
-          <button
-            onClick={enterLineMode}
-            className={`px-4 py-2 border-b-2 ${
-              !exploreMode
-                ? "bg-blue-600 text-white border-blue-600"
-                : "text-gray-500 bg-gray-200 border-transparent"
-            }`}
-          >
-            Line Mode
-          </button>
-          <button
-            onClick={enterExploreMode}
-            className={`px-4 py-2 border-b-2 ${
-              exploreMode
-                ? "bg-blue-600 text-white border-blue-600"
-                : "text-gray-500 bg-gray-200 border-transparent"
-            }`}
-          >
-            Explore Mode
-          </button>
-        </div>
+    <div className="p-5 space-y-6">
+      <div className="flex justify-center mb-4 space-x-4">
+        <button
+          onClick={enterLineMode}
+          className={`px-4 py-2 border-b-2 ${
+            !exploreMode
+              ? "text-gray-500 bg-gray-200 border-transparent"
+              : "bg-blue-600 text-white border-blue-600"
+          }`}
+        >
+          Line Mode
+        </button>
+        <button
+          onClick={enterExploreMode}
+          className={`px-4 py-2 border-b-2 ${
+            exploreMode
+              ? "text-gray-500 bg-gray-200 border-transparent"
+              : "bg-blue-600 text-white border-blue-600"
+          }`}
+        >
+          Explore Mode
+        </button>
       </div>
 
-      <div className="space-x-4">
+      <div className="flex justify-center space-x-4">
         <Button
           onClick={toggleEngine}
           label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
@@ -96,7 +94,7 @@ export const Controls: React.FC<ControlProps> = ({
         <Button onClick={onShowComments} label="Show Comments" />
       </div>
 
-      <div className="space-x-4">
+      <div className="flex justify-center space-x-4">
         {exploreMode ? exploreModeButtons : lineModeButtons}
       </div>
     </div>
