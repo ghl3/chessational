@@ -383,6 +383,7 @@ const Home: React.FC = () => {
             exploreMode={exploreMode}
             enterExploreMode={enterExploreMode}
             enterLineMode={enterLineMode}
+            hasActiveLine={line != null}
           />
         </div>
       </main>

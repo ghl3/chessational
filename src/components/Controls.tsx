@@ -5,27 +5,19 @@ import { ControlButton } from "@/components/ControlButton";
 type ControlProps = {
   onNewLine: () => void;
   onShowSolution: () => void;
-  onShowComments: () => void;
   exploreMode: boolean;
   enterExploreMode: () => void;
   enterLineMode: () => void;
-  engineIsEnabled: boolean;
-  toggleEngine: () => void;
-  databaseIsEnabled: boolean;
-  toggleDatabase: () => void;
+  hasActiveLine: boolean;
 };
 
 export const Controls: React.FC<ControlProps> = ({
   onNewLine,
   onShowSolution,
-  onShowComments,
   exploreMode,
   enterExploreMode,
   enterLineMode,
-  engineIsEnabled,
-  toggleEngine,
-  databaseIsEnabled,
-  toggleDatabase,
+  hasActiveLine,
 }) => {
   const exploreModeButtons = <div className="flex space-x-4"></div>;
 
@@ -33,7 +25,9 @@ export const Controls: React.FC<ControlProps> = ({
     <div className="flex space-x-4">
       {/* Buttons for Line Mode */}
       <ControlButton onClick={onNewLine} label="New Line" />
-      <ControlButton onClick={onShowSolution} label="Show Solution" />
+      {hasActiveLine ? (
+        <ControlButton onClick={onShowSolution} label="Show Solution" />
+      ) : null}
     </div>
   );
 
