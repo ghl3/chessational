@@ -46,10 +46,10 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 }) => {
   return (
     <div
-      className="w-1/3 ml-6 space-y-6 bg-gray-700 "
+      className="flex flex-col w-1/3 ml-6 space-y-2"
       style={{ height: height ? `${height}px` : "auto" }}
     >
-      <div className="flex justify-center space-x-4">
+      <div className="flex flex-row space-x-1 ">
         <ControlButton
           onClick={toggleEngine}
           label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
@@ -61,20 +61,22 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <ControlButton onClick={onShowComments} label="Show Comments" />
       </div>
 
-      <MoveDescription
-        move={move}
-        status={lineStatus}
-        result={moveResult || undefined}
-      />
+      <div className="flex flex-col flex-grow justify-start  bg-gray-700 ">
+        <MoveDescription
+          move={move}
+          status={lineStatus}
+          result={moveResult || undefined}
+        />
 
-      <PositionEvaluation
-        showEngine={showEngine}
-        positionEvaluation={positionEvaluation || undefined}
-      />
+        <PositionEvaluation
+          showEngine={showEngine}
+          positionEvaluation={positionEvaluation || undefined}
+        />
 
-      <Database showDatabase={showDatabase} position={position} />
+        <Database showDatabase={showDatabase} position={position} />
 
-      <CommentArea comments={comments} showComments={showComments} />
+        <CommentArea comments={comments} showComments={showComments} />
+      </div>
     </div>
   );
 };
