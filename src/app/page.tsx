@@ -285,10 +285,10 @@ const Home: React.FC = () => {
     setExploreMode(false);
     setShowDatabase(false);
     setShowEngine(false);
-  }, [line, exploreMode, chessboardState]);
+  }, [line, lineIndex, exploreMode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
-    if (line == null) {
+    if (line == null || lineIndex < 0) {
       throw new Error("line is null");
     }
 
@@ -302,7 +302,7 @@ const Home: React.FC = () => {
       applyMove(gameObject.current, bestMove);
       playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
     }, OPPONENT_MOVE_DELAY);
-  }, [line]);
+  }, [line, lineIndex]);
 
   // TODO: This is a hack.  Fix.
   const isMoveNode = (line: any): line is MoveNode => {
