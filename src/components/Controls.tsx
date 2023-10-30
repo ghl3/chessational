@@ -1,5 +1,7 @@
 import React from "react";
 
+import { ControlButton } from "@/components/ControlButton";
+
 type ControlProps = {
   onNewLine: () => void;
   onShowSolution: () => void;
@@ -11,28 +13,6 @@ type ControlProps = {
   toggleEngine: () => void;
   databaseIsEnabled: boolean;
   toggleDatabase: () => void;
-};
-
-interface ButtonProps {
-  onClick?: () => void;
-  disabled?: boolean;
-  label: string;
-}
-
-const Button: React.FC<ButtonProps> = ({ onClick, disabled, label }) => {
-  return (
-    <button
-      className={`px-4 py-2 text-lg rounded ${
-        disabled
-          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-          : `bg-blue-500 text-white active:bg-blue-700`
-      }`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {label}
-    </button>
-  );
 };
 
 export const Controls: React.FC<ControlProps> = ({
@@ -52,8 +32,8 @@ export const Controls: React.FC<ControlProps> = ({
   const lineModeButtons = (
     <div className="flex space-x-4">
       {/* Buttons for Line Mode */}
-      <Button onClick={onNewLine} label="New Line" />
-      <Button onClick={onShowSolution} label="Show Solution" />
+      <ControlButton onClick={onNewLine} label="New Line" />
+      <ControlButton onClick={onShowSolution} label="Show Solution" />
     </div>
   );
 
@@ -80,18 +60,6 @@ export const Controls: React.FC<ControlProps> = ({
         >
           Explore
         </button>
-      </div>
-
-      <div className="flex justify-center space-x-4">
-        <Button
-          onClick={toggleEngine}
-          label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
-        />
-        <Button
-          onClick={toggleDatabase}
-          label={databaseIsEnabled ? "Hide Database" : "Show Database"}
-        />
-        <Button onClick={onShowComments} label="Show Comments" />
       </div>
 
       <div className="flex justify-center space-x-4">

@@ -6,6 +6,7 @@ import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
 import CommentArea from "./CommentArea";
+import { ControlButton } from "./ControlButton";
 
 export interface DetailsPanelProps {
   height: number;
@@ -18,6 +19,11 @@ export interface DetailsPanelProps {
   move: Move;
   lineStatus: LineStatus | undefined;
   showComments: boolean;
+  onShowComments: () => void;
+  engineIsEnabled: boolean;
+  toggleEngine: () => void;
+  databaseIsEnabled: boolean;
+  toggleDatabase: () => void;
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -31,12 +37,30 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   move,
   lineStatus,
   showComments,
+
+  onShowComments,
+  engineIsEnabled,
+  toggleEngine,
+  databaseIsEnabled,
+  toggleDatabase,
 }) => {
   return (
     <div
       className="w-1/3 ml-6 space-y-6 bg-gray-700 "
       style={{ height: height ? `${height}px` : "auto" }}
     >
+      <div className="flex justify-center space-x-4">
+        <ControlButton
+          onClick={toggleEngine}
+          label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
+        />
+        <ControlButton
+          onClick={toggleDatabase}
+          label={databaseIsEnabled ? "Hide Database" : "Show Database"}
+        />
+        <ControlButton onClick={onShowComments} label="Show Comments" />
+      </div>
+
       <MoveDescription
         move={move}
         status={lineStatus}

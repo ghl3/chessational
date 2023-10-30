@@ -367,6 +367,11 @@ const Home: React.FC = () => {
               move={moves[moves.length - 1]}
               lineStatus={lineStatus}
               showComments={showComments}
+              onShowComments={onShowComments}
+              engineIsEnabled={showEngine}
+              toggleEngine={toggleEngine}
+              databaseIsEnabled={showDatabase}
+              toggleDatabase={toggleDatabase}
             />
           </div>
         </div>
@@ -374,15 +379,10 @@ const Home: React.FC = () => {
         <div className="mb-6">
           <Controls
             onNewLine={onNewLine}
-            onShowComments={onShowComments}
             onShowSolution={onShowSolution}
             exploreMode={exploreMode}
             enterExploreMode={enterExploreMode}
             enterLineMode={enterLineMode}
-            engineIsEnabled={showEngine}
-            toggleEngine={toggleEngine}
-            databaseIsEnabled={showDatabase}
-            toggleDatabase={toggleDatabase}
           />
         </div>
       </main>
