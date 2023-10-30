@@ -19,7 +19,8 @@ import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Line, getLineStatus, pickLine } from "@/chess/Line";
 import { LineMoveResult } from "@/components/MoveDescription";
-import { ChessboardPanel } from "@/components/ChessboardPanel";
+import { DetailsPanel } from "@/components/DetailsPanel";
+import Chessboard from "@/components/Chessboard";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -316,6 +317,15 @@ const Home: React.FC = () => {
   const lineStatus =
     line && !exploreMode ? getLineStatus(line, lineIndex) : undefined;
 
+  const chessboardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (chessboardRef.current) {
+      setHeight(chessboardRef.current.clientHeight);
+    }
+  }, [chessboardRef.current, chessboardState.boardSize]);
+
   return (
     <>
       <Head>
@@ -337,19 +347,28 @@ const Home: React.FC = () => {
         </div>
 
         <div className="flex justify-center items-start mb-6 w-full max-w-screen-xl">
-          <ChessboardPanel
-            chessboardState={chessboardState}
-            onPieceDrop={onPieceDrop}
-            showEngine={showEngine}
-            positionEvaluation={positionEvaluation}
-            showDatabase={showDatabase}
-            moveResult={lineMoveResult}
-            comments={comments}
-            position={gameObject.current.fen()}
-            move={moves[moves.length - 1]}
-            lineStatus={lineStatus}
-            showComments={showComments}
-          />
+          <div className="flex flex-row justify-center items-start mb-6 w-screen">
+            <div ref={chessboardRef}>
+              <Chessboard
+                chessboardState={chessboardState}
+                onPieceDrop={onPieceDrop}
+                className="flex-none"
+              />
+            </div>
+
+            <DetailsPanel
+              height={height || 0}
+              showEngine={showEngine}
+              positionEvaluation={positionEvaluation}
+              showDatabase={showDatabase}
+              moveResult={lineMoveResult}
+              comments={comments}
+              position={gameObject.current.fen()}
+              move={moves[moves.length - 1]}
+              lineStatus={lineStatus}
+              showComments={showComments}
+            />
+          </div>
         </div>
 
         <div className="mb-6">
