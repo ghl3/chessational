@@ -1,4 +1,5 @@
 import { Chapter, MoveNode, Node } from "./Chapter";
+import { Fen } from "./Fen";
 import { Move } from "./Move";
 
 export interface Line {
@@ -22,6 +23,7 @@ export const getLineStatus = (line: Line, index: number): LineStatus => {
 };
 
 export type MoveSelectionStrategy =
+  | "DETERMINISTIC"
   | "RANDOM"
   | "LINE_WEIGHTED"
   | "DATABASE_WEIGHTED";
@@ -48,8 +50,9 @@ const getRandomMove = (
   if (children.length === 0) {
     throw new Error("No children");
   }
-
-  if (strategy === "RANDOM") {
+  if (strategy === "DETERMINISTIC") {
+    return children[0];
+  } else if (strategy === "RANDOM") {
     const randomIndex = Math.floor(Math.random() * children.length);
     return children[randomIndex];
   } else if (strategy == "LINE_WEIGHTED") {
@@ -79,7 +82,9 @@ const selectChapter = (
     throw new Error("No chapters to select from");
   }
 
-  if (strategy === "RANDOM") {
+  if (strategy === "DETERMINISTIC") {
+    return chapters[0];
+  } else if (strategy === "RANDOM") {
     return chapters[Math.floor(Math.random() * chapters.length)];
   } else if (strategy === "LINE_WEIGHTED") {
     const linesPerChapter = chapters.map((chapter) =>
@@ -101,6 +106,30 @@ const selectChapter = (
   throw new Error("Invalid strategy");
 };
 
+const createPositionIndex = (node: Node): Map<Fen, MoveNode[]> => {
+  const positionIndex = new Map<Fen, MoveNode[]>();
+
+  const addNode = (node: MoveNode) => {
+    const fen: Fen = node.fen;
+
+    const existingNodes = positionIndex.get(fen);
+    if (existingNodes) {
+      existingNodes.push(node);
+    } else {
+      positionIndex.set(fen, [node]);
+    }
+
+    node.children.forEach(addNode);
+  };
+
+  if ("fen" in node) {
+    // Assuming only MoveNode has 'fen'
+    addNode(node as MoveNode);
+  }
+
+  return positionIndex;
+};
+
 export const pickLine = (
   chapters: Chapter[],
   strategy: MoveSelectionStrategy
@@ -115,6 +144,24 @@ export const pickLine = (
 
   var node: Node = chapter.moveTree;
 
+  const positionIndex = createPositionIndex(node);
+
+  const getTranspositions = (node: Node): MoveNode[] => {
+    if (!("fen" in node)) {
+      return [];
+    }
+
+    const fen: Fen = node.fen;
+
+    const transpositions = positionIndex.get(fen);
+
+    if (transpositions === undefined) {
+      return [];
+    } else {
+      return transpositions.filter((n) => n !== node);
+    }
+  };
+
   const orientation = chapter.orientation;
 
   if (orientation === "w") {
@@ -123,18 +170,31 @@ export const pickLine = (
     line.moves.push(firstMove);
   }
 
-  // Line is over if either if either it has no children
-  // or if any of the children have no children.
-  // (Why "if any of the children have no children"?  Because
-  // we want to avoid lines that end on the opponent's move).
-  const isLineOver = (node: Node): boolean => {
-    return (
-      node.children.length == 0 ||
-      node.children.some((child) => child.children.length == 0)
-    );
-  };
+  const visitedNodes = new Set<Node>();
 
-  while (!isLineOver(node)) {
+  while (true) {
+    visitedNodes.add(node);
+
+    // First, see if we should break
+    const hasNoChildren =
+      node.children.length == 0 ||
+      node.children.some((child) => child.children.length == 0);
+
+    const transpositions = getTranspositions(node).filter(
+      (n) => !visitedNodes.has(n)
+    );
+
+    if (hasNoChildren && transpositions.length === 0) {
+      break;
+    }
+
+    if (hasNoChildren && transpositions.length > 0) {
+      // Select a transposition at random
+      // TODO: Select based on the strategy
+      node = transpositions[Math.floor(Math.random() * transpositions.length)];
+      continue;
+    }
+
     // First, pick an opponent's move
     const opponentMove = getRandomMove(node, strategy);
     node = opponentMove;

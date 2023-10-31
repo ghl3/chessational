@@ -31,13 +31,7 @@ export class Engine {
   listener?: (evaluation: EvaluatedPosition) => any;
 
   // Defined using: new Worker(engine_path);
-  constructor(
-    worker: WebWorker,
-    depth = 10,
-    num_lines = 1,
-    debug = false,
-    listener = undefined
-  ) {
+  constructor(worker: WebWorker, depth = 10, num_lines = 1, debug = false) {
     this.depth = depth;
     this.debug = debug;
 

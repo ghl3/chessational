@@ -113,11 +113,8 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
       />
 
       <button
-        className={`p-2 rounded ${
-          studyUrl
-            ? "bg-blue-500 hover:bg-blue-700 text-white"
-            : "bg-gray-500 text-gray-300 opacity-70 cursor-not-allowed"
-        }`}
+        className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white"
+        style={{ visibility: studyUrl ? "visible" : "hidden" }}
         onClick={onStudySubmit}
         disabled={!studyUrl || studyUrl === ""}
       >

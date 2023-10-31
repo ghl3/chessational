@@ -27,7 +27,7 @@ const OPPONENT_MOVE_DELAY = 250;
 // Only run the engine on the client.
 let engine: Engine | null = null;
 if (typeof window !== "undefined") {
-  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 18, 3, false);
+  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
 
 // This does NOT update the chess object.
