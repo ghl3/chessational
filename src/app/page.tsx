@@ -173,7 +173,7 @@ const Home: React.FC = () => {
     }
 
     // Pick the line
-    const line = pickLine(selectedChapters);
+    const line = pickLine(selectedChapters, "LINE_WEIGHTED");
     setLine(line);
     chessboardState.setOrientation(line.chapter.orientation);
 

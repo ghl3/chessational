@@ -61,7 +61,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <ControlButton onClick={onShowComments} label="Show Comments" />
       </div>
 
-      <div className="flex flex-col flex-grow justify-start  bg-gray-700 ">
+      <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
         <MoveDescription
           move={move}
           status={lineStatus}

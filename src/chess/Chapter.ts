@@ -12,7 +12,6 @@ export interface MoveNode extends Move {
 export type Node = RootNode | MoveNode;
 
 export type Chapter = {
-  //index: number;
   name: string;
   studyName: string;
   orientation: Color;

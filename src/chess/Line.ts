@@ -21,15 +21,92 @@ export const getLineStatus = (line: Line, index: number): LineStatus => {
   }
 };
 
-const getRandomMove = (node: Node): MoveNode => {
-  const children = node.children;
-  const randomIndex = Math.floor(Math.random() * children.length);
-  return children[randomIndex];
+export type MoveSelectionStrategy =
+  | "RANDOM"
+  | "LINE_WEIGHTED"
+  | "DATABASE_WEIGHTED";
+
+const getNumberOfLines = (node: Node): number => {
+  // Counts the number of leaf nodes in the chapter's move tree
+  const countLeafNodes = (node: Node): number => {
+    if (node.children.length === 0) {
+      return 1;
+    } else {
+      return node.children.reduce((a, b) => a + countLeafNodes(b), 0);
+    }
+  };
+
+  return countLeafNodes(node);
 };
 
-export const pickLine = (chapters: Chapter[]): Line => {
+const getRandomMove = (
+  node: Node,
+  strategy: MoveSelectionStrategy
+): MoveNode => {
+  const children = node.children;
+
+  if (children.length === 0) {
+    throw new Error("No children");
+  }
+
+  if (strategy === "RANDOM") {
+    const randomIndex = Math.floor(Math.random() * children.length);
+    return children[randomIndex];
+  } else if (strategy == "LINE_WEIGHTED") {
+    const linesPerMove = children.map(getNumberOfLines);
+    const totalLines = linesPerMove.reduce((a, b) => a + b, 0);
+    const randomIndex = Math.floor(Math.random() * totalLines);
+    let runningTotal = 0;
+    for (let i = 0; i < linesPerMove.length; i++) {
+      runningTotal += linesPerMove[i];
+      if (runningTotal > randomIndex) {
+        return children[i];
+      }
+    }
+    throw new Error("Should never get here");
+  } else if (strategy === "DATABASE_WEIGHTED") {
+    throw new Error("Not implemented");
+  } else {
+    throw new Error("Invalid strategy");
+  }
+};
+
+const selectChapter = (
+  chapters: Chapter[],
+  strategy: MoveSelectionStrategy
+): Chapter => {
+  if (chapters.length === 0) {
+    throw new Error("No chapters to select from");
+  }
+
+  if (strategy === "RANDOM") {
+    return chapters[Math.floor(Math.random() * chapters.length)];
+  } else if (strategy === "LINE_WEIGHTED") {
+    const linesPerChapter = chapters.map((chapter) =>
+      getNumberOfLines(chapter.moveTree)
+    );
+    const totalLines = linesPerChapter.reduce((a, b) => a + b, 0);
+    const randomIndex = Math.floor(Math.random() * totalLines);
+    let runningTotal = 0;
+    for (let i = 0; i < linesPerChapter.length; i++) {
+      runningTotal += linesPerChapter[i];
+      if (runningTotal > randomIndex) {
+        return chapters[i];
+      }
+    }
+  } else if (strategy === "DATABASE_WEIGHTED") {
+    throw new Error("Not implemented");
+  }
+
+  throw new Error("Invalid strategy");
+};
+
+export const pickLine = (
+  chapters: Chapter[],
+  strategy: MoveSelectionStrategy
+): Line => {
   // First, pick a chapter at random
-  const chapter = chapters[Math.floor(Math.random() * chapters.length)];
+  const chapter = selectChapter(chapters, strategy);
 
   const line: Line = {
     chapter,
@@ -41,7 +118,7 @@ export const pickLine = (chapters: Chapter[]): Line => {
   const orientation = chapter.orientation;
 
   if (orientation === "w") {
-    const firstMove = getRandomMove(node);
+    const firstMove = getRandomMove(node, strategy);
     node = firstMove;
     line.moves.push(firstMove);
   }
@@ -59,7 +136,7 @@ export const pickLine = (chapters: Chapter[]): Line => {
 
   while (!isLineOver(node)) {
     // First, pick an opponent's move
-    const opponentMove = getRandomMove(node);
+    const opponentMove = getRandomMove(node, strategy);
     node = opponentMove;
     line.moves.push(opponentMove);
 
@@ -68,7 +145,7 @@ export const pickLine = (chapters: Chapter[]): Line => {
     }
 
     // Then, pick the player's next move
-    const playerMove = getRandomMove(node);
+    const playerMove = getRandomMove(node, strategy);
     node = playerMove;
     line.moves.push(playerMove);
   }
