@@ -80,17 +80,13 @@ const Home: React.FC = () => {
     }
   }, []);
 
-  // Set the latest move in the line
-  const [moves, setMoves] = useState<Move[]>([]);
   const [line, setLine] = useState<Line | null>(null);
+  // The line index is the index of the next move to play.
+  const [lineIndex, setLineIndex] = useState<number>(-1);
 
   const [lineMoveResult, setLineMoveResult] = useState<LineMoveResult | null>(
     null
   );
-  //const [lineState, setLineState] = useState<LineState | null>(null);
-
-  // The line index is the index of the next move to play.
-  const [lineIndex, setLineIndex] = useState<number>(-1);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
     (study) => study.name == studyData.selectedStudyName
@@ -135,10 +131,9 @@ const Home: React.FC = () => {
       // Throws an error if the move is invalid
       chess.move(move);
 
-      // Update the history of moves
-      setMoves((moves) => [...moves, move]);
       // Update the state of the shown board
       chessboardState.move(move, false);
+      setLineMoveResult(null);
 
       // If we're in engine mode, start processing the new board state
       if (engine && showEngine) {
@@ -234,7 +229,6 @@ const Home: React.FC = () => {
       }
 
       // Check whether the attempted move is the next move in the line.
-      //for (const nextMoveInLine of line.children) {
       const nextMoveInLine = line.moves[lineIndex];
       if (
         nextMoveInLine.from === sourceSquare &&
@@ -251,11 +245,10 @@ const Home: React.FC = () => {
       }
 
       // If we got here, the move is not correct
-      //setLineState({ result: "INCORRECT", status: "SELECT_MOVE_FOR_WHITE" });
       setLineMoveResult("INCORRECT");
       return false;
     },
-    [moves, line, chessboardState, exploreMode]
+    [line, chessboardState, exploreMode]
   );
 
   const onShowComments = useCallback(() => {
@@ -306,10 +299,10 @@ const Home: React.FC = () => {
   }, [line, lineIndex]);
 
   // TODO: This is a hack.  Fix.
+  // TODO: Comments won't work with the new line class
   const isMoveNode = (line: any): line is MoveNode => {
     return line && "children" in line && "move" in line;
   };
-
   let comments: string[] = [];
   if (isMoveNode(line)) {
     comments = line.comments || [];
@@ -365,7 +358,6 @@ const Home: React.FC = () => {
               moveResult={lineMoveResult}
               comments={comments}
               position={gameObject.current.fen()}
-              move={moves[moves.length - 1]}
               lineStatus={lineStatus}
               showComments={showComments}
               onShowComments={onShowComments}

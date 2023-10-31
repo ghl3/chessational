@@ -1,3 +1,4 @@
+import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
 import { Move } from "@/chess/Move";
 import React, { useEffect } from "react";
@@ -5,7 +6,7 @@ import React, { useEffect } from "react";
 export type LineMoveResult = "CORRECT" | "INCORRECT";
 
 export interface MoveDescriptionProps {
-  move?: Move;
+  position?: Fen;
   status?: LineStatus;
   result?: LineMoveResult;
 }
@@ -50,7 +51,7 @@ const getMoveResultColor = (result: LineMoveResult | null): string => {
 };
 
 export const MoveDescription: React.FC<MoveDescriptionProps> = ({
-  move,
+  position,
   status,
   result,
 }) => {
@@ -72,7 +73,7 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
         clearTimeout(timer);
       }
     };
-  }, [result, move?.fen]);
+  }, [result, position]);
 
   return (
     <div className="flex flex-col space-y-2 p-4">

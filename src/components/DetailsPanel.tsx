@@ -16,7 +16,7 @@ export interface DetailsPanelProps {
   moveResult: LineMoveResult | null;
   comments: string[];
   position: Fen;
-  move: Move;
+
   lineStatus: LineStatus | undefined;
   showComments: boolean;
   onShowComments: () => void;
@@ -34,7 +34,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   moveResult,
   comments,
   position,
-  move,
+
   lineStatus,
   showComments,
 
@@ -63,7 +63,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
         <MoveDescription
-          move={move}
+          position={position}
           status={lineStatus}
           result={moveResult || undefined}
         />
