@@ -8,8 +8,8 @@ import {
   Comment as PgnComment,
 } from "pgn-parser";
 import { Chess } from "chess.js";
-import { Chapter, MoveNode } from "./Chapter";
-import { GameResult } from "./Move";
+import { Chapter, MoveNode } from "../chess/Chapter";
+import { GameResult } from "../chess/Move";
 
 const convertHeaders = (
   headers: PgnHeader[] | null

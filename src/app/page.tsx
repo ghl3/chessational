@@ -14,13 +14,14 @@ import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter, MoveNode } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
-import { getGameResult } from "@/chess/PgnParser";
+import { getGameResult } from "@/utils/PgnParser";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { Line, getLineStatus, pickLine } from "@/chess/Line";
+import { Line, getLineStatus } from "@/chess/Line";
 import { LineMoveResult } from "@/components/MoveDescription";
 import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
+import { pickLine } from "@/utils/LinePicker";
 
 const OPPONENT_MOVE_DELAY = 250;
 

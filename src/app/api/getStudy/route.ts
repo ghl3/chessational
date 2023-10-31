@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parsePgnStringToChapters } from "@/chess/PgnParser";
+import { parsePgnStringToChapters } from "@/utils/PgnParser";
 import { Chapter } from "@/chess/Chapter";
 
 export async function POST(req: NextRequest) {
