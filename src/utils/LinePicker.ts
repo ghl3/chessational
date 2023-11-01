@@ -1,6 +1,7 @@
-import { Chapter, MoveNode, Node } from "@/chess/Chapter";
+import { Chapter, MoveNode, Node, RootNode } from "@/chess/Chapter";
 import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
+import { Color } from "chess.js";
 
 export type MoveSelectionStrategy =
   | "DETERMINISTIC"
@@ -22,28 +23,26 @@ const getNumberOfLines = (node: Node): number => {
 };
 
 const getRandomMove = (
-  node: Node,
+  nodes: MoveNode[],
   strategy: MoveSelectionStrategy
 ): MoveNode => {
-  const children = node.children;
-
-  if (children.length === 0) {
+  if (nodes.length === 0) {
     throw new Error("No children");
   }
   if (strategy === "DETERMINISTIC") {
-    return children[0];
+    return nodes[0];
   } else if (strategy === "RANDOM") {
-    const randomIndex = Math.floor(Math.random() * children.length);
-    return children[randomIndex];
+    const randomIndex = Math.floor(Math.random() * nodes.length);
+    return nodes[randomIndex];
   } else if (strategy == "LINE_WEIGHTED") {
-    const linesPerMove = children.map(getNumberOfLines);
+    const linesPerMove = nodes.map(getNumberOfLines);
     const totalLines = linesPerMove.reduce((a, b) => a + b, 0);
     const randomIndex = Math.floor(Math.random() * totalLines);
     let runningTotal = 0;
     for (let i = 0; i < linesPerMove.length; i++) {
       runningTotal += linesPerMove[i];
       if (runningTotal > randomIndex) {
-        return children[i];
+        return nodes[i];
       }
     }
     throw new Error("Should never get here");
@@ -86,10 +85,10 @@ const selectChapter = (
   throw new Error("Invalid strategy");
 };
 
-const createPositionIndex = (node: Node): Map<Fen, MoveNode[]> => {
+const createPositionIndex = (node: RootNode): Map<Fen, MoveNode[]> => {
   const positionIndex = new Map<Fen, MoveNode[]>();
 
-  const addNode = (node: MoveNode) => {
+  const addNodeAndChildren = (node: MoveNode) => {
     const fen: Fen = node.fen;
 
     const existingNodes = positionIndex.get(fen);
@@ -99,12 +98,11 @@ const createPositionIndex = (node: Node): Map<Fen, MoveNode[]> => {
       positionIndex.set(fen, [node]);
     }
 
-    node.children.forEach(addNode);
+    node.children.forEach(addNodeAndChildren);
   };
 
-  if ("fen" in node) {
-    // Assuming only MoveNode has 'fen'
-    addNode(node as MoveNode);
+  for (const child of node.children) {
+    addNodeAndChildren(child);
   }
 
   return positionIndex;
@@ -142,52 +140,63 @@ export const pickLine = (
     }
   };
 
-  const orientation = chapter.orientation;
+  const orientation: Color = chapter.orientation;
 
-  if (orientation === "w") {
-    const firstMove = getRandomMove(node, strategy);
-    node = firstMove;
-    line.moves.push(firstMove);
-  }
-
-  const visitedNodes = new Set<Node>();
+  var turn: "PLAYER" | "OPPONENT" = orientation === "w" ? "PLAYER" : "OPPONENT";
 
   while (true) {
-    visitedNodes.add(node);
+    const transpositions = getTranspositions(node);
 
-    // First, see if we should break
-    const hasNoChildren =
-      node.children.length == 0 ||
-      node.children.some((child) => child.children.length == 0);
+    var availableMoves = [];
 
-    const transpositions = getTranspositions(node).filter(
-      (n) => !visitedNodes.has(n)
-    );
-
-    if (hasNoChildren && transpositions.length === 0) {
-      break;
+    // If we're picking a node for the current player, we should break
+    // if there are no children.
+    if (turn === "PLAYER") {
+      if (node.children.length > 0) {
+        availableMoves = node.children;
+      } else if (transpositions.length > 0) {
+        // If there are transpositions that have children, we jump to one of those
+        // and continue with the line.
+        node = getRandomMove(
+          transpositions.filter((n) => n.children.length > 0),
+          strategy
+        );
+        continue;
+      } else {
+        break;
+      }
     }
 
-    if (hasNoChildren && transpositions.length > 0) {
-      // Select a transposition at random
-      // TODO: Select based on the strategy
-      node = transpositions[Math.floor(Math.random() * transpositions.length)];
-      continue;
+    // If we're picking a node for the opponent, we only select nodes that
+    // have grandchildren.  This is because we need nodes that have a known
+    // player response.  If there are no grandchildren, we should break.
+    else {
+      const hasChild = (node: Node): boolean => {
+        return node.children.length > 0;
+      };
+
+      const childNodes = node.children.filter(hasChild);
+
+      if (childNodes.length > 0) {
+        availableMoves = childNodes;
+      } else if (transpositions.length > 0) {
+        // If there are transpositions that have children, we jump to one of those
+        // and continue with the line.
+        node = getRandomMove(
+          transpositions.filter((n) => n.children.length > 0),
+          strategy
+        );
+        continue;
+      } else {
+        break;
+      }
     }
 
-    // First, pick an opponent's move
-    const opponentMove = getRandomMove(node, strategy);
-    node = opponentMove;
-    line.moves.push(opponentMove);
-
-    if (node.children.length === 0) {
-      throw new Error("Unexpected end of line");
-    }
-
-    // Then, pick the player's next move
-    const playerMove = getRandomMove(node, strategy);
-    node = playerMove;
-    line.moves.push(playerMove);
+    // Now, we're free to pick the next move
+    const move = getRandomMove(availableMoves, strategy);
+    node = move;
+    line.moves.push(move);
+    turn = turn === "PLAYER" ? "OPPONENT" : "PLAYER";
   }
 
   return line;
