@@ -22,6 +22,10 @@ const getNumberOfLines = (node: Node): number => {
   return countLeafNodes(node);
 };
 
+const lineToSan = (line: Line): string[] => {
+  return line.moves.map((move) => move.move);
+};
+
 const getRandomMove = (
   nodes: MoveNode[],
   strategy: MoveSelectionStrategy
@@ -108,6 +112,25 @@ const createPositionIndex = (node: RootNode): Map<Fen, MoveNode[]> => {
   return positionIndex;
 };
 
+const getTranspositions = (
+  node: Node,
+  positionIndex: Map<Fen, MoveNode[]>
+): MoveNode[] => {
+  if (!("fen" in node)) {
+    return [];
+  }
+
+  const fen: Fen = node.fen;
+
+  const transpositions = positionIndex.get(fen);
+
+  if (transpositions === undefined) {
+    return [];
+  } else {
+    return transpositions.filter((n) => n !== node);
+  }
+};
+
 export const pickLine = (
   chapters: Chapter[],
   strategy: MoveSelectionStrategy
@@ -115,55 +138,48 @@ export const pickLine = (
   // First, pick a chapter at random
   const chapter = selectChapter(chapters, strategy);
 
-  const line: Line = {
-    chapter,
-    moves: [],
-  };
+  const orientation: Color = chapter.orientation;
+
+  var turn: "PLAYER" | "OPPONENT" = orientation === "w" ? "PLAYER" : "OPPONENT";
 
   var node: Node = chapter.moveTree;
 
   const positionIndex = createPositionIndex(node);
 
-  const getTranspositions = (node: Node): MoveNode[] => {
-    if (!("fen" in node)) {
-      return [];
-    }
-
-    const fen: Fen = node.fen;
-
-    const transpositions = positionIndex.get(fen);
-
-    if (transpositions === undefined) {
-      return [];
-    } else {
-      return transpositions.filter((n) => n !== node);
-    }
+  const line: Line = {
+    chapter,
+    moves: [],
   };
 
-  const orientation: Color = chapter.orientation;
-
-  var turn: "PLAYER" | "OPPONENT" = orientation === "w" ? "PLAYER" : "OPPONENT";
-
   while (true) {
-    const transpositions = getTranspositions(node);
-
     var availableMoves = [];
 
-    // If we're picking a node for the current player, we should break
-    // if there are no children.
     if (turn === "PLAYER") {
-      if (node.children.length > 0) {
-        availableMoves = node.children;
-      } else if (transpositions.length > 0) {
-        // If there are transpositions that have children, we jump to one of those
-        // and continue with the line.
-        node = getRandomMove(
-          transpositions.filter((n) => n.children.length > 0),
-          strategy
+      const transpositionsWithChildren = getTranspositions(
+        node,
+        positionIndex
+      ).filter((n) => n.children.length > 0);
+
+      // There should be a single move for the player to make. We don't yet
+      // support multiple lines (or alternate moves) for the player.
+      if (node.children.length > 1) {
+        throw new Error(
+          "Multiple moves not implemented.  Encountered at line: " +
+            lineToSan(line)
         );
-        continue;
+      } else if (node.children.length == 1) {
+        availableMoves = node.children;
       } else {
-        break;
+        if (transpositionsWithChildren.length > 0) {
+          // If there are transpositions that have children, we jump to one of those
+          // and continue with the line.
+          node = getRandomMove(transpositionsWithChildren, strategy);
+          continue;
+        } else {
+          throw new Error(
+            "No moves available.  Encountered at line: " + lineToSan(line)
+          );
+        }
       }
     }
 
@@ -175,17 +191,18 @@ export const pickLine = (
         return node.children.length > 0;
       };
 
+      const transpositionsWithGrandChildren = getTranspositions(
+        node,
+        positionIndex
+      ).filter((n) => n.children.length > 0 && n.children.some(hasChild));
+
       const childNodes = node.children.filter(hasChild);
 
       if (childNodes.length > 0) {
         availableMoves = childNodes;
-      } else if (transpositions.length > 0) {
-        // If there are transpositions that have children, we jump to one of those
-        // and continue with the line.
-        node = getRandomMove(
-          transpositions.filter((n) => n.children.length > 0),
-          strategy
-        );
+      } else if (transpositionsWithGrandChildren.length > 0) {
+        // If there are transpositions that have grandchildren, we jump to one of those.
+        node = getRandomMove(transpositionsWithGrandChildren, strategy);
         continue;
       } else {
         break;

@@ -20,7 +20,7 @@ describe("pickLine", () => {
     expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6"]);
   });
 
-  it("should terminate line that doesn't have enough moves ", () => {
+  it("should terminate line that doesn't have chiild moves ", () => {
     const chapters: Chapter[] = parsePgnStringToChapters(
       `[Orientation "white"]
           1. e4 e5 2. Nf3 Nc6 *`
@@ -49,5 +49,38 @@ describe("pickLine", () => {
       "d4",
       "exd4",
     ]);
+  });
+
+  it("should avoid infinite loop in tranpositions", () => {
+    const chapters: Chapter[] = parsePgnStringToChapters(
+      `[Orientation "black"]
+      1. e4 e5 2. Nf3
+          (2. Nc3 Nc6 3. Nf3 Nf6)
+           2... Nc6 3. Nc3 Nf6 *`
+    );
+
+    const line = pickLine(chapters, "DETERMINISTIC");
+    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+  });
+
+  it("don't go to transposition with no grand children", () => {
+    const chapters: Chapter[] = parsePgnStringToChapters(
+      `[Orientation "black"]
+      1. e4 e5 2. Nf3
+          (2. Nc3 Nc6 3. Nf3 Nf6 4. d4)
+           2... Nc6 3. Nc3 Nf6 *`
+    );
+
+    const line = pickLine(chapters, "DETERMINISTIC");
+    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+  });
+
+  it("throws error when multiple player moves available", () => {
+    const chapters: Chapter[] = parsePgnStringToChapters(
+      `[Orientation "black"]
+      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
+    );
+
+    expect(() => pickLine(chapters, "DETERMINISTIC")).toThrow();
   });
 });
