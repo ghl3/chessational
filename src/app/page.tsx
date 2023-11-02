@@ -295,6 +295,7 @@ const Home: React.FC = () => {
     setTimeout(async () => {
       applyMove(gameObject.current, bestMove);
       playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
+      setLineMoveResult("CORRECT");
     }, OPPONENT_MOVE_DELAY);
   }, [line, lineIndex]);
 

@@ -73,6 +73,7 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
         clearTimeout(timer);
       }
     };
+    // TODO: Show the incorrect status on multiple wrong moves in a row.
   }, [result, position]);
 
   return (

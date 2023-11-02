@@ -1,6 +1,5 @@
 import { Chapter } from "@/chess/Chapter";
-import { WHITE, BLACK } from "chess.js";
-import { pickLine } from "./LinePicker";
+import { pickLine, getNumberOfLines } from "./LinePicker";
 import { Line } from "@/chess/Line";
 import { parsePgnStringToChapters } from "./PgnParser";
 
@@ -8,7 +7,6 @@ const lineToSan = (line: Line): string[] => {
   return line.moves.map((move) => move.move);
 };
 
-// Test getNumberOfLines
 describe("pickLine", () => {
   it("should pick the one line", () => {
     const chapters: Chapter[] = parsePgnStringToChapters(
@@ -82,5 +80,24 @@ describe("pickLine", () => {
     );
 
     expect(() => pickLine(chapters, "DETERMINISTIC")).toThrow();
+  });
+});
+
+describe("getNumberOfLines", () => {
+  it("should get the correct number of lines", () => {
+    const chapter: Chapter = parsePgnStringToChapters(
+      `[Orientation "black"]
+      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
+    )[0];
+
+    expect(getNumberOfLines(chapter.moveTree)).toEqual(2);
+  });
+
+  it("should get the correct number of lines for pirc", () => {
+    const chapter: Chapter = parsePgnStringToChapters(
+      `[Orientation "white"]
+      1. d4 Nf6 (1... d6 2. e4 {1} ) (1... g6 2. e4 Bg7 3. Nc3 {2} ) 2. Nc3 g6 (2... d6 3. e4 {3}) 3. e4 {4} *`
+    )[0];
+    expect(getNumberOfLines(chapter.moveTree)).toEqual(4);
   });
 });

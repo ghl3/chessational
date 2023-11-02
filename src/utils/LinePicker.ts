@@ -9,13 +9,13 @@ export type MoveSelectionStrategy =
   | "LINE_WEIGHTED"
   | "DATABASE_WEIGHTED";
 
-const getNumberOfLines = (node: Node): number => {
+export const getNumberOfLines = (node: Node): number => {
   // Counts the number of leaf nodes in the chapter's move tree
-  const countLeafNodes = (node: Node): number => {
-    if (node.children.length === 0) {
+  const countLeafNodes = (n: Node): number => {
+    if (n.children.length === 0) {
       return 1;
     } else {
-      return node.children.reduce((a, b) => a + countLeafNodes(b), 0);
+      return n.children.map(countLeafNodes).reduce((a, b) => a + b, 0);
     }
   };
 
