@@ -22,6 +22,7 @@ import { LineMoveResult } from "@/components/MoveDescription";
 import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
+import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -84,9 +85,8 @@ const Home: React.FC = () => {
   // The line index is the index of the next move to play.
   const [lineIndex, setLineIndex] = useState<number>(-1);
 
-  const [lineMoveResult, setLineMoveResult] = useState<LineMoveResult | null>(
-    null
-  );
+  const [lineMoveResult, setLineMoveResult] =
+    useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
     (study) => study.name == studyData.selectedStudyName

@@ -1,6 +1,5 @@
 import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
-import { Move } from "@/chess/Move";
 import React, { useEffect } from "react";
 
 export type LineMoveResult = "CORRECT" | "INCORRECT";
@@ -24,11 +23,8 @@ const getLineStatusText = (status: LineStatus | null): string => {
   }
 };
 
-const getMoveResultText = (
-  result: LineMoveResult | null,
-  showResult: boolean
-): string => {
-  if (!showResult) return "";
+const getMoveResultText = (result: LineMoveResult | null): string => {
+  if (!result) return "";
   switch (result) {
     case "CORRECT":
       return "Correct";
@@ -51,31 +47,9 @@ const getMoveResultColor = (result: LineMoveResult | null): string => {
 };
 
 export const MoveDescription: React.FC<MoveDescriptionProps> = ({
-  position,
   status,
   result,
 }) => {
-  const [showResult, setShowResult] = React.useState<boolean>(true);
-
-  useEffect(() => {
-    // Show result immediately when either result or fen changes
-    setShowResult(true);
-
-    let timer: NodeJS.Timeout;
-    if (result) {
-      timer = setTimeout(() => {
-        setShowResult(false);
-      }, 2000);
-    }
-
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-    // TODO: Show the incorrect status on multiple wrong moves in a row.
-  }, [result, position]);
-
   return (
     <div className="flex flex-col space-y-2 p-4">
       <p className="text-gray-400" style={{ minHeight: "1.5em" }}>
@@ -85,7 +59,7 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
         className={getMoveResultColor(result || null)}
         style={{ minHeight: "1.5em" }}
       >
-        {getMoveResultText(result || null, showResult)}
+        {getMoveResultText(result || null)}
       </p>
     </div>
   );
