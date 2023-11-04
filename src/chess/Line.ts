@@ -12,7 +12,7 @@ export type LineStatus =
   | "LINE_COMPLETE";
 
 export const getLineStatus = (line: Line, index: number): LineStatus => {
-  if (index === line.positions.length) {
+  if (index === line.positions.length - 1) {
     return "LINE_COMPLETE";
   } else if (index % 2 === 0) {
     return "SELECT_MOVE_FOR_WHITE";

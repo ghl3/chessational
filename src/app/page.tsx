@@ -122,25 +122,17 @@ const Home: React.FC = () => {
     setShowDatabase(!showDatabase);
   }, [showDatabase]);
 
-  // Apply a move.  The move must be a valid move or an
-  // error will be thrown.
-  const applyMove = useCallback(
-    (chess: Chess, move: Move): void => {
-      const moveResult = chess.move(move);
-      if (moveResult == null) {
-        throw new Error("moveResult is null");
+  const updatePosition = useCallback(
+    (chess: Chess, position: Position): void => {
+      if (position.lastMove != null) {
+        const moveResult = chess.move(position.lastMove);
+        if (moveResult == null) {
+          throw new Error("moveResult is null");
+        }
       }
 
-      const newPosition = {
-        fen: chess.fen(),
-        lastMove: move,
-        comments: [],
-        isGameOver: chess.isGameOver(),
-        gameResult: getGameResult(chess),
-      };
-
       // Update the state of the shown board
-      chessboardState.setNextPosition(newPosition, false);
+      chessboardState.setNextPosition(position, false);
       setLineMoveResult(null);
 
       // If we're in engine mode, start processing the new board state
@@ -188,7 +180,7 @@ const Home: React.FC = () => {
     // If we are black, we first have to do white's move
     if (line.chapter.orientation == "b") {
       const firstPosition: Position = line.positions[1];
-      applyMove(gameObject.current, firstPosition);
+      updatePosition(gameObject.current, firstPosition);
       setLineIndex(1);
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
@@ -205,7 +197,7 @@ const Home: React.FC = () => {
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
         const nextPosition = line.positions[lineIndex + 1];
-        applyMove(gameObject.current, nextPosition);
+        updatePosition(gameObject.current, nextPosition);
         setLineIndex((lineIndex) => lineIndex + 1);
       }, OPPONENT_MOVE_DELAY);
     }
@@ -231,7 +223,16 @@ const Home: React.FC = () => {
         // In explore mode, we just make the move
         // TODO: In the chessboard state, when making a move, we need
         // the ability to go back and change, and then that becomes the current line.
-        applyMove(gameObject.current, move);
+
+        const newPosition = {
+          fen: gameObject.current.fen(),
+          lastMove: move,
+          comments: [],
+          isGameOver: gameObject.current.isGameOver(),
+          gameResult: getGameResult(gameObject.current),
+        };
+
+        updatePosition(gameObject.current, newPosition);
         return true;
       }
 
@@ -257,7 +258,7 @@ const Home: React.FC = () => {
         // and "go to the next position in the line".  This is because
         // the next position in the line may have comments and other metadata
         // ...
-        applyMove(gameObject.current, newPosition);
+        updatePosition(gameObject.current, line.positions[lineIndex + 1]);
         setLineIndex((lineIndex) => lineIndex + 1);
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
         setLineMoveResult("CORRECT");
@@ -310,7 +311,7 @@ const Home: React.FC = () => {
     }
 
     setTimeout(async () => {
-      applyMove(gameObject.current, bestMove);
+      updatePosition(gameObject.current, bestMove);
       setLineIndex((lineIndex) => lineIndex + 1);
       playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
       setLineMoveResult("CORRECT");
