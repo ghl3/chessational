@@ -30,57 +30,125 @@ describe("PgnParser", () => {
     const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
-        headers: { Foo: "Bar" },
         name: "",
-        orientation: "w",
         studyName: "",
-        moveTree: {
+        orientation: "w",
+        headers: {
+          Foo: "Bar",
+        },
+        positionTree: {
+          position: {
+            fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            lastMove: null,
+            comments: [],
+            isGameOver: false,
+          },
           children: [
             {
-              move: "e4",
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              from: "e2",
-              isGameOver: false,
-              piece: "p",
-              player: "w",
-              to: "e4",
+              position: {
+                fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                lastMove: {
+                  color: "w",
+                  piece: "p",
+                  from: "e2",
+                  to: "e4",
+                  san: "e4",
+                  flags: "b",
+                  lan: "e2e4",
+                  before:
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+                  after:
+                    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                },
+                comments: [],
+                isGameOver: false,
+                gameResult: "UNKNOWN",
+              },
               children: [
                 {
-                  move: "e5",
-                  fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-                  from: "e7",
-                  isGameOver: false,
-                  piece: "p",
-                  player: "b",
-                  to: "e5",
+                  position: {
+                    fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                    lastMove: {
+                      color: "b",
+                      piece: "p",
+                      from: "e7",
+                      to: "e5",
+                      san: "e5",
+                      flags: "b",
+                      lan: "e7e5",
+                      before:
+                        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                      after:
+                        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                    },
+                    comments: [],
+                    isGameOver: false,
+                    gameResult: "UNKNOWN",
+                  },
                   children: [
                     {
-                      move: "Nf3",
-                      fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                      from: "g1",
-                      isGameOver: false,
-                      piece: "n",
-                      player: "w",
-                      to: "f3",
+                      position: {
+                        fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                        lastMove: {
+                          color: "w",
+                          piece: "n",
+                          from: "g1",
+                          to: "f3",
+                          san: "Nf3",
+                          flags: "n",
+                          lan: "g1f3",
+                          before:
+                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                          after:
+                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                        },
+                        comments: [],
+                        isGameOver: false,
+                        gameResult: "UNKNOWN",
+                      },
                       children: [
                         {
-                          move: "Nc6",
-                          fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                          from: "b8",
-                          isGameOver: false,
-                          piece: "n",
-                          player: "b",
-                          to: "c6",
+                          position: {
+                            fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            lastMove: {
+                              color: "b",
+                              piece: "n",
+                              from: "b8",
+                              to: "c6",
+                              san: "Nc6",
+                              flags: "n",
+                              lan: "b8c6",
+                              before:
+                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                              after:
+                                "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            },
+                            comments: [],
+                            isGameOver: false,
+                            gameResult: "UNKNOWN",
+                          },
                           children: [],
                         },
                         {
-                          move: "Nf6",
-                          fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                          from: "g8",
-                          isGameOver: false,
-                          piece: "n",
-                          player: "b",
-                          to: "f6",
+                          position: {
+                            fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            lastMove: {
+                              color: "b",
+                              piece: "n",
+                              from: "g8",
+                              to: "f6",
+                              san: "Nf6",
+                              flags: "n",
+                              lan: "g8f6",
+                              before:
+                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                              after:
+                                "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            },
+                            comments: [],
+                            isGameOver: false,
+                            gameResult: "UNKNOWN",
+                          },
                           children: [],
                         },
                       ],
@@ -102,81 +170,186 @@ describe("PgnParser", () => {
     const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
-        headers: { Foo: "Bar" },
         name: "",
-        orientation: "w",
         studyName: "",
-        moveTree: {
+        orientation: "w",
+        headers: {
+          Foo: "Bar",
+        },
+        positionTree: {
+          position: {
+            fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            lastMove: null,
+            comments: [],
+            isGameOver: false,
+          },
           children: [
             {
-              move: "e4",
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              from: "e2",
-              isGameOver: false,
-              piece: "p",
-              player: "w",
-              to: "e4",
+              position: {
+                fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                lastMove: {
+                  color: "w",
+                  piece: "p",
+                  from: "e2",
+                  to: "e4",
+                  san: "e4",
+                  flags: "b",
+                  lan: "e2e4",
+                  before:
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+                  after:
+                    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                },
+                comments: [],
+                isGameOver: false,
+                gameResult: "UNKNOWN",
+              },
               children: [
                 {
-                  move: "e5",
-                  fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-                  from: "e7",
-                  isGameOver: false,
-                  piece: "p",
-                  player: "b",
-                  to: "e5",
-                  comments: ["The standard response"],
+                  position: {
+                    fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                    lastMove: {
+                      color: "b",
+                      piece: "p",
+                      from: "e7",
+                      to: "e5",
+                      san: "e5",
+                      flags: "b",
+                      lan: "e7e5",
+                      before:
+                        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                      after:
+                        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                    },
+                    comments: [
+                      {
+                        text: "The standard response",
+                      },
+                    ],
+                    isGameOver: false,
+                    gameResult: "UNKNOWN",
+                  },
                   children: [
                     {
-                      move: "Nf3",
-                      fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                      from: "g1",
-                      isGameOver: false,
-                      piece: "n",
-                      player: "w",
-                      to: "f3",
+                      position: {
+                        fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                        lastMove: {
+                          color: "w",
+                          piece: "n",
+                          from: "g1",
+                          to: "f3",
+                          san: "Nf3",
+                          flags: "n",
+                          lan: "g1f3",
+                          before:
+                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                          after:
+                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                        },
+                        comments: [],
+                        isGameOver: false,
+                        gameResult: "UNKNOWN",
+                      },
                       children: [
                         {
-                          move: "Nc6",
-                          fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                          from: "b8",
-                          isGameOver: false,
-                          piece: "n",
-                          player: "b",
-                          to: "c6",
-                          comments: ["Defending the pawn"],
+                          position: {
+                            fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            lastMove: {
+                              color: "b",
+                              piece: "n",
+                              from: "b8",
+                              to: "c6",
+                              san: "Nc6",
+                              flags: "n",
+                              lan: "b8c6",
+                              before:
+                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                              after:
+                                "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            },
+                            comments: [
+                              {
+                                text: "Defending the pawn",
+                              },
+                            ],
+                            isGameOver: false,
+                            gameResult: "UNKNOWN",
+                          },
                           children: [
                             {
-                              move: "Bb5",
-                              fen: "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
-                              from: "f1",
-                              isGameOver: false,
-                              piece: "b",
-                              player: "w",
-                              to: "b5",
-                              comments: ["The Ruy Lopez"],
+                              position: {
+                                fen: "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+                                lastMove: {
+                                  color: "w",
+                                  piece: "b",
+                                  from: "f1",
+                                  to: "b5",
+                                  san: "Bb5",
+                                  flags: "n",
+                                  lan: "f1b5",
+                                  before:
+                                    "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                                  after:
+                                    "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+                                },
+                                comments: [
+                                  {
+                                    text: "The Ruy Lopez",
+                                  },
+                                ],
+                                isGameOver: false,
+                                gameResult: "UNKNOWN",
+                              },
                               children: [],
                             },
                           ],
                         },
                         {
-                          move: "Nf6",
-                          fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                          from: "g8",
-                          isGameOver: false,
-                          piece: "n",
-                          player: "b",
-                          to: "f6",
-                          comments: ["Going into the Petrov"],
+                          position: {
+                            fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            lastMove: {
+                              color: "b",
+                              piece: "n",
+                              from: "g8",
+                              to: "f6",
+                              san: "Nf6",
+                              flags: "n",
+                              lan: "g8f6",
+                              before:
+                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+                              after:
+                                "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                            },
+                            comments: [
+                              {
+                                text: "Going into the Petrov",
+                              },
+                            ],
+                            isGameOver: false,
+                            gameResult: "UNKNOWN",
+                          },
                           children: [
                             {
-                              move: "Nxe5",
-                              fen: "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
-                              from: "f3",
-                              isGameOver: false,
-                              piece: "n",
-                              player: "w",
-                              to: "e5",
+                              position: {
+                                fen: "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
+                                lastMove: {
+                                  color: "w",
+                                  piece: "n",
+                                  from: "f3",
+                                  to: "e5",
+                                  san: "Nxe5",
+                                  flags: "c",
+                                  lan: "f3e5",
+                                  before:
+                                    "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
+                                  after:
+                                    "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
+                                  captured: "p",
+                                },
+                                comments: [],
+                                isGameOver: false,
+                                gameResult: "UNKNOWN",
+                              },
                               children: [],
                             },
                           ],
