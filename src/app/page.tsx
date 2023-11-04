@@ -22,7 +22,7 @@ import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { Position, createPosition } from "@/chess/Position";
+import { Position, createPosition, getGameResult } from "@/chess/Position";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -125,18 +125,22 @@ const Home: React.FC = () => {
   // Apply a move.  The move must be a valid move or an
   // error will be thrown.
   const applyMove = useCallback(
-    (chess: Chess, position: Position): void => {
-      // Throws an error if the move is invalid
-      if (position.lastMove == null) {
-        throw new Error("lastMove is null");
-      }
-      const moveResult = chess.move(position.lastMove);
+    (chess: Chess, move: Move): void => {
+      const moveResult = chess.move(move);
       if (moveResult == null) {
         throw new Error("moveResult is null");
       }
 
+      const newPosition = {
+        fen: chess.fen(),
+        lastMove: move,
+        comments: [],
+        isGameOver: chess.isGameOver(),
+        gameResult: getGameResult(chess),
+      };
+
       // Update the state of the shown board
-      chessboardState.setNextPosition(position, false);
+      chessboardState.setNextPosition(newPosition, false);
       setLineMoveResult(null);
 
       // If we're in engine mode, start processing the new board state
@@ -148,7 +152,7 @@ const Home: React.FC = () => {
           .then(setPositionEvaluation);
       }
     },
-    [chessboardState]
+    [chessboardState, showEngine]
   );
 
   const onNewLine = useCallback(() => {
@@ -221,13 +225,13 @@ const Home: React.FC = () => {
         return false;
       }
 
-      const newPosition = createPosition(move, gameObject.current);
+      // const newPosition = createPosition(move, gameObject.current);
 
       if (exploreMode) {
         // In explore mode, we just make the move
         // TODO: In the chessboard state, when making a move, we need
         // the ability to go back and change, and then that becomes the current line.
-        applyMove(gameObject.current, newPosition);
+        applyMove(gameObject.current, move);
         return true;
       }
 
@@ -249,6 +253,10 @@ const Home: React.FC = () => {
       ) {
         // If it matches a child node, it's an acceptable move
         // and we update the current line and the board state.
+        // TODO: We need to separate the concept of "apply a oneoff move"
+        // and "go to the next position in the line".  This is because
+        // the next position in the line may have comments and other metadata
+        // ...
         applyMove(gameObject.current, newPosition);
         setLineIndex((lineIndex) => lineIndex + 1);
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
