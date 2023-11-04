@@ -1,6 +1,7 @@
-import { Chapter, MoveNode, Node, RootNode } from "@/chess/Chapter";
+import { Chapter, PositionNode as Node } from "@/chess/Chapter";
 import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
+import { Position } from "@/chess/Position";
 import { Color } from "chess.js";
 
 export type MoveSelectionStrategy =
@@ -22,14 +23,16 @@ export const getNumberOfLines = (node: Node): number => {
   return countLeafNodes(node);
 };
 
-const lineToSan = (line: Line): string[] => {
-  return line.moves.map((move) => move.move);
+export const lineToSan = (line: Line): string[] => {
+  return line.positions
+    .filter((position) => position.lastMove != null)
+    .map((position) => position.lastMove?.san ?? "");
 };
 
 const getRandomMove = (
-  nodes: MoveNode[],
+  nodes: Node[],
   strategy: MoveSelectionStrategy
-): MoveNode => {
+): Node => {
   if (nodes.length === 0) {
     throw new Error("No children");
   }
@@ -71,7 +74,7 @@ const selectChapter = (
     return chapters[Math.floor(Math.random() * chapters.length)];
   } else if (strategy === "LINE_WEIGHTED") {
     const linesPerChapter = chapters.map((chapter) =>
-      getNumberOfLines(chapter.moveTree)
+      getNumberOfLines(chapter.positionTree)
     );
     const totalLines = linesPerChapter.reduce((a, b) => a + b, 0);
     const randomIndex = Math.floor(Math.random() * totalLines);
@@ -89,11 +92,11 @@ const selectChapter = (
   throw new Error("Invalid strategy");
 };
 
-const createPositionIndex = (node: RootNode): Map<Fen, MoveNode[]> => {
-  const positionIndex = new Map<Fen, MoveNode[]>();
+const createPositionIndex = (node: Node): Map<Fen, Node[]> => {
+  const positionIndex = new Map<Fen, Node[]>();
 
-  const addNodeAndChildren = (node: MoveNode) => {
-    const fen: Fen = node.fen;
+  const addNodeAndChildrenToIndex = (node: Node) => {
+    const fen: Fen = node.position.fen;
 
     const existingNodes = positionIndex.get(fen);
     if (existingNodes) {
@@ -102,25 +105,19 @@ const createPositionIndex = (node: RootNode): Map<Fen, MoveNode[]> => {
       positionIndex.set(fen, [node]);
     }
 
-    node.children.forEach(addNodeAndChildren);
+    node.children.forEach(addNodeAndChildrenToIndex);
   };
 
-  for (const child of node.children) {
-    addNodeAndChildren(child);
-  }
+  addNodeAndChildrenToIndex(node);
 
   return positionIndex;
 };
 
 const getTranspositions = (
   node: Node,
-  positionIndex: Map<Fen, MoveNode[]>
-): MoveNode[] => {
-  if (!("fen" in node)) {
-    return [];
-  }
-
-  const fen: Fen = node.fen;
+  positionIndex: Map<Fen, Node[]>
+): Node[] => {
+  const fen: Fen = node.position.fen;
 
   const transpositions = positionIndex.get(fen);
 
@@ -142,23 +139,22 @@ export const pickLine = (
 
   var turn: "PLAYER" | "OPPONENT" = orientation === "w" ? "PLAYER" : "OPPONENT";
 
-  var node: Node = chapter.moveTree;
+  var node: Node = chapter.positionTree;
 
   const positionIndex = createPositionIndex(node);
 
   const line: Line = {
     chapter,
-    moves: [],
+    positions: [node.position],
   };
 
   while (true) {
     var availableMoves = [];
 
     if (turn === "PLAYER") {
-      const transpositionsWithChildren = getTranspositions(
-        node,
-        positionIndex
-      ).filter((n) => n.children.length > 0);
+      const transpositions = getTranspositions(node, positionIndex).filter(
+        (n) => n.children.length > 0
+      );
 
       // There should be a single move for the player to make. We don't yet
       // support multiple lines (or alternate moves) for the player.
@@ -170,10 +166,10 @@ export const pickLine = (
       } else if (node.children.length == 1) {
         availableMoves = node.children;
       } else {
-        if (transpositionsWithChildren.length > 0) {
+        if (transpositions.length > 0) {
           // If there are transpositions that have children, we jump to one of those
           // and continue with the line.
-          node = getRandomMove(transpositionsWithChildren, strategy);
+          node = getRandomMove(transpositions, strategy);
           continue;
         } else {
           throw new Error(
@@ -191,18 +187,17 @@ export const pickLine = (
         return node.children.length > 0;
       };
 
-      const transpositionsWithGrandChildren = getTranspositions(
-        node,
-        positionIndex
-      ).filter((n) => n.children.length > 0 && n.children.some(hasChild));
+      const transpositions = getTranspositions(node, positionIndex).filter(
+        (n) => n.children.length > 0 && n.children.some(hasChild)
+      );
 
       const childNodes = node.children.filter(hasChild);
 
       if (childNodes.length > 0) {
         availableMoves = childNodes;
-      } else if (transpositionsWithGrandChildren.length > 0) {
+      } else if (transpositions.length > 0) {
         // If there are transpositions that have grandchildren, we jump to one of those.
-        node = getRandomMove(transpositionsWithGrandChildren, strategy);
+        node = getRandomMove(transpositions, strategy);
         continue;
       } else {
         break;
@@ -210,9 +205,9 @@ export const pickLine = (
     }
 
     // Now, we're free to pick the next move
-    const move = getRandomMove(availableMoves, strategy);
+    const move: Node = getRandomMove(availableMoves, strategy);
     node = move;
-    line.moves.push(move);
+    line.positions.push(move.position);
     turn = turn === "PLAYER" ? "OPPONENT" : "PLAYER";
   }
 

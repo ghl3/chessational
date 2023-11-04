@@ -1,10 +1,9 @@
-import { Chapter, MoveNode, Node } from "./Chapter";
-import { Fen } from "./Fen";
-import { Move } from "./Move";
+import { Chapter } from "./Chapter";
+import { Position } from "./Position";
 
 export interface Line {
   chapter: Chapter;
-  moves: Move[];
+  positions: Position[];
 }
 
 export type LineStatus =
@@ -13,7 +12,7 @@ export type LineStatus =
   | "LINE_COMPLETE";
 
 export const getLineStatus = (line: Line, index: number): LineStatus => {
-  if (index === line.moves.length) {
+  if (index === line.positions.length) {
     return "LINE_COMPLETE";
   } else if (index % 2 === 0) {
     return "SELECT_MOVE_FOR_WHITE";
