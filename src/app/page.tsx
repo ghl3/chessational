@@ -12,9 +12,8 @@ import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess } from "chess.js";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
-import { Chapter, MoveNode } from "@/chess/Chapter";
+import { Chapter, PositionNode } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
-import { getGameResult } from "@/utils/PgnParser";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Line, getLineStatus } from "@/chess/Line";
@@ -23,6 +22,7 @@ import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
+import { Position, createPosition } from "@/chess/Position";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -48,14 +48,11 @@ const createMoveOrNull = (
       return null;
     } else {
       const move: Move = {
-        move: moveResult.san,
+        san: moveResult.san,
         piece: moveResult.piece,
         from: moveResult.from,
         to: moveResult.to,
         player: moveResult.color,
-        fen: chess.fen(),
-        isGameOver: chess.isGameOver(),
-        gameResult: getGameResult(chess),
       };
       chess.undo();
       return move;
@@ -82,7 +79,8 @@ const Home: React.FC = () => {
   }, []);
 
   const [line, setLine] = useState<Line | null>(null);
-  // The line index is the index of the next move to play.
+  // The current position in the line.
+  // The next move to play is line.moves[lineIndex+1]
   const [lineIndex, setLineIndex] = useState<number>(-1);
 
   const [lineMoveResult, setLineMoveResult] =
@@ -127,12 +125,18 @@ const Home: React.FC = () => {
   // Apply a move.  The move must be a valid move or an
   // error will be thrown.
   const applyMove = useCallback(
-    (chess: Chess, move: Move): void => {
+    (chess: Chess, position: Position): void => {
       // Throws an error if the move is invalid
-      chess.move(move);
+      if (position.lastMove == null) {
+        throw new Error("lastMove is null");
+      }
+      const moveResult = chess.move(position.lastMove);
+      if (moveResult == null) {
+        throw new Error("moveResult is null");
+      }
 
       // Update the state of the shown board
-      chessboardState.move(move, false);
+      chessboardState.setNextPosition(position, false);
       setLineMoveResult(null);
 
       // If we're in engine mode, start processing the new board state
@@ -173,12 +177,15 @@ const Home: React.FC = () => {
     setLine(line);
     chessboardState.setOrientation(line.chapter.orientation);
 
+    // Initialize the first position
+    chessboardState.setNextPosition(line.positions[0], true);
+    setLineIndex(0);
+
     // If we are black, we first have to do white's move
     if (line.chapter.orientation == "b") {
-      applyMove(gameObject.current, line.moves[0]);
+      const firstPosition: Position = line.positions[1];
+      applyMove(gameObject.current, firstPosition);
       setLineIndex(1);
-    } else {
-      setLineIndex(0);
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
 
@@ -186,16 +193,16 @@ const Home: React.FC = () => {
     line: Line,
     lineIndex: number
   ) => {
-    const endOfLine = lineIndex >= line.moves.length - 1;
+    const endOfLine = lineIndex == line.positions.length - 1;
 
     // If this is the end of the line, we're done.
     if (!endOfLine) {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
-        const nextMove = line.moves[lineIndex];
-        applyMove(gameObject.current, nextMove);
-        setLineIndex(lineIndex + 1);
+        const nextPosition = line.positions[lineIndex + 1];
+        applyMove(gameObject.current, nextPosition);
+        setLineIndex((lineIndex) => lineIndex + 1);
       }, OPPONENT_MOVE_DELAY);
     }
   };
@@ -214,11 +221,13 @@ const Home: React.FC = () => {
         return false;
       }
 
+      const newPosition = createPosition(move, gameObject.current);
+
       if (exploreMode) {
         // In explore mode, we just make the move
         // TODO: In the chessboard state, when making a move, we need
         // the ability to go back and change, and then that becomes the current line.
-        applyMove(gameObject.current, move);
+        applyMove(gameObject.current, newPosition);
         return true;
       }
 
@@ -229,16 +238,20 @@ const Home: React.FC = () => {
       }
 
       // Check whether the attempted move is the next move in the line.
-      const nextMoveInLine = line.moves[lineIndex];
+      const nextMoveInLine: Move | null =
+        line.positions[lineIndex + 1].lastMove;
+      if (nextMoveInLine == null) {
+        throw new Error("nextMoveInLine is null");
+      }
       if (
         nextMoveInLine.from === sourceSquare &&
         nextMoveInLine.to === targetSquare
       ) {
         // If it matches a child node, it's an acceptable move
         // and we update the current line and the board state.
-        applyMove(gameObject.current, move);
+        applyMove(gameObject.current, newPosition);
+        setLineIndex((lineIndex) => lineIndex + 1);
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
-        setLineIndex(lineIndex + 1);
         setLineMoveResult("CORRECT");
         // Return true to accept the move
         return true;
@@ -266,14 +279,10 @@ const Home: React.FC = () => {
 
       // Recreate the original line
       if (line != null) {
-        for (const move of line.moves.slice(0, lineIndex)) {
-          chessboardState.move(move, true);
+        for (const position of line.positions.slice(1, lineIndex)) {
+          chessboardState.setNextPosition(position, true);
         }
-        if (chessboardState.moves.length > 0) {
-          gameObject.current.load(
-            chessboardState.moves[chessboardState.moves.length - 1].fen
-          );
-        }
+        gameObject.current.load(line.positions[lineIndex].fen);
       }
     }
     setExploreMode(false);
@@ -282,11 +291,11 @@ const Home: React.FC = () => {
   }, [line, lineIndex, exploreMode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
-    if (line == null || lineIndex < 0) {
+    if (line == null) {
       throw new Error("line is null");
     }
 
-    const bestMove = line.moves[lineIndex];
+    const bestMove = line.positions[lineIndex + 1];
 
     if (bestMove == null) {
       throw new Error("bestMove is null");
@@ -294,6 +303,7 @@ const Home: React.FC = () => {
 
     setTimeout(async () => {
       applyMove(gameObject.current, bestMove);
+      setLineIndex((lineIndex) => lineIndex + 1);
       playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
       setLineMoveResult("CORRECT");
     }, OPPONENT_MOVE_DELAY);
@@ -301,6 +311,7 @@ const Home: React.FC = () => {
 
   // TODO: This is a hack.  Fix.
   // TODO: Comments won't work with the new line class
+  /*
   const isMoveNode = (line: any): line is MoveNode => {
     return line && "children" in line && "move" in line;
   };
@@ -308,6 +319,9 @@ const Home: React.FC = () => {
   if (isMoveNode(line)) {
     comments = line.comments || [];
   }
+  */
+
+  const comments: string[] = [];
 
   const lineStatus =
     line && !exploreMode ? getLineStatus(line, lineIndex) : undefined;

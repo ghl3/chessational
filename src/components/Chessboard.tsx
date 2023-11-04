@@ -5,7 +5,7 @@ import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import ChessboardButtons from "./ChessboardButtons";
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
-import { PieceSymbol, Color, WHITE, BLACK } from "chess.js";
+import { PieceSymbol, WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
 import { MaterialDiff } from "./MaterialDiff";
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
@@ -35,20 +35,20 @@ const Chessboard: React.FC<ChessboardProps> = ({
   }, []);
 
   const handleLeftClick = useCallback(() => {
-    if (chessboardState.moveIndex <= 0) {
+    if (chessboardState.positionIndex <= 0) {
       return;
     }
-    setGamePositionFromIndex(chessboardState.moveIndex - 1);
-  }, [chessboardState.moveIndex, setGamePositionFromIndex]);
+    setGamePositionFromIndex(chessboardState.positionIndex - 1);
+  }, [chessboardState.positionIndex, setGamePositionFromIndex]);
 
   const handleRightClick = useCallback(() => {
-    if (chessboardState.moveIndex + 1 == chessboardState.moves.length) {
+    if (chessboardState.positionIndex + 1 == chessboardState.positions.length) {
       return;
     }
-    setGamePositionFromIndex(chessboardState.moveIndex + 1);
+    setGamePositionFromIndex(chessboardState.positionIndex + 1);
   }, [
-    chessboardState.moveIndex,
-    chessboardState.moves,
+    chessboardState.positionIndex,
+    chessboardState.positions,
     setGamePositionFromIndex,
   ]);
 
@@ -57,13 +57,13 @@ const Chessboard: React.FC<ChessboardProps> = ({
   }, [setGamePositionFromIndex]);
 
   const handleJumpToEnd = useCallback(() => {
-    if (chessboardState.moves.length === 0) {
+    if (chessboardState.positions.length === 0) {
       setGamePositionFromIndex(0);
     } else {
-      const endIndex = chessboardState.moves.length - 1;
+      const endIndex = chessboardState.positions.length - 1;
       setGamePositionFromIndex(endIndex);
     }
-  }, [chessboardState.moves, setGamePositionFromIndex]);
+  }, [chessboardState.positions, setGamePositionFromIndex]);
 
   // Inside your Review component
   useArrowKeys({
@@ -71,7 +71,12 @@ const Chessboard: React.FC<ChessboardProps> = ({
     onRightArrow: handleRightClick,
   });
 
-  const pieceCount: PieceCount = getPieceCounts(chessboardState.position);
+  const fen =
+    (chessboardState.positions.length > 0 &&
+      chessboardState.positions[chessboardState.positionIndex].fen) ||
+    DEFAULT_POSITION;
+
+  const pieceCount: PieceCount = getPieceCounts(fen);
 
   return (
     <>
@@ -81,7 +86,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
           color={chessboardState.orientation == WHITE ? BLACK : WHITE}
         />
         <ReactChessboard
-          position={chessboardState.position}
+          position={fen}
           customDarkSquareStyle={{ backgroundColor: "#34495e" }}
           boardWidth={chessboardState.boardSize}
           areArrowsAllowed={true}

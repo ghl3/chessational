@@ -1,4 +1,4 @@
-import { Color, WHITE, BLACK, Move } from "chess.js";
+import { Color, WHITE, BLACK } from "chess.js";
 
 import {
   parse,
@@ -9,8 +9,9 @@ import {
 } from "pgn-parser";
 import { Chess } from "chess.js";
 import { Chapter, PositionNode } from "../chess/Chapter";
-import { GameResult } from "../chess/Position";
+import { GameResult, getGameResult } from "../chess/Position";
 import { Position } from "@/chess/Position";
+import { Move } from "@/chess/Move";
 
 const convertHeaders = (
   headers: PgnHeader[] | null
@@ -42,21 +43,6 @@ const extractComment = (comment: string | PgnComment): string => {
   }
 };
 */
-export const getGameResult = (chess: Chess): GameResult => {
-  if (chess.isCheckmate()) {
-    return "CHECKMATE";
-  } else if (chess.isStalemate()) {
-    return "STALEMATE";
-  } else if (chess.isInsufficientMaterial()) {
-    return "INSUFFICIENT_MATERIAL";
-  } else if (chess.isThreefoldRepetition()) {
-    return "THREEFOLD_REPETITION";
-  } else if (chess.isDraw()) {
-    return "DRAW";
-  } else {
-    return "UNKNOWN";
-  }
-};
 
 /*
 const makePosition = (chess: Chess): Position => {
