@@ -15,12 +15,14 @@ export interface Arrow {
 }
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
+  chessboardSize: number;
   chessboardState: ChessboardState;
   onPieceDrop: (source: Square, target: Square, piece: string) => boolean;
   arrows?: Arrow[];
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
+  chessboardSize,
   chessboardState,
   onPieceDrop,
   arrows,
@@ -91,7 +93,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
         <ReactChessboard
           position={fen}
           customDarkSquareStyle={{ backgroundColor: "#34495e" }}
-          boardWidth={chessboardState.boardSize}
+          boardWidth={chessboardSize}
           areArrowsAllowed={true}
           boardOrientation={
             chessboardState.orientation == WHITE ? "white" : "black"

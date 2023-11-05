@@ -23,6 +23,7 @@ import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { Position } from "@/chess/Position";
 import { PieceSymbol } from "chess.js";
+import { useChessboardSize } from "@/hooks/UseChessboardSize";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -55,6 +56,7 @@ const Home: React.FC = () => {
       studyData.selectedChapterNames.includes(chapter.name)
     );
 
+  const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
   const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
@@ -270,7 +272,7 @@ const Home: React.FC = () => {
     if (chessboardRef.current) {
       setHeight(chessboardRef.current.clientHeight);
     }
-  }, [chessboardRef.current, chessboardState.boardSize]);
+  }, [chessboardRef.current, chessboardSize]);
 
   const solutionArrows: Arrow[] =
     solution != null
@@ -307,6 +309,7 @@ const Home: React.FC = () => {
           <div className="flex flex-row justify-center items-start mb-6 w-screen">
             <div ref={chessboardRef}>
               <Chessboard
+                chessboardSize={chessboardSize}
                 chessboardState={chessboardState}
                 onPieceDrop={onPieceDrop}
                 className="flex-none"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Position, createPosition } from "@/chess/Position";
 import { Chess, Move as MoveResult, Color, WHITE, PieceSymbol } from "chess.js";
@@ -10,7 +10,6 @@ import { Move, moveResultToMove } from "@/chess/Move";
 export interface ChessboardState {
   positions: Position[];
   positionIndex: number;
-  boardSize: number;
   orientation: Color;
 
   setPositionFromIndex: (moveIndex: number) => void;
@@ -27,46 +26,10 @@ export interface ChessboardState {
   getPieceAtSquare: (square: Square) => PieceSymbol | null;
 }
 
-const useBoardSize = (): number => {
-  const [boardSize, setBoardSize] = useState<number>(400);
-
-  useEffect(() => {
-    const getViewportSizes = () => {
-      const vw = Math.max(
-        document.documentElement.clientWidth || 0,
-        window.innerWidth || 0
-      );
-      const vh = Math.max(
-        document.documentElement.clientHeight || 0,
-        window.innerHeight || 0
-      );
-      return [vw, vh];
-    };
-
-    const resizeBoard = () => {
-      const [vw, vh] = getViewportSizes();
-      const frac = 3;
-      const newBoardSize = Math.floor(Math.min(vw / frac, vh - 250) / 10) * 10;
-      setBoardSize(newBoardSize);
-    };
-
-    resizeBoard();
-
-    window.addEventListener("resize", resizeBoard);
-
-    return () => {
-      window.removeEventListener("resize", resizeBoard);
-    };
-  }, []);
-
-  return boardSize;
-};
-
 export const useChessboardState = (): ChessboardState => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [positionIndex, setPositionIndex] = useState<number>(-1);
   const [orientation, setOrientation] = useState<Color>(WHITE);
-  const boardSize = useBoardSize();
 
   let gameObject = useRef<Chess>(new Chess());
 
@@ -167,7 +130,6 @@ export const useChessboardState = (): ChessboardState => {
   return {
     positions,
     positionIndex,
-    boardSize,
     orientation,
 
     setPositionFromIndex,
