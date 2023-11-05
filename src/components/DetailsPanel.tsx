@@ -8,6 +8,7 @@ import { ControlButton } from "./ControlButton";
 import { Position } from "@/chess/Position";
 import { useCallback, useState } from "react";
 import { Chapter } from "@/chess/Chapter";
+import ChapterInfo from "./ChapterInfo";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
@@ -98,7 +99,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
         <Database showDatabase={showDatabase} position={position} />
 
-        {showChapter && chapter && <div>{chapter.name}</div>}
+        <ChapterInfo chapter={chapter} showChapter={showChapter} />
 
         <CommentArea comments={comments} showComments={showComments} />
       </div>
