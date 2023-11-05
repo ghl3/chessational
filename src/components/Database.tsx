@@ -1,6 +1,7 @@
 import { Fen } from "@/chess/Fen";
 import { useEffect, useState } from "react";
 import Table from "./Table";
+import { Position } from "@/chess/Position";
 
 interface LichessMove {
   uci: string;
@@ -61,7 +62,7 @@ const MoveRow: React.FC<MoveRowProps> = ({ move, database }) => {
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
   showDatabase: boolean;
-  position: Fen;
+  position: Position;
 }
 
 export const Database: React.FC<DatabaseProps> = ({
@@ -74,7 +75,7 @@ export const Database: React.FC<DatabaseProps> = ({
   useEffect(() => {
     setLoading(showDatabase && position !== null);
     if (position) {
-      fetchTopMoves(position)
+      fetchTopMoves(position.fen)
         .then((data) => {
           setDatabase(data);
           setLoading(false);

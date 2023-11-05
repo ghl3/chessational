@@ -1,11 +1,12 @@
 import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
+import { Position } from "@/chess/Position";
 import React, { useEffect } from "react";
 
 export type LineMoveResult = "CORRECT" | "INCORRECT";
 
 export interface MoveDescriptionProps {
-  position?: Fen;
+  position?: Position;
   status?: LineStatus;
   result?: LineMoveResult;
 }

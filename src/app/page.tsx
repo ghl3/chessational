@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { Chess } from "chess.js";
+import { Chess, Move as MoveResult } from "chess.js";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter, PositionNode } from "@/chess/Chapter";
@@ -39,7 +39,7 @@ const createMoveOrNull = (
   targetSquare: Square
 ): Move | null => {
   try {
-    const moveResult = chess.move({
+    const moveResult: MoveResult = chess.move({
       from: sourceSquare,
       to: targetSquare,
     });
@@ -98,6 +98,7 @@ const Home: React.FC = () => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const [exploreMode, setExploreMode] = useState<boolean>(false);
+  const [showChapter, setShowChapter] = useState<boolean>(false);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
   const [showDatabase, setShowDatabase] = useState<boolean>(false);
@@ -125,7 +126,7 @@ const Home: React.FC = () => {
   const updatePosition = useCallback(
     (chess: Chess, position: Position): void => {
       if (position.lastMove != null) {
-        const moveResult = chess.move(position.lastMove);
+        const moveResult: MoveResult = chess.move(position.lastMove);
         if (moveResult == null) {
           throw new Error("moveResult is null");
         }
@@ -330,7 +331,10 @@ const Home: React.FC = () => {
   }
   */
 
-  const comments: string[] = [];
+  //  const comments: string[] = [];
+
+  // TODO: Replace this with 'getPosition';
+  const position = chessboardState.positions[chessboardState.positionIndex];
 
   const lineStatus =
     line && !exploreMode ? getLineStatus(line, lineIndex) : undefined;
@@ -375,20 +379,23 @@ const Home: React.FC = () => {
             </div>
 
             <DetailsPanel
-              height={height || 0}
-              showEngine={showEngine}
+              chapter={line?.chapter}
+              position={position}
               positionEvaluation={positionEvaluation}
-              showDatabase={showDatabase}
               moveResult={lineMoveResult}
-              comments={comments}
-              position={gameObject.current.fen()}
               lineStatus={lineStatus}
+              showEngine={showEngine}
+              showDatabase={showDatabase}
               showComments={showComments}
-              onShowComments={onShowComments}
               engineIsEnabled={showEngine}
-              toggleEngine={toggleEngine}
               databaseIsEnabled={showDatabase}
+              //comments={comments}
+              //position={gameObject.current.fen()}
+
+              onShowComments={onShowComments}
+              toggleEngine={toggleEngine}
               toggleDatabase={toggleDatabase}
+              height={height || 0}
             />
           </div>
         </div>

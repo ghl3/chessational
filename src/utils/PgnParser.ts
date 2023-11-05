@@ -7,11 +7,11 @@ import {
   Move as PgnMove,
   Comment as PgnComment,
 } from "pgn-parser";
-import { Chess } from "chess.js";
 import { Chapter, PositionNode } from "../chess/Chapter";
 import { GameResult, getGameResult } from "../chess/Position";
 import { Position } from "@/chess/Position";
-import { Move } from "@/chess/Move";
+import { Move, moveResultToMove } from "@/chess/Move";
+import { Chess, Move as MoveResult } from "chess.js";
 
 const convertHeaders = (
   headers: PgnHeader[] | null
@@ -34,96 +34,7 @@ const getComments = (comments: PgnComment[] | null): string[] => {
     return [];
   }
 };
-/*
-const extractComment = (comment: string | PgnComment): string => {
-  if (typeof comment === "string") {
-    return comment;
-  } else {
-    return comment.text;
-  }
-};
-*/
 
-/*
-const makePosition = (chess: Chess): Position => {
-  const fen = chess.fen();
-  const lastMove = chess.history({ verbose: true }).slice(-1)[0];
-  const comments = chess.comments();
-  const isGameOver = chess.isGameOver();
-  const gameResult = getGameResult(chess);
-
-  return {
-    fen: fen,
-    lastMove: lastMove,
-    comments: comments,
-    isGameOver: isGameOver,
-    gameResult: gameResult,
-  };
-}
-
-
-
-const makeMove(move: PgnMove, chess: Chess): Move => {
-
-  const turn = chess.turn();
-  const gameResult = getGameResult(chess);
-  const fen = chess.fen();
-  const isGameOver = chess.isGameOver();
-
-
-  return {
-    move: move.move,
-    piece: moveResult.piece,
-    from: moveResult.from,
-    to: moveResult.to,
-    promotion: moveResult.promotion,
-    player: turn,
-    fen: fen,
-    isGameOver: isGameOver,
-    gameResult: gameResult,
-  };
-}
-*/
-
-/*
-const makeMoveAndChildren = (moves: PgnMove[], chess: Chess): MoveNode => {
-  // Get the current player's turn
-  const turn = chess.turn();
-
-  // Execute the move on the chess board.
-  const firstMove = moves[0];
-  const moveResult = chess.move(firstMove.move);
-
-  // Get the child moves.  It important to do this AFTER we call chess.move(...)
-  // above so the board is up-to-date.
-  const childMoves = convertMovesToTree(moves.slice(1), chess);
-
-  const mainLineMove: MoveNode = {
-    move: firstMove.move,
-    piece: moveResult.piece,
-    from: moveResult.from,
-    to: moveResult.to,
-    promotion: moveResult.promotion,
-    children: childMoves,
-    player: turn,
-    fen: chess.fen(),
-    isGameOver: chess.isGameOver(),
-  };
-
-  if (chess.isGameOver()) {
-    mainLineMove.gameResult = getGameResult(chess);
-  }
-
-  if (firstMove.comments.length > 0) {
-    mainLineMove.comments = firstMove.comments.map(extractComment);
-  }
-
-  // Undo the move
-  chess.undo();
-
-  return mainLineMove;
-};
-*/
 const getStudyAndChapter = (headers: {
   [key: string]: string;
 }): [string, string] | null => {
@@ -185,11 +96,11 @@ const createChildPositionNodes = (
   if (moves.length > 0) {
     // First, we add the main line move.
     const mainLineMove: PgnMove = moves[0];
-    const moveResult: Move = chess.move(mainLineMove.move);
+    const moveResult: MoveResult = chess.move(mainLineMove.move);
 
     const position: Position = {
       fen: chess.fen(),
-      lastMove: moveResult,
+      lastMove: moveResultToMove(moveResult),
       comments: mainLineMove.comments,
       isGameOver: chess.isGameOver(),
       gameResult: getGameResult(chess),
@@ -203,11 +114,11 @@ const createChildPositionNodes = (
     // Then, we add all the revisions for the first move.
     for (const rav of mainLineMove.ravs || []) {
       const alternateMove = rav.moves[0];
-      const alternativeMoveResult = chess.move(alternateMove.move);
+      const alternativeMoveResult: MoveResult = chess.move(alternateMove.move);
 
       const alternatePosition: Position = {
         fen: chess.fen(),
-        lastMove: alternativeMoveResult,
+        lastMove: moveResultToMove(alternativeMoveResult),
         comments: alternateMove.comments,
         isGameOver: chess.isGameOver(),
         gameResult: getGameResult(chess),
@@ -241,15 +152,12 @@ export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
     children: createChildPositionNodes(game.moves, chess),
   };
 
-  //const positionTree =
-
   return {
     name: chapter,
     studyName: study,
     orientation: orientation,
     headers: headers,
     positionTree: rootPosition,
-    //    positionTree: { children: convertMovesToTree(game.moves, new Chess()) },
   };
 };
 

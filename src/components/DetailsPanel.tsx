@@ -1,49 +1,63 @@
-import { Move } from "@/chess/Move";
 import { PositionEvaluation } from "@/components/PositionEvaluation";
 import { Database } from "@/components/Database";
 import { LineMoveResult, MoveDescription } from "@/components/MoveDescription";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { Fen } from "@/chess/Fen";
 import { LineStatus } from "@/chess/Line";
 import CommentArea from "./CommentArea";
 import { ControlButton } from "./ControlButton";
+import { Position } from "@/chess/Position";
+import { useState } from "react";
+import { Chapter } from "@/chess/Chapter";
 
 export interface DetailsPanelProps {
-  height: number;
-  showEngine: boolean;
+  chapter?: Chapter;
+  position: Position;
   positionEvaluation: EvaluatedPosition | null;
-  showDatabase: boolean;
   moveResult: LineMoveResult | null;
-  comments: string[];
-  position: Fen;
-
   lineStatus: LineStatus | undefined;
+
+  showEngine: boolean;
+  showDatabase: boolean;
   showComments: boolean;
-  onShowComments: () => void;
   engineIsEnabled: boolean;
-  toggleEngine: () => void;
   databaseIsEnabled: boolean;
+  //  comments: string[];
+
+  onShowComments: () => void;
+  toggleEngine: () => void;
   toggleDatabase: () => void;
+
+  height: number;
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
-  height,
-  showEngine,
-  positionEvaluation,
-  showDatabase,
-  moveResult,
-  comments,
+  chapter,
   position,
-
+  positionEvaluation,
+  moveResult,
   lineStatus,
+
+  showEngine,
+  showDatabase,
   showComments,
+  engineIsEnabled,
+  databaseIsEnabled,
+  //  comments: string[];
 
   onShowComments,
-  engineIsEnabled,
   toggleEngine,
-  databaseIsEnabled,
   toggleDatabase,
+
+  height,
 }) => {
+  const comments = position?.comments || [];
+
+  const [showChapter, setShowChapter] = useState(false);
+
+  const toggleShowChapter = () => {
+    setShowChapter((showChapter) => !showChapter);
+  };
+
   return (
     <div
       className="flex flex-col w-1/3 ml-6 space-y-2"
@@ -53,12 +67,23 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <ControlButton
           onClick={toggleEngine}
           label={engineIsEnabled ? "Hide Engine" : "Show Engine"}
+          size={"small"}
         />
         <ControlButton
           onClick={toggleDatabase}
           label={databaseIsEnabled ? "Hide Database" : "Show Database"}
+          size={"small"}
         />
-        <ControlButton onClick={onShowComments} label="Show Comments" />
+        <ControlButton
+          onClick={toggleShowChapter}
+          label="Show Chapter"
+          size={"small"}
+        />
+        <ControlButton
+          onClick={onShowComments}
+          label="Show Comments"
+          size={"small"}
+        />
       </div>
 
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
@@ -73,6 +98,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           positionEvaluation={positionEvaluation || undefined}
         />
 
+        <Database showDatabase={showDatabase} position={position} />
+
+        {showChapter && chapter && <div>{chapter.name}</div>}
         <Database showDatabase={showDatabase} position={position} />
 
         <CommentArea comments={comments} showComments={showComments} />
