@@ -89,27 +89,47 @@ export const Database: React.FC<DatabaseProps> = ({
 
   if (!showDatabase || !position || !database) return null;
 
-  const rows = database.moves.map((move, index) => {
-    const { san, white, black, draws } = move;
-    const totalGamesInPosition =
-      database.black + database.white + database.draws;
-    const totalGamesWithMove = white + black + draws;
+  //const totalGames = database.black + database.white + database.draws;
+  const totalGames = database.black + database.white + database.draws;
+  const whiteWinPercentage = ((database.white / totalGames) * 100).toFixed(1);
+  const blackWinPercentage = ((database.black / totalGames) * 100).toFixed(1);
+  const drawPercentage = ((database.draws / totalGames) * 100).toFixed(1);
 
-    return [
-      <> {san}</>,
-      <> {((totalGamesWithMove / totalGamesInPosition) * 100).toFixed(2)}</>,
-      <> {((white / totalGamesWithMove) * 100).toFixed(2)}</>,
-      <> {((black / totalGamesWithMove) * 100).toFixed(2)}</>,
-      <> {((draws / totalGamesWithMove) * 100).toFixed(2)}</>,
-    ];
-  });
+  const headerRow = [
+    <>{"Σ"}</>,
+    <>{100}</>,
+    <>{whiteWinPercentage}</>,
+    <>{blackWinPercentage}</>,
+    <>{drawPercentage}</>,
+  ];
+
+  const rows = database.moves
+    .filter((move, index) => {
+      const { white, black, draws } = move;
+      const totalGamesWithMove = white + black + draws;
+      return totalGamesWithMove / totalGames > 0.01;
+    })
+    .map((move, index) => {
+      const { san, white, black, draws } = move;
+      const totalGamesWithMove = white + black + draws;
+
+      return [
+        <> {san}</>,
+        <> {((totalGamesWithMove / totalGames) * 100).toFixed(1)}</>,
+        <> {((white / totalGamesWithMove) * 100).toFixed(1)}</>,
+        <> {((black / totalGamesWithMove) * 100).toFixed(1)}</>,
+        <> {((draws / totalGamesWithMove) * 100).toFixed(1)}</>,
+      ];
+    });
 
   return (
-    <Table
-      title="Lichess Games Database"
-      headers={["Move", "%", "White Wins", "Black Wins", "Draws"]}
-      rows={rows}
-      loading={loading}
-    />
+    <>
+      <Table
+        title="Lichess Games Database"
+        headers={["Move", "%", "White Wins", "Black Wins", "Draws"]}
+        rows={[headerRow, ...rows]}
+        loading={loading}
+      />
+    </>
   );
 };
