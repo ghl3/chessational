@@ -21,7 +21,6 @@ export interface DetailsPanelProps {
   showComments: boolean;
   engineIsEnabled: boolean;
   databaseIsEnabled: boolean;
-  //  comments: string[];
 
   onShowComments: () => void;
   toggleEngine: () => void;
@@ -42,7 +41,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   showComments,
   engineIsEnabled,
   databaseIsEnabled,
-  //  comments: string[];
 
   onShowComments,
   toggleEngine,

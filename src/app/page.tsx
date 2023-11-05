@@ -12,7 +12,7 @@ import { Square } from "react-chessboard/dist/chessboard/types";
 import { Chess, Move as MoveResult } from "chess.js";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
-import { Chapter, PositionNode } from "@/chess/Chapter";
+import { Chapter } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
@@ -22,7 +22,7 @@ import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { Position, createPosition, getGameResult } from "@/chess/Position";
+import { Position, getGameResult } from "@/chess/Position";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -319,20 +319,6 @@ const Home: React.FC = () => {
     }, OPPONENT_MOVE_DELAY);
   }, [line, lineIndex]);
 
-  // TODO: This is a hack.  Fix.
-  // TODO: Comments won't work with the new line class
-  /*
-  const isMoveNode = (line: any): line is MoveNode => {
-    return line && "children" in line && "move" in line;
-  };
-  let comments: string[] = [];
-  if (isMoveNode(line)) {
-    comments = line.comments || [];
-  }
-  */
-
-  //  const comments: string[] = [];
-
   // TODO: Replace this with 'getPosition';
   const position = chessboardState.positions[chessboardState.positionIndex];
 
@@ -389,9 +375,6 @@ const Home: React.FC = () => {
               showComments={showComments}
               engineIsEnabled={showEngine}
               databaseIsEnabled={showDatabase}
-              //comments={comments}
-              //position={gameObject.current.fen()}
-
               onShowComments={onShowComments}
               toggleEngine={toggleEngine}
               toggleDatabase={toggleDatabase}
