@@ -7,15 +7,10 @@ import ChessboardButtons from "./ChessboardButtons";
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
 import { PieceSymbol, WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
 import { MaterialDiff } from "./MaterialDiff";
-import { Position } from "postcss";
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardState: ChessboardState;
-  onPieceDrop: (
-    source: Square,
-    target: Square,
-    promotion?: PieceSymbol
-  ) => boolean;
+  onPieceDrop: (source: Square, target: Square, piece: string) => boolean;
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
@@ -79,6 +74,28 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   const pieceCount: PieceCount = getPieceCounts(fen);
 
+  const arrows = [
+    ["e2", "e4"],
+    ["e7", "e5"],
+    ["g1", "f3"],
+    ["b8", "c6"],
+  ];
+
+  const onPromotionCheck = (
+    sourceSquare: Square,
+    targetSquare: Square,
+    piece: string
+  ) => {
+    const isPromotion =
+      ((piece === "wP" && sourceSquare[1] === "7" && targetSquare[1] === "8") ||
+        (piece === "bP" &&
+          sourceSquare[1] === "2" &&
+          targetSquare[1] === "1")) &&
+      Math.abs(sourceSquare.charCodeAt(0) - targetSquare.charCodeAt(0)) <= 1;
+
+    return isPromotion;
+  };
+
   return (
     <>
       <div className="flex flex-col items-center space-y-4">
@@ -95,11 +112,16 @@ const Chessboard: React.FC<ChessboardProps> = ({
             chessboardState.orientation == WHITE ? "white" : "black"
           }
           onPieceDrop={onPieceDrop}
-          customArrows={chessboardState.arrows}
-          autoPromoteToQueen={true}
+          customArrows={arrows} //chessboardState.arrows}
+          customArrowColor="rgb(0, 128, 0)"
+          //autoPromoteToQueen={true}
+
           // TODO: Handle promotion
           //          onPromotionCheck
-          // showPromotionDialog = {true}
+          //showPromotionDialog={true}
+          promotionDialogVariant="default"
+          //onPromotionPieceSelect={onPromotionPieceSelect}
+          onPromotionCheck={onPromotionCheck}
         />
         <MaterialDiff
           pieceCount={pieceCount}

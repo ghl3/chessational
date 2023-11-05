@@ -8,11 +8,11 @@ import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
-import { Square } from "react-chessboard/dist/chessboard/types";
+import { Square, Piece } from "react-chessboard/dist/chessboard/types";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter } from "@/chess/Chapter";
-import { Move } from "@/chess/Move";
+import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Line, getLineStatus } from "@/chess/Line";
@@ -22,6 +22,7 @@ import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { Position } from "@/chess/Position";
+import { PieceSymbol } from "chess.js";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -142,14 +143,30 @@ const Home: React.FC = () => {
   };
 
   const onPieceDrop = useCallback(
-    (sourceSquare: Square, targetSquare: Square): boolean => {
+    (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
       // Determine if it's a valid move.
       // This does NOT update the gameObject
+
+      const originalPiece: PieceSymbol | null =
+        chessboardState.getPieceAtSquare(sourceSquare);
+
+      if (originalPiece == null) {
+        throw new Error("originalPiece is null");
+      }
+
+      const promoteToPiece = getPromoteToPiece(
+        sourceSquare,
+        targetSquare,
+        originalPiece,
+        convertToPieceSymbol(piece)
+      );
+
       const [move, newPosition]: [Move | null, Position | null] =
-        chessboardState.createMoveOrNull(sourceSquare, targetSquare) || [
-          null,
-          null,
-        ];
+        chessboardState.createMoveOrNull(
+          sourceSquare,
+          targetSquare,
+          promoteToPiece
+        ) || [null, null];
 
       if (move == null || newPosition == null) {
         return false;
@@ -175,7 +192,8 @@ const Home: React.FC = () => {
       }
       if (
         nextMoveInLine.from === sourceSquare &&
-        nextMoveInLine.to === targetSquare
+        nextMoveInLine.to === targetSquare &&
+        (promoteToPiece || null) == (nextMoveInLine.promotion || null)
       ) {
         // If it matches a child node, it's an acceptable move
         // and we update the current line and the board state.

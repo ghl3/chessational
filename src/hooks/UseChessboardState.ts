@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Position, createPosition } from "@/chess/Position";
-import { Chess, Move as MoveResult, Color, WHITE } from "chess.js";
+import { Chess, Move as MoveResult, Color, WHITE, PieceSymbol } from "chess.js";
 import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
 
@@ -30,8 +30,10 @@ export interface ChessboardState {
   clearGame: () => void;
   createMoveOrNull: (
     sourceSquare: Square,
-    targetSquare: Square
+    targetSquare: Square,
+    promotion?: PieceSymbol
   ) => [Move, Position] | null;
+  getPieceAtSquare: (square: Square) => PieceSymbol | null;
 }
 
 const useBoardSize = (): number => {
@@ -96,6 +98,7 @@ export const useChessboardState = (): ChessboardState => {
   const setPositionFromIndex = (moveIndex: number) => {
     if (moveIndex < positions.length) {
       setPositionIndex(moveIndex);
+      setNextPosition(positions[moveIndex], true);
     }
   };
 
@@ -135,12 +138,14 @@ export const useChessboardState = (): ChessboardState => {
   // TODO: Handle promotion
   const createMoveOrNull = (
     sourceSquare: Square,
-    targetSquare: Square
+    targetSquare: Square,
+    promotion?: PieceSymbol
   ): [Move, Position] | null => {
     try {
       const moveResult: MoveResult = gameObject.current.move({
         from: sourceSquare,
         to: targetSquare,
+        promotion: promotion,
       });
 
       if (moveResult == null) {
@@ -159,6 +164,11 @@ export const useChessboardState = (): ChessboardState => {
     }
   };
 
+  const getPieceAtSquare = (square: Square): PieceSymbol | null => {
+    const piece = gameObject.current.get(square);
+    return piece.type;
+  };
+
   return {
     positions,
     positionIndex,
@@ -175,5 +185,6 @@ export const useChessboardState = (): ChessboardState => {
     getFen,
     clearGame,
     createMoveOrNull,
+    getPieceAtSquare,
   };
 };
