@@ -4,7 +4,7 @@ import { ControlButton } from "@/components/ControlButton";
 type ControlProps = {
   onNewLine: () => void;
   onShowSolution: () => void;
-  exploreMode: boolean;
+  mode: "LINE" | "EXPLORE";
   enterExploreMode: () => void;
   enterLineMode: () => void;
   hasActiveLine: boolean;
@@ -13,7 +13,7 @@ type ControlProps = {
 export const Controls: React.FC<ControlProps> = ({
   onNewLine,
   onShowSolution,
-  exploreMode,
+  mode,
   enterExploreMode,
   enterLineMode,
   hasActiveLine,
@@ -23,9 +23,13 @@ export const Controls: React.FC<ControlProps> = ({
   const lineModeButtons = (
     <div className="flex space-x-4">
       {/* Buttons for Line Mode */}
-      <ControlButton onClick={onNewLine} label="New Line" />
+      <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
       {hasActiveLine ? (
-        <ControlButton onClick={onShowSolution} label="Show Solution" />
+        <ControlButton
+          onClick={onShowSolution}
+          label="Show Solution"
+          size={"large"}
+        />
       ) : null}
     </div>
   );
@@ -36,7 +40,7 @@ export const Controls: React.FC<ControlProps> = ({
         <button
           onClick={enterLineMode}
           className={`inline-block p-4 rounded-t-lg ${
-            !exploreMode
+            mode === "LINE"
               ? "text-white bg-gray-700"
               : "hover:text-gray-600 hover:bg-gray-50 "
           }`}
@@ -46,7 +50,7 @@ export const Controls: React.FC<ControlProps> = ({
         <button
           onClick={enterExploreMode}
           className={`inline-block p-4 rounded-t-lg ${
-            exploreMode
+            mode === "EXPLORE"
               ? "text-white bg-gray-700 "
               : "hover:text-gray-600 hover:bg-gray-50 "
           }`}
@@ -56,7 +60,7 @@ export const Controls: React.FC<ControlProps> = ({
       </div>
 
       <div className="flex justify-center space-x-4">
-        {exploreMode ? exploreModeButtons : lineModeButtons}
+        {mode == "EXPLORE" ? exploreModeButtons : lineModeButtons}
       </div>
     </div>
   );

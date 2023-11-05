@@ -95,30 +95,25 @@ const Home: React.FC = () => {
 
   const chessboardState: ChessboardState = useChessboardState();
 
-  const [exploreMode, setExploreMode] = useState<boolean>(false);
-  const [showComments, setShowComments] = useState<boolean>(false);
-  const [showEngine, setShowEngine] = useState<boolean>(false);
-  const [showDatabase, setShowDatabase] = useState<boolean>(false);
+  const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
+  const [runEngine, setRunEngine] = useState<boolean>(false);
 
   let gameObject = useRef<Chess>(new Chess());
 
-  const toggleEngine = useCallback(() => {
-    const previousShowEngine = showEngine;
-    const newShowEngine = !previousShowEngine;
-    setShowEngine(newShowEngine);
+  const onToggleShowEngine = useCallback(
+    (showEngine: boolean) => {
+      setRunEngine(showEngine);
 
-    if (engine && newShowEngine) {
-      engine.cancel();
-      setPositionEvaluation(null);
-      engine
-        .evaluatePosition(gameObject.current.fen())
-        .then(setPositionEvaluation);
-    }
-  }, [showEngine]);
-
-  const toggleDatabase = useCallback(() => {
-    setShowDatabase(!showDatabase);
-  }, [showDatabase]);
+      if (engine && showEngine) {
+        engine.cancel();
+        setPositionEvaluation(null);
+        engine
+          .evaluatePosition(gameObject.current.fen())
+          .then(setPositionEvaluation);
+      }
+    },
+    [engine]
+  );
 
   const updatePosition = useCallback(
     (chess: Chess, position: Position): void => {
@@ -135,7 +130,7 @@ const Home: React.FC = () => {
       setPositionEvaluation(null);
 
       // If we're in engine mode, start processing the new board state
-      if (engine && showEngine) {
+      if (engine && runEngine) {
         engine.cancel();
 
         engine
@@ -143,7 +138,7 @@ const Home: React.FC = () => {
           .then(setPositionEvaluation);
       }
     },
-    [chessboardState, showEngine]
+    [chessboardState, runEngine]
   );
 
   const onNewLine = useCallback(() => {
@@ -152,7 +147,7 @@ const Home: React.FC = () => {
     gameObject.current = new Chess();
     setLine(null);
     setLineIndex(-1);
-    setExploreMode(false);
+    //    setMode("LINE");
 
     if (selectedStudy == null) {
       throw new Error("study is null");
@@ -216,7 +211,7 @@ const Home: React.FC = () => {
         return false;
       }
 
-      if (exploreMode) {
+      if (mode == "EXPLORE") {
         // In explore mode, we just make the move
         updatePosition(gameObject.current, newPosition);
         return true;
@@ -259,20 +254,16 @@ const Home: React.FC = () => {
       setLineMoveResult("INCORRECT");
       return false;
     },
-    [line, lineIndex, chessboardState, exploreMode]
+    [line, lineIndex, chessboardState, mode]
   );
 
-  const onShowComments = useCallback(() => {
-    setShowComments((showComments) => !showComments);
-  }, []);
-
   const enterExploreMode = () => {
-    setExploreMode(true);
+    setMode("EXPLORE");
     setLineMoveResult(null);
   };
 
   const enterLineMode = useCallback(() => {
-    if (exploreMode) {
+    if (mode == "EXPLORE") {
       chessboardState.clearGame();
 
       // Recreate the original line
@@ -283,10 +274,8 @@ const Home: React.FC = () => {
         gameObject.current.load(line.positions[lineIndex].fen);
       }
     }
-    setExploreMode(false);
-    setShowDatabase(false);
-    setShowEngine(false);
-  }, [line, lineIndex, exploreMode, chessboardState]);
+    setMode("LINE");
+  }, [line, lineIndex, mode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
     if (line == null) {
@@ -318,7 +307,7 @@ const Home: React.FC = () => {
   const position = chessboardState.positions[chessboardState.positionIndex];
 
   const lineStatus =
-    line && !exploreMode ? getLineStatus(line, lineIndex) : undefined;
+    mode == "LINE" && line ? getLineStatus(line, lineIndex) : undefined;
 
   const chessboardRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
@@ -365,14 +354,7 @@ const Home: React.FC = () => {
               positionEvaluation={positionEvaluation}
               moveResult={lineMoveResult}
               lineStatus={lineStatus}
-              showEngine={showEngine}
-              showDatabase={showDatabase}
-              showComments={showComments}
-              engineIsEnabled={showEngine}
-              databaseIsEnabled={showDatabase}
-              onShowComments={onShowComments}
-              toggleEngine={toggleEngine}
-              toggleDatabase={toggleDatabase}
+              onToggleShowEngine={onToggleShowEngine}
               height={height || 0}
             />
           </div>
@@ -382,7 +364,7 @@ const Home: React.FC = () => {
           <Controls
             onNewLine={onNewLine}
             onShowSolution={onShowSolution}
-            exploreMode={exploreMode}
+            mode={mode}
             enterExploreMode={enterExploreMode}
             enterLineMode={enterLineMode}
             hasActiveLine={line != null}
