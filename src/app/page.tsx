@@ -22,7 +22,7 @@ import { DetailsPanel } from "@/components/DetailsPanel";
 import Chessboard from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { Position, getGameResult } from "@/chess/Position";
+import { Position, createPosition, getGameResult } from "@/chess/Position";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -33,11 +33,12 @@ if (typeof window !== "undefined") {
 }
 
 // This does NOT update the chess object.
+// TODO: Handle promotion
 const createMoveOrNull = (
   chess: Chess,
   sourceSquare: Square,
   targetSquare: Square
-): Move | null => {
+): [Move, Position] | null => {
   try {
     const moveResult: MoveResult = chess.move({
       from: sourceSquare,
@@ -48,8 +49,11 @@ const createMoveOrNull = (
       return null;
     } else {
       const move: Move = moveResultToMove(moveResult);
+
+      const position: Position = createPosition(move, chess);
+
       chess.undo();
-      return move;
+      return [move, position];
     }
   } catch (error) {
     console.log("Invalid Move:", error);
@@ -202,29 +206,18 @@ const Home: React.FC = () => {
     (sourceSquare: Square, targetSquare: Square): boolean => {
       // Determine if it's a valid move.
       // This does NOT update the gameObject
-      const move: Move | null = createMoveOrNull(
-        gameObject.current,
-        sourceSquare,
-        targetSquare
-      );
+      const [move, newPosition]: [Move | null, Position | null] =
+        createMoveOrNull(gameObject.current, sourceSquare, targetSquare) || [
+          null,
+          null,
+        ];
 
-      if (move == null) {
+      if (move == null || newPosition == null) {
         return false;
       }
 
       if (exploreMode) {
         // In explore mode, we just make the move
-        // TODO: In the chessboard state, when making a move, we need
-        // the ability to go back and change, and then that becomes the current line.
-
-        const newPosition = {
-          fen: gameObject.current.fen(),
-          lastMove: move,
-          comments: [],
-          isGameOver: gameObject.current.isGameOver(),
-          gameResult: getGameResult(gameObject.current),
-        };
-
         updatePosition(gameObject.current, newPosition);
         return true;
       }
@@ -247,6 +240,8 @@ const Home: React.FC = () => {
       ) {
         // If it matches a child node, it's an acceptable move
         // and we update the current line and the board state.
+        // Note that we use line.positions[lineIndex + 1] because
+        // we want to make sure to keep the comments.
         updatePosition(gameObject.current, line.positions[lineIndex + 1]);
 
         // Since the move was correct, we move to the next position in the line
