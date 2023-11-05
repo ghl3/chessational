@@ -13,7 +13,7 @@ import { Chess, Move as MoveResult } from "chess.js";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter } from "@/chess/Chapter";
-import { Move } from "@/chess/Move";
+import { Move, moveResultToMove } from "@/chess/Move";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Line, getLineStatus } from "@/chess/Line";
@@ -47,13 +47,7 @@ const createMoveOrNull = (
     if (moveResult == null) {
       return null;
     } else {
-      const move: Move = {
-        san: moveResult.san,
-        piece: moveResult.piece,
-        from: moveResult.from,
-        to: moveResult.to,
-        player: moveResult.color,
-      };
+      const move: Move = moveResultToMove(moveResult);
       chess.undo();
       return move;
     }
@@ -98,7 +92,6 @@ const Home: React.FC = () => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const [exploreMode, setExploreMode] = useState<boolean>(false);
-  const [showChapter, setShowChapter] = useState<boolean>(false);
   const [showComments, setShowComments] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
   const [showDatabase, setShowDatabase] = useState<boolean>(false);
@@ -128,18 +121,19 @@ const Home: React.FC = () => {
       if (position.lastMove != null) {
         const moveResult: MoveResult = chess.move(position.lastMove);
         if (moveResult == null) {
-          throw new Error("moveResult is null");
+          throw new Error("Move is invalid: " + position.lastMove.san);
         }
       }
 
       // Update the state of the shown board
       chessboardState.setNextPosition(position, false);
-      setLineMoveResult(null);
+
+      setPositionEvaluation(null);
 
       // If we're in engine mode, start processing the new board state
       if (engine && showEngine) {
         engine.cancel();
-        setPositionEvaluation(null);
+
         engine
           .evaluatePosition(gameObject.current.fen())
           .then(setPositionEvaluation);
@@ -218,8 +212,6 @@ const Home: React.FC = () => {
         return false;
       }
 
-      // const newPosition = createPosition(move, gameObject.current);
-
       if (exploreMode) {
         // In explore mode, we just make the move
         // TODO: In the chessboard state, when making a move, we need
@@ -255,14 +247,15 @@ const Home: React.FC = () => {
       ) {
         // If it matches a child node, it's an acceptable move
         // and we update the current line and the board state.
-        // TODO: We need to separate the concept of "apply a oneoff move"
-        // and "go to the next position in the line".  This is because
-        // the next position in the line may have comments and other metadata
-        // ...
         updatePosition(gameObject.current, line.positions[lineIndex + 1]);
+
+        // Since the move was correct, we move to the next position in the line
         setLineIndex((lineIndex) => lineIndex + 1);
-        playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
         setLineMoveResult("CORRECT");
+
+        // We play the opponent's next move if the line continues.
+        playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
+
         // Return true to accept the move
         return true;
       }
@@ -271,7 +264,7 @@ const Home: React.FC = () => {
       setLineMoveResult("INCORRECT");
       return false;
     },
-    [line, chessboardState, exploreMode]
+    [line, lineIndex, chessboardState, exploreMode]
   );
 
   const onShowComments = useCallback(() => {
@@ -305,6 +298,10 @@ const Home: React.FC = () => {
       throw new Error("line is null");
     }
 
+    if (lineIndex == line.positions.length - 1) {
+      throw new Error("lineIndex is at the end of the line");
+    }
+
     const bestMove = line.positions[lineIndex + 1];
 
     if (bestMove == null) {
@@ -314,7 +311,10 @@ const Home: React.FC = () => {
     setTimeout(async () => {
       updatePosition(gameObject.current, bestMove);
       setLineIndex((lineIndex) => lineIndex + 1);
+
+      // TODO: Just highlight the squares
       playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
+
       setLineMoveResult("CORRECT");
     }, OPPONENT_MOVE_DELAY);
   }, [line, lineIndex]);
