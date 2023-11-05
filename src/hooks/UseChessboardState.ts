@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { Position, createPosition, getGameResult } from "@/chess/Position";
+import { Position, createPosition } from "@/chess/Position";
 import { Chess, Move as MoveResult, Color, WHITE } from "chess.js";
 import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
