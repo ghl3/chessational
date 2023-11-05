@@ -25,13 +25,6 @@ const Chessboard: React.FC<ChessboardProps> = ({
   onPieceDrop,
   arrows,
 }) => {
-  const setGamePositionFromIndex = useCallback(
-    (moveIndex: number) => {
-      chessboardState.setPositionFromIndex(moveIndex);
-    },
-    [chessboardState]
-  );
-
   const handleFlipBoard = useCallback(() => {
     chessboardState.setOrientation((prevOrientation) =>
       prevOrientation === WHITE ? BLACK : WHITE
@@ -42,32 +35,32 @@ const Chessboard: React.FC<ChessboardProps> = ({
     if (chessboardState.positionIndex <= 0) {
       return;
     }
-    setGamePositionFromIndex(chessboardState.positionIndex - 1);
-  }, [chessboardState.positionIndex, setGamePositionFromIndex]);
+    chessboardState.setPositionFromIndex(chessboardState.positionIndex - 1);
+  }, [chessboardState.positionIndex, chessboardState.setPositionFromIndex]);
 
   const handleRightClick = useCallback(() => {
     if (chessboardState.positionIndex + 1 == chessboardState.positions.length) {
       return;
     }
-    setGamePositionFromIndex(chessboardState.positionIndex + 1);
+    chessboardState.setPositionFromIndex(chessboardState.positionIndex + 1);
   }, [
-    chessboardState.positionIndex,
     chessboardState.positions,
-    setGamePositionFromIndex,
+    chessboardState.positionIndex,
+    chessboardState.setPositionFromIndex,
   ]);
 
   const handleJumpToStart = useCallback(() => {
-    setGamePositionFromIndex(0);
-  }, [setGamePositionFromIndex]);
+    chessboardState.setPositionFromIndex(0);
+  }, [chessboardState.setPositionFromIndex]);
 
   const handleJumpToEnd = useCallback(() => {
     if (chessboardState.positions.length === 0) {
-      setGamePositionFromIndex(0);
+      chessboardState.setPositionFromIndex(0);
     } else {
       const endIndex = chessboardState.positions.length - 1;
-      setGamePositionFromIndex(endIndex);
+      chessboardState.setPositionFromIndex(endIndex);
     }
-  }, [chessboardState.positions, setGamePositionFromIndex]);
+  }, [chessboardState.positions, chessboardState.setPositionFromIndex]);
 
   // Inside your Review component
   useArrowKeys({

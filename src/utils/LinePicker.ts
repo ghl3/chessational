@@ -159,10 +159,11 @@ export const pickLine = (
       // There should be a single move for the player to make. We don't yet
       // support multiple lines (or alternate moves) for the player.
       if (node.children.length > 1) {
-        throw new Error(
+        console.error(
           "Multiple moves not implemented.  Encountered at line: " +
             lineToSan(line)
         );
+        availableMoves = [node.children[0]];
       } else if (node.children.length == 1) {
         availableMoves = node.children;
       } else {

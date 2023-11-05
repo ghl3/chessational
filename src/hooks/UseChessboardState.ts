@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { Position, createPosition } from "@/chess/Position";
 import { Chess, Move as MoveResult, Color, WHITE, PieceSymbol } from "chess.js";
@@ -10,14 +10,11 @@ import { Move, moveResultToMove } from "@/chess/Move";
 export interface ChessboardState {
   positions: Position[];
   positionIndex: number;
-
-  // arrows: Arrow[];
   boardSize: number;
   orientation: Color;
 
   setPositionFromIndex: (moveIndex: number) => void;
   setOrientation: React.Dispatch<React.SetStateAction<Color>>;
-  // setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
   setNextPosition: (position: Position, overwrite: boolean) => void;
   getPosition: () => Position;
   getFen: () => Fen;
@@ -68,14 +65,12 @@ const useBoardSize = (): number => {
 export const useChessboardState = (): ChessboardState => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [positionIndex, setPositionIndex] = useState<number>(-1);
-
   const [orientation, setOrientation] = useState<Color>(WHITE);
-  // const [arrows, setArrows] = useState<Arrow[]>([]);
   const boardSize = useBoardSize();
 
   let gameObject = useRef<Chess>(new Chess());
 
-  const getPosition: () => Position = () => {
+  const getPosition = useCallback((): Position => {
     if (positionIndex < 0) {
       throw new Error("Position index is negative");
     } else if (positionIndex >= positions.length) {
@@ -83,18 +78,11 @@ export const useChessboardState = (): ChessboardState => {
     } else {
       return positions[positionIndex];
     }
-  };
+  }, [positionIndex, positions]);
 
-  const getFen: () => Fen = () => {
+  const getFen = useCallback((): Fen => {
     return getPosition().fen;
-  };
-
-  const setPositionFromIndex = (moveIndex: number) => {
-    if (moveIndex < positions.length) {
-      setPositionIndex(moveIndex);
-      setNextPosition(positions[moveIndex], true);
-    }
-  };
+  }, [getPosition]);
 
   const clearGame = () => {
     gameObject.current = new Chess();
@@ -102,34 +90,49 @@ export const useChessboardState = (): ChessboardState => {
     setPositionIndex(-1);
   };
 
-  const setNextPosition = (
-    position: Position,
-    overwriteLine: boolean = false
-  ) => {
-    gameObject.current.load(position.fen);
+  // Return to an existing position in the history.
+  const setPositionFromIndex = useCallback(
+    (moveIndex: number) => {
+      if (moveIndex < 0) {
+        throw new Error("Position index is negative");
+      } else if (moveIndex >= positions.length) {
+        throw new Error("Position index is too large");
+      } else {
+        setPositionIndex(moveIndex);
+        gameObject.current.load(positions[moveIndex].fen);
+      }
+    },
+    [positionIndex, positions]
+  );
 
-    if (positionIndex === positions.length - 1) {
-      // If we are at the end of the line and we move, we just add it to the set of moves
-      setPositions((positions) => [...positions, position]);
-      setPositionIndex((positionIndex) => positionIndex + 1);
-      //setPosition(move.fen);
-    } else if (overwriteLine) {
-      // If we are not at the end of the line and we move, we overwrite the line
-      // with the new move and all subsequent moves
-      setPositions((positions) =>
-        positions.slice(0, positionIndex + 1).concat(position)
-      );
-      setPositionIndex((positionIndex) => positionIndex + 1);
-      //setPosition(move.fen);
-    } else {
-      throw new Error(
-        "Cannot move from a previous position or this will overwrite the line"
-      );
-    }
-  };
+  // Move to a new position, potentially creating a new history.
+  const setNextPosition = useCallback(
+    (position: Position, overwriteHistory: boolean = false) => {
+      gameObject.current.load(position.fen);
+
+      if (positionIndex === positions.length - 1) {
+        // If we are at the end of the line and we move, we just add it to the set of moves
+        setPositions((positions) => [...positions, position]);
+        setPositionIndex((positionIndex) => positionIndex + 1);
+        //setPosition(move.fen);
+      } else if (overwriteHistory) {
+        // If we are not at the end of the line and we move, we overwrite the line
+        // with the new move and all subsequent moves
+        setPositions((positions) =>
+          positions.slice(0, positionIndex + 1).concat(position)
+        );
+        setPositionIndex((positionIndex) => positionIndex + 1);
+        //setPosition(move.fen);
+      } else {
+        throw new Error(
+          "Cannot move from a previous position or this will overwrite the line"
+        );
+      }
+    },
+    [positionIndex, positions]
+  );
 
   // This does NOT update the chess object.
-  // TODO: Handle promotion
   const createMoveOrNull = (
     sourceSquare: Square,
     targetSquare: Square,
@@ -146,9 +149,7 @@ export const useChessboardState = (): ChessboardState => {
         return null;
       } else {
         const move: Move = moveResultToMove(moveResult);
-
         const position: Position = createPosition(move, gameObject.current);
-
         gameObject.current.undo();
         return [move, position];
       }
@@ -166,14 +167,11 @@ export const useChessboardState = (): ChessboardState => {
   return {
     positions,
     positionIndex,
-
-    //   arrows,
     boardSize,
     orientation,
 
     setPositionFromIndex,
     setOrientation,
-    // setArrows,
     setNextPosition,
     getPosition,
     getFen,

@@ -278,7 +278,7 @@ const Home: React.FC = () => {
           {
             from: solution.from,
             to: solution.to,
-            color: "rgb(0, 2, 0)",
+            color: "rgb(0, 100, 0)",
           },
         ]
       : [];
@@ -328,12 +328,12 @@ const Home: React.FC = () => {
 
         <div className="mb-6">
           <Controls
+            mode={mode}
+            lineStatus={lineStatus}
             onNewLine={onNewLine}
             onShowSolution={onShowSolution}
-            mode={mode}
             enterExploreMode={enterExploreMode}
             enterLineMode={enterLineMode}
-            hasActiveLine={line != null}
           />
         </div>
       </main>

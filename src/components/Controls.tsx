@@ -1,24 +1,31 @@
 import React from "react";
 import { ControlButton } from "@/components/ControlButton";
+import { Line, LineStatus } from "@/chess/Line";
 
 type ControlProps = {
-  onNewLine: () => void;
-  onShowSolution: () => void;
   mode: "LINE" | "EXPLORE";
+  lineStatus?: LineStatus;
+
+  onShowSolution: () => void;
+  onNewLine: () => void;
   enterExploreMode: () => void;
   enterLineMode: () => void;
-  hasActiveLine: boolean;
 };
 
 export const Controls: React.FC<ControlProps> = ({
+  mode,
+  lineStatus,
+
   onNewLine,
   onShowSolution,
-  mode,
   enterExploreMode,
   enterLineMode,
-  hasActiveLine,
 }) => {
   const exploreModeButtons = <div className="flex space-x-4"></div>;
+
+  const hasActiveLine = lineStatus != undefined;
+
+  const lineIsComplete = lineStatus === "LINE_COMPLETE";
 
   const lineModeButtons = (
     <div className="flex space-x-4">
@@ -29,6 +36,7 @@ export const Controls: React.FC<ControlProps> = ({
           onClick={onShowSolution}
           label="Show Solution"
           size={"large"}
+          disabled={lineIsComplete}
         />
       ) : null}
     </div>
