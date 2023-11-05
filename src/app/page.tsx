@@ -18,7 +18,7 @@ import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { Line, getLineStatus } from "@/chess/Line";
 import { LineMoveResult } from "@/components/MoveDescription";
 import { DetailsPanel } from "@/components/DetailsPanel";
-import Chessboard from "@/components/Chessboard";
+import Chessboard, { Arrow } from "@/components/Chessboard";
 import { pickLine } from "@/utils/LinePicker";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { Position } from "@/chess/Position";
@@ -43,6 +43,8 @@ const Home: React.FC = () => {
 
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
+
+  const [solution, setSolution] = useState<Move | null>(null);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
     (study) => study.name == studyData.selectedStudyName
@@ -204,6 +206,7 @@ const Home: React.FC = () => {
         // Since the move was correct, we move to the next position in the line
         setLineIndex((lineIndex) => lineIndex + 1);
         setLineMoveResult("CORRECT");
+        setSolution(null);
 
         // We play the opponent's next move if the line continues.
         playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
@@ -214,6 +217,7 @@ const Home: React.FC = () => {
 
       // If we got here, the move is not correct
       setLineMoveResult("INCORRECT");
+      setSolution(null);
       return false;
     },
     [line, lineIndex, chessboardState, mode]
@@ -222,6 +226,7 @@ const Home: React.FC = () => {
   const enterExploreMode = () => {
     setMode("EXPLORE");
     setLineMoveResult(null);
+    setSolution(null);
   };
 
   const enterLineMode = useCallback(() => {
@@ -236,32 +241,20 @@ const Home: React.FC = () => {
       }
     }
     setMode("LINE");
+    setSolution(null);
   }, [line, lineIndex, mode, chessboardState]);
 
   const onShowSolution = useCallback(() => {
-    if (line == null) {
+    if (line == null || lineIndex == -1) {
       throw new Error("line is null");
     }
 
-    if (lineIndex == line.positions.length - 1) {
-      throw new Error("lineIndex is at the end of the line");
+    const lineSolution = line.positions[lineIndex + 1].lastMove;
+    if (lineSolution == null) {
+      throw new Error("solution is null");
     }
 
-    const bestMove = line.positions[lineIndex + 1];
-
-    if (bestMove == null) {
-      throw new Error("bestMove is null");
-    }
-
-    setTimeout(async () => {
-      chessboardState.setNextPosition(bestMove, false);
-      setLineIndex((lineIndex) => lineIndex + 1);
-
-      // TODO: Just highlight the squares
-      playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
-
-      setLineMoveResult("CORRECT");
-    }, OPPONENT_MOVE_DELAY);
+    setSolution(lineSolution);
   }, [line, lineIndex]);
 
   // TODO: Replace this with 'getPosition';
@@ -278,6 +271,17 @@ const Home: React.FC = () => {
       setHeight(chessboardRef.current.clientHeight);
     }
   }, [chessboardRef.current, chessboardState.boardSize]);
+
+  const solutionArrows: Arrow[] =
+    solution != null
+      ? [
+          {
+            from: solution.from,
+            to: solution.to,
+            color: "rgb(0, 2, 0)",
+          },
+        ]
+      : [];
 
   return (
     <>
@@ -306,6 +310,7 @@ const Home: React.FC = () => {
                 chessboardState={chessboardState}
                 onPieceDrop={onPieceDrop}
                 className="flex-none"
+                arrows={solutionArrows || []}
               />
             </div>
 

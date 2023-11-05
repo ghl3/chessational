@@ -5,17 +5,25 @@ import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import ChessboardButtons from "./ChessboardButtons";
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
-import { PieceSymbol, WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
+import { WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
 import { MaterialDiff } from "./MaterialDiff";
+
+export interface Arrow {
+  from: Square;
+  to: Square;
+  color?: string;
+}
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardState: ChessboardState;
   onPieceDrop: (source: Square, target: Square, piece: string) => boolean;
+  arrows?: Arrow[];
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
   chessboardState,
   onPieceDrop,
+  arrows,
 }) => {
   const setGamePositionFromIndex = useCallback(
     (moveIndex: number) => {
@@ -74,27 +82,11 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   const pieceCount: PieceCount = getPieceCounts(fen);
 
-  const arrows = [
-    ["e2", "e4"],
-    ["e7", "e5"],
-    ["g1", "f3"],
-    ["b8", "c6"],
-  ];
-
-  const onPromotionCheck = (
-    sourceSquare: Square,
-    targetSquare: Square,
-    piece: string
-  ) => {
-    const isPromotion =
-      ((piece === "wP" && sourceSquare[1] === "7" && targetSquare[1] === "8") ||
-        (piece === "bP" &&
-          sourceSquare[1] === "2" &&
-          targetSquare[1] === "1")) &&
-      Math.abs(sourceSquare.charCodeAt(0) - targetSquare.charCodeAt(0)) <= 1;
-
-    return isPromotion;
-  };
+  const convertedArrows =
+    arrows &&
+    arrows.map((arrow) => {
+      return [arrow.from, arrow.to, arrow?.color];
+    });
 
   return (
     <>
@@ -112,16 +104,9 @@ const Chessboard: React.FC<ChessboardProps> = ({
             chessboardState.orientation == WHITE ? "white" : "black"
           }
           onPieceDrop={onPieceDrop}
-          customArrows={arrows} //chessboardState.arrows}
+          customArrows={convertedArrows}
           customArrowColor="rgb(0, 128, 0)"
-          //autoPromoteToQueen={true}
-
-          // TODO: Handle promotion
-          //          onPromotionCheck
-          //showPromotionDialog={true}
           promotionDialogVariant="default"
-          //onPromotionPieceSelect={onPromotionPieceSelect}
-          onPromotionCheck={onPromotionCheck}
         />
         <MaterialDiff
           pieceCount={pieceCount}

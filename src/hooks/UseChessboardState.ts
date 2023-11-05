@@ -5,25 +5,19 @@ import { Chess, Move as MoveResult, Color, WHITE, PieceSymbol } from "chess.js";
 import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
 
-export interface Arrow {
-  from: Square;
-  to: Square;
-  color?: string;
-}
-
 // A Chessboard can be thought of as a series of moves and
 // positions as well as an orientation and board size.
 export interface ChessboardState {
   positions: Position[];
   positionIndex: number;
 
-  arrows: Arrow[];
+  // arrows: Arrow[];
   boardSize: number;
   orientation: Color;
 
   setPositionFromIndex: (moveIndex: number) => void;
   setOrientation: React.Dispatch<React.SetStateAction<Color>>;
-  setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
+  // setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
   setNextPosition: (position: Position, overwrite: boolean) => void;
   getPosition: () => Position;
   getFen: () => Fen;
@@ -76,7 +70,7 @@ export const useChessboardState = (): ChessboardState => {
   const [positionIndex, setPositionIndex] = useState<number>(-1);
 
   const [orientation, setOrientation] = useState<Color>(WHITE);
-  const [arrows, setArrows] = useState<Arrow[]>([]);
+  // const [arrows, setArrows] = useState<Arrow[]>([]);
   const boardSize = useBoardSize();
 
   let gameObject = useRef<Chess>(new Chess());
@@ -173,13 +167,13 @@ export const useChessboardState = (): ChessboardState => {
     positions,
     positionIndex,
 
-    arrows,
+    //   arrows,
     boardSize,
     orientation,
 
     setPositionFromIndex,
     setOrientation,
-    setArrows,
+    // setArrows,
     setNextPosition,
     getPosition,
     getFen,
