@@ -7,6 +7,7 @@ import ChessboardButtons from "./ChessboardButtons";
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
 import { PieceSymbol, WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
 import { MaterialDiff } from "./MaterialDiff";
+import { Position } from "postcss";
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardState: ChessboardState;

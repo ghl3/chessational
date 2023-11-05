@@ -32,35 +32,6 @@ if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
 
-// This does NOT update the chess object.
-// TODO: Handle promotion
-const createMoveOrNull = (
-  chess: Chess,
-  sourceSquare: Square,
-  targetSquare: Square
-): [Move, Position] | null => {
-  try {
-    const moveResult: MoveResult = chess.move({
-      from: sourceSquare,
-      to: targetSquare,
-    });
-
-    if (moveResult == null) {
-      return null;
-    } else {
-      const move: Move = moveResultToMove(moveResult);
-
-      const position: Position = createPosition(move, chess);
-
-      chess.undo();
-      return [move, position];
-    }
-  } catch (error) {
-    console.log("Invalid Move:", error);
-    return null;
-  }
-};
-
 const Home: React.FC = () => {
   const studyData = useStudyData();
   useEffect(studyData.populateCachedValues, []);
@@ -98,53 +69,65 @@ const Home: React.FC = () => {
   const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
   const [runEngine, setRunEngine] = useState<boolean>(false);
 
-  let gameObject = useRef<Chess>(new Chess());
+  //let gameObject = useRef<Chess>(new Chess());
 
   const onToggleShowEngine = useCallback(
     (showEngine: boolean) => {
       setRunEngine(showEngine);
-
+      /*
       if (engine && showEngine) {
         engine.cancel();
         setPositionEvaluation(null);
         engine
-          .evaluatePosition(gameObject.current.fen())
+          .evaluatePosition(chessboardState.getFen())
           .then(setPositionEvaluation);
       }
+      */
     },
-    [engine]
+    [chessboardState]
   );
 
+  useEffect(() => {
+    setPositionEvaluation(null);
+
+    if (engine && runEngine) {
+      engine.cancel();
+      engine
+        .evaluatePosition(chessboardState.getFen())
+        .then(setPositionEvaluation);
+    }
+  }, [chessboardState.positions, chessboardState.positionIndex, runEngine]);
+
   const updatePosition = useCallback(
-    (chess: Chess, position: Position): void => {
+    (position: Position): void => {
+      /*
       if (position.lastMove != null) {
         const moveResult: MoveResult = chess.move(position.lastMove);
         if (moveResult == null) {
           throw new Error("Move is invalid: " + position.lastMove.san);
         }
-      }
+      }*/
 
       // Update the state of the shown board
       chessboardState.setNextPosition(position, false);
-
+      /*
       setPositionEvaluation(null);
 
       // If we're in engine mode, start processing the new board state
       if (engine && runEngine) {
         engine.cancel();
-
-        engine
-          .evaluatePosition(gameObject.current.fen())
-          .then(setPositionEvaluation);
+        engine.evaluatePosition(position.fen).then(setPositionEvaluation);
       }
+       */
     },
-    [chessboardState, runEngine]
+
+    [chessboardState]
   );
 
   const onNewLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
-    gameObject.current = new Chess();
+    //gameObject.current = new Chess();
     setLine(null);
     setLineIndex(-1);
     //    setMode("LINE");
@@ -174,7 +157,7 @@ const Home: React.FC = () => {
     // If we are black, we first have to do white's move
     if (line.chapter.orientation == "b") {
       const firstPosition: Position = line.positions[1];
-      updatePosition(gameObject.current, firstPosition);
+      updatePosition(firstPosition);
       setLineIndex(1);
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
@@ -191,7 +174,7 @@ const Home: React.FC = () => {
       // Do this in a delay to simulate a game.
       setTimeout(async () => {
         const nextPosition = line.positions[lineIndex + 1];
-        updatePosition(gameObject.current, nextPosition);
+        updatePosition(nextPosition);
         setLineIndex((lineIndex) => lineIndex + 1);
       }, OPPONENT_MOVE_DELAY);
     }
@@ -202,7 +185,7 @@ const Home: React.FC = () => {
       // Determine if it's a valid move.
       // This does NOT update the gameObject
       const [move, newPosition]: [Move | null, Position | null] =
-        createMoveOrNull(gameObject.current, sourceSquare, targetSquare) || [
+        chessboardState.createMoveOrNull(sourceSquare, targetSquare) || [
           null,
           null,
         ];
@@ -213,7 +196,7 @@ const Home: React.FC = () => {
 
       if (mode == "EXPLORE") {
         // In explore mode, we just make the move
-        updatePosition(gameObject.current, newPosition);
+        updatePosition(newPosition);
         return true;
       }
 
@@ -237,7 +220,7 @@ const Home: React.FC = () => {
         // and we update the current line and the board state.
         // Note that we use line.positions[lineIndex + 1] because
         // we want to make sure to keep the comments.
-        updatePosition(gameObject.current, line.positions[lineIndex + 1]);
+        updatePosition(line.positions[lineIndex + 1]);
 
         // Since the move was correct, we move to the next position in the line
         setLineIndex((lineIndex) => lineIndex + 1);
@@ -271,7 +254,7 @@ const Home: React.FC = () => {
         for (const position of line.positions.slice(1, lineIndex)) {
           chessboardState.setNextPosition(position, true);
         }
-        gameObject.current.load(line.positions[lineIndex].fen);
+        //gameObject.current.load(line.positions[lineIndex].fen);
       }
     }
     setMode("LINE");
@@ -293,7 +276,7 @@ const Home: React.FC = () => {
     }
 
     setTimeout(async () => {
-      updatePosition(gameObject.current, bestMove);
+      updatePosition(bestMove);
       setLineIndex((lineIndex) => lineIndex + 1);
 
       // TODO: Just highlight the squares
