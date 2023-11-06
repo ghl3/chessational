@@ -80,17 +80,17 @@ const Home: React.FC = () => {
     [chessboardState]
   );
 
+  const fen = chessboardState.getFen();
+
   // Run the engine when needed
   useEffect(() => {
     setPositionEvaluation(null);
 
-    if (engine && runEngine) {
+    if (engine && runEngine && fen) {
       engine.cancel();
-      engine
-        .evaluatePosition(chessboardState.getFen())
-        .then(setPositionEvaluation);
+      engine.evaluatePosition(fen).then(setPositionEvaluation);
     }
-  }, [chessboardState.positions, chessboardState.positionIndex, runEngine]);
+  }, [fen, runEngine]);
 
   const onNewLine = useCallback(() => {
     // Reset the game
@@ -118,13 +118,13 @@ const Home: React.FC = () => {
 
     // Initialize the first position
     chessboardState.setNextPosition(line.positions[0], true);
-    setLineIndex(0);
+    setLineIndex((lineIndex) => lineIndex + 1);
 
     // If we are black, we first have to do white's move
     if (line.chapter.orientation == "b") {
       const firstPosition: Position = line.positions[1];
       chessboardState.setNextPosition(firstPosition, false);
-      setLineIndex(1);
+      setLineIndex((lineIndex) => lineIndex + 1);
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
 
@@ -237,7 +237,7 @@ const Home: React.FC = () => {
 
       // Recreate the original line
       if (line != null) {
-        for (const position of line.positions.slice(1, lineIndex)) {
+        for (const position of line.positions.slice(0, lineIndex + 1)) {
           chessboardState.setNextPosition(position, true);
         }
       }
@@ -260,7 +260,8 @@ const Home: React.FC = () => {
   }, [line, lineIndex]);
 
   // TODO: Replace this with 'getPosition';
-  const position = chessboardState.positions[chessboardState.positionIndex];
+  //const position = chessboardState.positions[chessboardState.positionIndex];
+  const position = chessboardState.getPosition();
 
   const lineStatus =
     mode == "LINE" && line ? getLineStatus(line, lineIndex) : undefined;
@@ -319,7 +320,7 @@ const Home: React.FC = () => {
 
             <DetailsPanel
               chapter={line?.chapter}
-              position={position}
+              position={position || undefined}
               positionEvaluation={positionEvaluation}
               moveResult={lineMoveResult}
               lineStatus={lineStatus}

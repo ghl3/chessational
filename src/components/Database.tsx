@@ -1,4 +1,3 @@
-import { Fen } from "@/chess/Fen";
 import { useEffect, useState } from "react";
 import Table from "./Table";
 import { Position } from "@/chess/Position";
@@ -30,7 +29,7 @@ async function fetchTopMoves(fen: string): Promise<LichessDatabase> {
   const data = await response.json();
   return data;
 }
-
+/*
 interface MoveRowProps extends React.HTMLAttributes<HTMLDivElement> {
   key: number;
   move: LichessMove;
@@ -59,10 +58,11 @@ const MoveRow: React.FC<MoveRowProps> = ({ move, database }) => {
     </tr>
   );
 };
+*/
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
   showDatabase: boolean;
-  position: Position;
+  position?: Position;
 }
 
 export const Database: React.FC<DatabaseProps> = ({

@@ -12,7 +12,7 @@ import ChapterInfo from "./ChapterInfo";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
-  position: Position;
+  position?: Position;
   positionEvaluation: EvaluatedPosition | null;
   moveResult: LineMoveResult | null;
   lineStatus: LineStatus | undefined;
