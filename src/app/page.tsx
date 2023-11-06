@@ -80,9 +80,17 @@ const Home: React.FC = () => {
     [chessboardState]
   );
 
-  const fen = chessboardState.getFen();
+  // Set and maintain the size of the board
+  const chessboardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    if (chessboardRef.current) {
+      setHeight(chessboardRef.current.clientHeight);
+    }
+  }, [chessboardRef.current, chessboardSize]);
 
   // Run the engine when needed
+  const fen = chessboardState.getFen();
   useEffect(() => {
     setPositionEvaluation(null);
 
@@ -128,32 +136,28 @@ const Home: React.FC = () => {
     }
   }, [chessboardState, selectedStudy, selectedChapters]);
 
-  const playOpponentNextMoveIfLineContinues = (
-    line: Line,
-    lineIndex: number
-  ) => {
-    const endOfLine = lineIndex == line.positions.length - 1;
+  const playOpponentNextMoveIfLineContinues = useCallback(
+    (line: Line, lineIndex: number) => {
+      const endOfLine = lineIndex == line.positions.length - 1;
 
-    // If this is the end of the line, we're done.
-    if (!endOfLine) {
-      // Otherwise, pick the opponent's next move in the line
-      // Do this in a delay to simulate a game.
-      setTimeout(async () => {
-        const nextPosition = line.positions[lineIndex + 1];
-        chessboardState.setNextPosition(nextPosition, false);
-        setLineIndex((lineIndex) => lineIndex + 1);
-      }, OPPONENT_MOVE_DELAY);
-    }
-  };
+      // If this is the end of the line, we're done.
+      if (!endOfLine) {
+        // Otherwise, pick the opponent's next move in the line
+        // Do this in a delay to simulate a game.
+        setTimeout(async () => {
+          const nextPosition = line.positions[lineIndex + 1];
+          chessboardState.setNextPosition(nextPosition, false);
+          setLineIndex((lineIndex) => lineIndex + 1);
+        }, OPPONENT_MOVE_DELAY);
+      }
+    },
+    [chessboardState.setNextPosition]
+  );
 
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
-      // Determine if it's a valid move.
-      // This does NOT update the gameObject
-
       const originalPiece: PieceSymbol | null =
         chessboardState.getPieceAtSquare(sourceSquare);
-
       if (originalPiece == null) {
         throw new Error("originalPiece is null");
       }
@@ -259,21 +263,10 @@ const Home: React.FC = () => {
     setSolution(lineSolution);
   }, [line, lineIndex]);
 
-  // TODO: Replace this with 'getPosition';
-  //const position = chessboardState.positions[chessboardState.positionIndex];
   const position = chessboardState.getPosition();
 
   const lineStatus =
     mode == "LINE" && line ? getLineStatus(line, lineIndex) : undefined;
-
-  const chessboardRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (chessboardRef.current) {
-      setHeight(chessboardRef.current.clientHeight);
-    }
-  }, [chessboardRef.current, chessboardSize]);
 
   const solutionArrows: Arrow[] =
     solution != null

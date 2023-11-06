@@ -1,7 +1,6 @@
 import { Chapter, PositionNode as Node } from "@/chess/Chapter";
 import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
-import { Position } from "@/chess/Position";
 import { Color } from "chess.js";
 
 export type MoveSelectionStrategy =

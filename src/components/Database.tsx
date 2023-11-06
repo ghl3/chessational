@@ -29,36 +29,6 @@ async function fetchTopMoves(fen: string): Promise<LichessDatabase> {
   const data = await response.json();
   return data;
 }
-/*
-interface MoveRowProps extends React.HTMLAttributes<HTMLDivElement> {
-  key: number;
-  move: LichessMove;
-  database: LichessDatabase;
-}
-
-const MoveRow: React.FC<MoveRowProps> = ({ move, database }) => {
-  const { san, white, black, draws } = move;
-  const totalGamesInPosition = database.black + database.white + database.draws;
-  const totalGamesWithMove = white + black + draws;
-  return (
-    <tr className="text-white">
-      <td className="py-1 px-2 border-b border-gray-600">{san}</td>
-      <td className="py-1 px-2 border-b border-gray-600">
-        {((totalGamesWithMove / totalGamesInPosition) * 100).toFixed(2)}%
-      </td>
-      <td className="py-1 px-2 border-b border-gray-600">
-        {((white / totalGamesWithMove) * 100).toFixed(2)}%
-      </td>
-      <td className="py-1 px-2 border-b border-gray-600">
-        {((black / totalGamesWithMove) * 100).toFixed(2)}%
-      </td>
-      <td className="py-1 px-2 border-b border-gray-600">
-        {((draws / totalGamesWithMove) * 100).toFixed(2)}%
-      </td>
-    </tr>
-  );
-};
-*/
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
   showDatabase: boolean;

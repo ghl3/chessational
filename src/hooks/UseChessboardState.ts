@@ -9,7 +9,6 @@ import { Move, moveResultToMove } from "@/chess/Move";
 // positions as well as an orientation and board size.
 export interface ChessboardState {
   positions: Position[];
-  //positionIndex: number;
   orientation: Color;
 
   getPosition: () => Position | null;
@@ -58,8 +57,6 @@ const addNextPosition = (
   position: Position,
   overwriteHistory: boolean
 ): GameState => {
-  //gameObject.current.load(position.fen);
-
   const { positions, currentPositionIndex } = state;
 
   if (currentPositionIndex === positions.length - 1) {
@@ -69,22 +66,14 @@ const addNextPosition = (
       positions: [...positions, position],
       currentPositionIndex: state.currentPositionIndex + 1,
     };
-    //setPositions((positions) => [...positions, position]);
-    //setPositionIndex((positionIndex) => positionIndex + 1);
   } else if (overwriteHistory) {
     // If we are not at the end of the line and we move, we overwrite the line
     // with the new move and all subsequent moves
-
     return {
       ...state,
       positions: positions.slice(0, currentPositionIndex + 1).concat(position),
       currentPositionIndex: currentPositionIndex + 1,
     };
-
-    //setPositions((positions) =>
-    //  positions.slice(0, positionIndex + 1).concat(position)
-    //  );
-    // setPositionIndex((positionIndex) => positionIndex + 1);
   } else {
     throw new Error(
       "Cannot move from a previous position or this will overwrite the line"
@@ -92,9 +81,6 @@ const addNextPosition = (
   }
 };
 
-// TODO: we have to update this using useReducer
-// to ensure that clears and sets can be called from the same function.
-// Yikes.
 // Return to an existing position in the history.
 const setPositionFromIndex = (
   state: GameState,
@@ -128,10 +114,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 };
 
 export const useChessboardState = (): ChessboardState => {
-  //const [positions, setPositions] = useState<Position[]>([]);
-  //const [positionIndex, setPositionIndex] = useState<number>(-1);
   const [orientation, setOrientation] = useState<Color>(WHITE);
-
   const [gameState, dispatch] = useReducer(gameReducer, initialState);
   const { positions, currentPositionIndex } = gameState;
 

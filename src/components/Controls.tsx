@@ -1,6 +1,6 @@
 import React from "react";
 import { ControlButton } from "@/components/ControlButton";
-import { Line, LineStatus } from "@/chess/Line";
+import { LineStatus } from "@/chess/Line";
 
 type ControlProps = {
   mode: "LINE" | "EXPLORE";
