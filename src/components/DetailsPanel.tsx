@@ -99,7 +99,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
         <Database showDatabase={showDatabase} position={position} />
 
-        <ChapterInfo chapter={chapter} showChapter={showChapter} />
+        <ChapterInfo
+          chapter={chapter}
+          showChapter={showChapter}
+          position={position}
+        />
 
         <CommentArea comments={comments} showComments={showComments} />
       </div>
