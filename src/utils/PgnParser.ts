@@ -8,9 +8,9 @@ import {
   Comment as PgnComment,
 } from "pgn-parser";
 import { Chapter, PositionNode } from "../chess/Chapter";
-import { GameResult, getGameResult } from "../chess/Position";
+import { getGameResult } from "../chess/Position";
 import { Position } from "@/chess/Position";
-import { Move, moveResultToMove } from "@/chess/Move";
+import { moveResultToMove } from "@/chess/Move";
 import { Chess, Move as MoveResult } from "chess.js";
 
 const convertHeaders = (

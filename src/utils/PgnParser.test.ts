@@ -48,17 +48,11 @@ describe("PgnParser", () => {
               position: {
                 fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
                 lastMove: {
-                  color: "w",
+                  player: "w",
                   piece: "p",
                   from: "e2",
                   to: "e4",
                   san: "e4",
-                  flags: "b",
-                  lan: "e2e4",
-                  before:
-                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                  after:
-                    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
                 },
                 comments: [],
                 isGameOver: false,
@@ -69,17 +63,11 @@ describe("PgnParser", () => {
                   position: {
                     fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
                     lastMove: {
-                      color: "b",
+                      player: "b",
                       piece: "p",
                       from: "e7",
                       to: "e5",
                       san: "e5",
-                      flags: "b",
-                      lan: "e7e5",
-                      before:
-                        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-                      after:
-                        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
                     },
                     comments: [],
                     isGameOver: false,
@@ -90,17 +78,11 @@ describe("PgnParser", () => {
                       position: {
                         fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
                         lastMove: {
-                          color: "w",
+                          player: "w",
                           piece: "n",
                           from: "g1",
                           to: "f3",
                           san: "Nf3",
-                          flags: "n",
-                          lan: "g1f3",
-                          before:
-                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-                          after:
-                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
                         },
                         comments: [],
                         isGameOver: false,
@@ -111,17 +93,11 @@ describe("PgnParser", () => {
                           position: {
                             fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             lastMove: {
-                              color: "b",
+                              player: "b",
                               piece: "n",
                               from: "b8",
                               to: "c6",
                               san: "Nc6",
-                              flags: "n",
-                              lan: "b8c6",
-                              before:
-                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                              after:
-                                "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             },
                             comments: [],
                             isGameOver: false,
@@ -133,17 +109,11 @@ describe("PgnParser", () => {
                           position: {
                             fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             lastMove: {
-                              color: "b",
+                              player: "b",
                               piece: "n",
                               from: "g8",
                               to: "f6",
                               san: "Nf6",
-                              flags: "n",
-                              lan: "g8f6",
-                              before:
-                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                              after:
-                                "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             },
                             comments: [],
                             isGameOver: false,
@@ -188,17 +158,11 @@ describe("PgnParser", () => {
               position: {
                 fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
                 lastMove: {
-                  color: "w",
+                  player: "w",
                   piece: "p",
                   from: "e2",
                   to: "e4",
                   san: "e4",
-                  flags: "b",
-                  lan: "e2e4",
-                  before:
-                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                  after:
-                    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
                 },
                 comments: [],
                 isGameOver: false,
@@ -209,17 +173,11 @@ describe("PgnParser", () => {
                   position: {
                     fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
                     lastMove: {
-                      color: "b",
+                      player: "b",
                       piece: "p",
                       from: "e7",
                       to: "e5",
                       san: "e5",
-                      flags: "b",
-                      lan: "e7e5",
-                      before:
-                        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-                      after:
-                        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
                     },
                     comments: [
                       {
@@ -234,17 +192,11 @@ describe("PgnParser", () => {
                       position: {
                         fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
                         lastMove: {
-                          color: "w",
+                          player: "w",
                           piece: "n",
                           from: "g1",
                           to: "f3",
                           san: "Nf3",
-                          flags: "n",
-                          lan: "g1f3",
-                          before:
-                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-                          after:
-                            "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
                         },
                         comments: [],
                         isGameOver: false,
@@ -255,17 +207,11 @@ describe("PgnParser", () => {
                           position: {
                             fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             lastMove: {
-                              color: "b",
+                              player: "b",
                               piece: "n",
                               from: "b8",
                               to: "c6",
                               san: "Nc6",
-                              flags: "n",
-                              lan: "b8c6",
-                              before:
-                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                              after:
-                                "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             },
                             comments: [
                               {
@@ -280,17 +226,11 @@ describe("PgnParser", () => {
                               position: {
                                 fen: "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
                                 lastMove: {
-                                  color: "w",
+                                  player: "w",
                                   piece: "b",
                                   from: "f1",
                                   to: "b5",
                                   san: "Bb5",
-                                  flags: "n",
-                                  lan: "f1b5",
-                                  before:
-                                    "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                                  after:
-                                    "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
                                 },
                                 comments: [
                                   {
@@ -308,17 +248,11 @@ describe("PgnParser", () => {
                           position: {
                             fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             lastMove: {
-                              color: "b",
+                              player: "b",
                               piece: "n",
                               from: "g8",
                               to: "f6",
                               san: "Nf6",
-                              flags: "n",
-                              lan: "g8f6",
-                              before:
-                                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-                              after:
-                                "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
                             },
                             comments: [
                               {
@@ -333,18 +267,11 @@ describe("PgnParser", () => {
                               position: {
                                 fen: "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
                                 lastMove: {
-                                  color: "w",
+                                  player: "w",
                                   piece: "n",
                                   from: "f3",
                                   to: "e5",
                                   san: "Nxe5",
-                                  flags: "c",
-                                  lan: "f3e5",
-                                  before:
-                                    "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-                                  after:
-                                    "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
-                                  captured: "p",
                                 },
                                 comments: [],
                                 isGameOver: false,

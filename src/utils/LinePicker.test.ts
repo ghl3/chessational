@@ -69,13 +69,14 @@ describe("pickLine", () => {
     expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
   });
 
-  it("throws error when multiple player moves available", () => {
+  it("picks the first line when multiple player moves available", () => {
     const chapters: Chapter[] = parsePgnStringToChapters(
       `[Orientation "black"]
       1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
     );
 
-    expect(() => pickLine(chapters, "DETERMINISTIC")).toThrow();
+    const line = pickLine(chapters, "DETERMINISTIC");
+    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nf6"]);
   });
 });
 
