@@ -45,7 +45,7 @@ const Home: React.FC = () => {
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
-  // The solution to the current position.
+  // When not null, the solution to show to the user.
   const [solution, setSolution] = useState<Move | null>(null);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
@@ -291,7 +291,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Opening Learner</title>
+        <title>Chessational: Opening Review</title>
         <meta
           name="description"
           content="Enter a chess.com game ID to review"
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
 
       <main className="charcoal-bg text-white min-h-screen flex flex-col items-center">
         <div className="mb-6">
-          <h1 className="text-4xl">Opening Learner</h1>
+          <h1 className="text-4xl">Chessational: Opening Review</h1>
         </div>
 
         <div className="mb-6">
