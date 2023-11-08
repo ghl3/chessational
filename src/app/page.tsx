@@ -8,7 +8,7 @@ import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Controls } from "@/components/Controls";
-import { Square, Piece } from "react-chessboard/dist/chessboard/types";
+import { Square } from "react-chessboard/dist/chessboard/types";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { Study } from "@/chess/Study";
 import { Chapter } from "@/chess/Chapter";

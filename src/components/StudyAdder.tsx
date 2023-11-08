@@ -1,8 +1,14 @@
 import { Study } from "@/chess/Study";
 import { useCallback, useState } from "react";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 const getStudy = async (studyId: string): Promise<Study> => {
-  const res = await fetch("http://localhost:3000/api/getStudy", {
+  const endpoint = "/api/getStudy";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const url = new URL(endpoint, apiUrl).href;
+
+  const res = await fetch(url, {
     method: "POST",
     cache: "force-cache",
     headers: {
