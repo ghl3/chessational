@@ -296,29 +296,12 @@ const Home: React.FC = () => {
           name="description"
           content="Enter a chess.com game ID to review"
         />
-        {/* Standard favicon */}
-        <link rel="icon" href="/favicon_io/favicon.ico" />
-        {/* Recommended favicon format */}
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon_io/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon_io/favicon-16x16.png"
-        />
-        {/* For iOS devices */}
+        <link rel="icon" href="/favicon.ico" />
         <link
           rel="apple-touch-icon"
           sizes="180x180"
-          href="/favicon_io/apple-touch-icon.png"
+          href="/apple-touch-icon.png"
         />
-        {/* For Android and other devices that support web manifests */}
-        <link rel="manifest" href="/favicon_io/site.webmanifest" />{" "}
       </Head>
 
       <main className="charcoal-bg text-white min-h-screen flex flex-col items-center">
