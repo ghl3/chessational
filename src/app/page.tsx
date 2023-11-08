@@ -45,6 +45,7 @@ const Home: React.FC = () => {
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
+  // The solution to the current position.
   const [solution, setSolution] = useState<Move | null>(null);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
@@ -189,6 +190,14 @@ const Home: React.FC = () => {
       // Otherwise, we're in line mode.
       if (line == null) {
         window.alert('Please click "New Line" to start a new line.');
+        return false;
+      }
+
+      // If the current board position is not the next position in the line,
+      // we don't accept the move.  This can happen if the user uses
+      // the left/right arrows to move around the line.
+      if (line.positions[lineIndex] != chessboardState.getPosition()) {
+        setLineMoveResult(null);
         return false;
       }
 
