@@ -42,7 +42,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const toggleShowChapter = useCallback(() => {
     setShowChapter((showChapter) => !showChapter);
-  }, [showChapter]);
+  }, []);
 
   const toggleShowEngine = useCallback(() => {
     setShowEngine((showEngine) => !showEngine);
@@ -51,11 +51,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const toggleDatabase = useCallback(() => {
     setShowDatabase((showDatabase) => !showDatabase);
-  }, [showDatabase]);
+  }, []);
 
   const toggleShowComments = useCallback(() => {
     setShowComments((showComments) => !showComments);
-  }, [showComments]);
+  }, []);
 
   return (
     <div

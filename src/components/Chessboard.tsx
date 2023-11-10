@@ -31,7 +31,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
     chessboardState.setOrientation((prevOrientation) =>
       prevOrientation === WHITE ? BLACK : WHITE
     );
-  }, []);
+  }, [chessboardState]);
 
   const handleLeftClick = useCallback(() => {
     if (chessboardState.getPositionIndex() <= 0) {
@@ -40,10 +40,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
     chessboardState.setPositionFromIndex(
       chessboardState.getPositionIndex() - 1
     );
-  }, [
-    chessboardState.getPositionIndex(),
-    chessboardState.setPositionFromIndex,
-  ]);
+  }, [chessboardState]);
 
   const handleRightClick = useCallback(() => {
     if (
@@ -55,15 +52,11 @@ const Chessboard: React.FC<ChessboardProps> = ({
     chessboardState.setPositionFromIndex(
       chessboardState.getPositionIndex() + 1
     );
-  }, [
-    chessboardState.positions,
-    chessboardState.getPositionIndex(),
-    chessboardState.setPositionFromIndex,
-  ]);
+  }, [chessboardState]);
 
   const handleJumpToStart = useCallback(() => {
     chessboardState.setPositionFromIndex(0);
-  }, [chessboardState.setPositionFromIndex]);
+  }, [chessboardState]);
 
   const handleJumpToEnd = useCallback(() => {
     if (chessboardState.positions.length === 0) {
@@ -72,7 +65,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       const endIndex = chessboardState.positions.length - 1;
       chessboardState.setPositionFromIndex(endIndex);
     }
-  }, [chessboardState.positions, chessboardState.setPositionFromIndex]);
+  }, [chessboardState]);
 
   // Inside your Review component
   useArrowKeys({

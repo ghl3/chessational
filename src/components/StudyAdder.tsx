@@ -1,4 +1,6 @@
+import { Chapter } from "@/chess/Chapter";
 import { Study } from "@/chess/Study";
+import { parsePgnStringToChapters } from "@/utils/PgnParser";
 import { useCallback, useState } from "react";
 
 const getStudy = async (studyId: string): Promise<Study> => {
@@ -20,7 +22,15 @@ const getStudy = async (studyId: string): Promise<Study> => {
     throw new Error("Error");
   }
 
-  const { studyName, chapters } = await res.json();
+  const { pgnText } = await res.json();
+
+  const chapters: Chapter[] = parsePgnStringToChapters(pgnText);
+
+  if (chapters.length === 0) {
+    throw new Error("Study has no chapters");
+  }
+
+  const studyName = chapters[0].name;
 
   return {
     name: studyName,

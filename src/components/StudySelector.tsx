@@ -38,7 +38,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, handleClickOutside]);
 
   const handleClickInButton = useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -70,7 +70,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
     setShowDialog(false);
     setIsOpen(false);
     setStudyToDelete(null);
-  }, [studyToDelete]);
+  }, [studyToDelete, onStudyDelete]);
 
   const onConfirmDeleteNo = useCallback(() => {
     setShowDialog(false);

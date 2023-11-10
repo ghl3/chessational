@@ -60,7 +60,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
 
   const toggleDropdown = useCallback(() => {
     setIsOpen((isOpen) => !isOpen);
-  }, [isOpen]);
+  }, []);
 
   const toggleOption = (optionValue: string) => {
     setSelectedOptions((prevSelectedOptions) =>

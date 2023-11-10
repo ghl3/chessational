@@ -52,7 +52,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         selectedStudy.chapters.map((chapter) => chapter.name)
       );
     },
-    [studies, selectedStudy]
+    [studies, setSelectedChapterNames, setSelectedStudyName]
   );
 
   const onStudyDelete = useCallback(
@@ -64,7 +64,13 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         setSelectedChapterNames([]);
       }
     },
-    [studies, selectedStudyName]
+    [
+      studies,
+      selectedStudyName,
+      setSelectedStudyName,
+      setSelectedChapterNames,
+      setStudies,
+    ]
   );
 
   return (
