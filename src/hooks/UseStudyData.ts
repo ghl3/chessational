@@ -1,5 +1,5 @@
 import { Study } from "@/chess/Study";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const localStorageGet = (key: string): string | null => {
   if (typeof window !== "undefined") {
@@ -107,8 +107,6 @@ export const useStudyData = (): StudyData => {
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
     []
   );
-  //    parseOrDefault(localStorageGet("selected-chapters"), [])
-  //  );
 
   const setAndStoreSelectedChapterNames = useMemo(
     () =>
@@ -121,10 +119,10 @@ export const useStudyData = (): StudyData => {
           );
         }
       ),
-    [setSelectedStudyName]
+    []
   );
 
-  const populateCachedValues = () => {
+  const populateCachedValues = useCallback(() => {
     setStudies(parseOrDefault(localStorageGet("studies"), []));
     setSelectedStudyName(
       parseOrDefault(localStorageGet("selected-study"), undefined)
@@ -132,7 +130,7 @@ export const useStudyData = (): StudyData => {
     setSelectedChapterNames(
       parseOrDefault(localStorageGet("selected-chapters"), [])
     );
-  };
+  }, []);
 
   return {
     studies,

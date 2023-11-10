@@ -35,7 +35,7 @@ if (typeof window !== "undefined") {
 
 const Home: React.FC = () => {
   const studyData = useStudyData();
-  useEffect(studyData.populateCachedValues, []);
+  useEffect(() => studyData.populateCachedValues());
 
   const [line, setLine] = useState<Line | null>(null);
   // The current position in the line.
@@ -74,12 +74,9 @@ const Home: React.FC = () => {
   }, []);
 
   const [runEngine, setRunEngine] = useState<boolean>(false);
-  const onToggleShowEngine = useCallback(
-    (showEngine: boolean) => {
-      setRunEngine(showEngine);
-    },
-    [chessboardState]
-  );
+  const onToggleShowEngine = useCallback((showEngine: boolean) => {
+    setRunEngine(showEngine);
+  }, []);
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -88,7 +85,7 @@ const Home: React.FC = () => {
     if (chessboardRef.current) {
       setHeight(chessboardRef.current.clientHeight);
     }
-  }, [chessboardRef.current, chessboardSize]);
+  }, [chessboardSize]);
 
   // Run the engine when needed
   const fen = chessboardState.getFen();
@@ -152,7 +149,7 @@ const Home: React.FC = () => {
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [chessboardState.setNextPosition]
+    [chessboardState]
   );
 
   const onPieceDrop = useCallback(
@@ -235,7 +232,14 @@ const Home: React.FC = () => {
       setSolution(null);
       return false;
     },
-    [line, lineIndex, chessboardState, mode]
+    [
+      line,
+      lineIndex,
+      chessboardState,
+      mode,
+      playOpponentNextMoveIfLineContinues,
+      setLineMoveResult,
+    ]
   );
 
   const enterExploreMode = () => {

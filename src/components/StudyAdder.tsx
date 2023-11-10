@@ -51,9 +51,12 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   const [studyUrl, setStudyUrl] = useState("");
 
   // TODO: Don't re-add the same study
-  const addStudy = (study: Study) => {
-    setStudies((prevStudies) => [...prevStudies, study]);
-  };
+  const addStudy = useCallback(
+    (study: Study) => {
+      setStudies((prevStudies) => [...prevStudies, study]);
+    },
+    [setStudies]
+  );
 
   const fetchStudyData = useCallback(
     async (studyUrl: string) => {
@@ -72,7 +75,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         console.error("Failed to get study:", error);
       }
     },
-    [setStudies, setSelectedStudyName]
+    [addStudy, setSelectedChapterNames, setSelectedStudyName]
   );
 
   // Handle when the user is typing a new URL
@@ -90,7 +93,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         fetchStudyData(studyUrl);
       }
     },
-    [studyUrl]
+    [studyUrl, fetchStudyData]
   );
 
   // Handle when the user presses enter
@@ -103,7 +106,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
       throw new Error("Please enter a valid Lichess study URL");
     }
     fetchStudyData(studyName);
-  }, [studyUrl]);
+  }, [studyUrl, fetchStudyData]);
 
   return (
     <div className="flex space-x-4">
