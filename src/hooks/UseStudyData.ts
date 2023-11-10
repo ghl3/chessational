@@ -1,5 +1,5 @@
 import { Study } from "@/chess/Study";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const localStorageGet = (key: string): string | null => {
   if (typeof window !== "undefined") {
@@ -66,12 +66,10 @@ export interface StudyData {
     React.SetStateAction<string | undefined>
   >;
   setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
-  populateCachedValues: () => void;
 }
 
 export const useStudyData = (): StudyData => {
   const [studies, setStudies] = useState<Study[]>([]);
-  //    parseOrDefault(localStorageGet("studies"), [])
 
   const setAndStoreStudies = useMemo(
     () =>
@@ -84,7 +82,6 @@ export const useStudyData = (): StudyData => {
   const [selectedStudyName, setSelectedStudyName] = useState<
     string | undefined
   >(undefined);
-  //parseOrDefault(localStorageGet("selected-study"), undefined));
 
   const setAndStoreSelectedStudyName = useMemo(
     () =>
@@ -122,15 +119,28 @@ export const useStudyData = (): StudyData => {
     []
   );
 
+  const isPopulated = useRef(false);
+
   const populateCachedValues = useCallback(() => {
-    setStudies(parseOrDefault(localStorageGet("studies"), []));
-    setSelectedStudyName(
-      parseOrDefault(localStorageGet("selected-study"), undefined)
-    );
-    setSelectedChapterNames(
-      parseOrDefault(localStorageGet("selected-chapters"), [])
-    );
-  }, []);
+    if (!isPopulated.current) {
+      setAndStoreStudies(parseOrDefault(localStorageGet("studies"), []));
+      setAndStoreSelectedStudyName(
+        parseOrDefault(localStorageGet("selected-study"), undefined)
+      );
+      setAndStoreSelectedChapterNames(
+        parseOrDefault(localStorageGet("selected-chapters"), [])
+      );
+      isPopulated.current = true;
+    }
+  }, [
+    setAndStoreStudies,
+    setAndStoreSelectedStudyName,
+    setAndStoreSelectedChapterNames,
+  ]);
+
+  useEffect(() => {
+    populateCachedValues();
+  }, [populateCachedValues]);
 
   return {
     studies,
@@ -139,6 +149,5 @@ export const useStudyData = (): StudyData => {
     setStudies: setAndStoreStudies,
     setSelectedStudyName: setAndStoreSelectedStudyName,
     setSelectedChapterNames: setAndStoreSelectedChapterNames,
-    populateCachedValues,
   };
 };

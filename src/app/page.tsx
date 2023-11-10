@@ -35,7 +35,6 @@ if (typeof window !== "undefined") {
 
 const Home: React.FC = () => {
   const studyData = useStudyData();
-  useEffect(() => studyData.populateCachedValues(), []);
 
   const [line, setLine] = useState<Line | null>(null);
   // The current position in the line.
