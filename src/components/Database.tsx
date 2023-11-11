@@ -20,7 +20,7 @@ interface LichessDatabase {
 
 const fetchTopMoves = async (fen: string): Promise<LichessDatabase> => {
   const response = await fetch(
-    `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`
+    `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`,
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch data: ${response.statusText}`);
