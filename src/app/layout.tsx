@@ -10,17 +10,13 @@ export const metadata: Metadata = {
   description: "Improve your chess",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        {children}
-        <Analytics />
-      </body>
-    </html>
-  );
-}
+const RootLayout = ({ children }: { children: React.ReactNode }) => (
+  <html lang="en">
+    <body className={inter.className}>
+      {children}
+      <Analytics />
+    </body>
+  </html>
+);
+
+export default RootLayout;

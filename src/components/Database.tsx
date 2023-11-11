@@ -18,9 +18,9 @@ interface LichessDatabase {
   moves: LichessMove[];
 }
 
-async function fetchTopMoves(fen: string): Promise<LichessDatabase> {
+const fetchTopMoves = async (fen: string): Promise<LichessDatabase> => {
   const response = await fetch(
-    `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`,
+    `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`
   );
   if (!response.ok) {
     throw new Error(`Failed to fetch data: ${response.statusText}`);
@@ -28,7 +28,7 @@ async function fetchTopMoves(fen: string): Promise<LichessDatabase> {
 
   const data = await response.json();
   return data;
-}
+};
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
   showDatabase: boolean;

@@ -7,6 +7,11 @@
   ],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "error"
+    "react-hooks/exhaustive-deps": "error",
+    "no-restricted-syntax": [
+      "error",
+      "FunctionExpression[generator=false]:not(:has(ThisExpression))",
+      "FunctionDeclaration[generator=false]:not(:has(ThisExpression))"
+    ]
   }
 }
