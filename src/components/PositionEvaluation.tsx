@@ -10,7 +10,7 @@ const MAX_NUM_MOVES_SHOWN = 3;
 
 export const getColorIndependentScore = (
   color: Color,
-  score: number
+  score: number,
 ): number => {
   const colorFactor = color === "w" ? 1 : -1;
   return score * colorFactor;
@@ -18,7 +18,7 @@ export const getColorIndependentScore = (
 
 export const doesMaintainForcedMateFor = (
   moveEvaluation: Evaluation,
-  positionEvaluation: Evaluation
+  positionEvaluation: Evaluation,
 ): boolean | null => {
   if (positionEvaluation?.forced_mate?.for !== "PLAYER") {
     return null;
@@ -29,7 +29,7 @@ export const doesMaintainForcedMateFor = (
 
 export const doesMaintainForcedMateAgainst = (
   moveEvaluation: Evaluation,
-  positionEvaluation: Evaluation
+  positionEvaluation: Evaluation,
 ): boolean | null => {
   if (positionEvaluation?.forced_mate?.for === "OPPONENT") {
     return moveEvaluation?.forced_mate?.for === "OPPONENT";
@@ -40,7 +40,7 @@ export const doesMaintainForcedMateAgainst = (
 
 export const doesBlunderForcedMateAgainst = (
   moveEvaluation: Evaluation,
-  positionEvaluation: Evaluation
+  positionEvaluation: Evaluation,
 ): boolean => {
   return (
     positionEvaluation?.forced_mate?.for !== "OPPONENT" &&
@@ -51,7 +51,7 @@ export const doesBlunderForcedMateAgainst = (
 export const getMoveScoreDelta = (
   turn: Color,
   moveEvaluation: Evaluation,
-  positionEvaluation: Evaluation
+  positionEvaluation: Evaluation,
 ): number | null => {
   const colorFactor = turn === "w" ? 1 : -1;
   if (positionEvaluation.score != null && moveEvaluation.score != null) {
@@ -69,7 +69,7 @@ export const isGoodMove = (
   moveEvaluation: Evaluation,
   positionEvaluation: Evaluation,
   scoreThreshold: number,
-  scoreDropThreshold: number
+  scoreDropThreshold: number,
 ): boolean => {
   if (
     doesMaintainForcedMateAgainst(moveEvaluation, positionEvaluation) ||

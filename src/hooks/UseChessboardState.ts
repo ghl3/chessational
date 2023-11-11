@@ -17,7 +17,7 @@ export interface ChessboardState {
   createMoveOrNull: (
     sourceSquare: Square,
     targetSquare: Square,
-    promotion?: PieceSymbol
+    promotion?: PieceSymbol,
   ) => [Move, Position] | null;
   getPieceAtSquare: (square: Square) => PieceSymbol | null;
 
@@ -55,7 +55,7 @@ const clearGameState = (state: GameState): GameState => {
 const addNextPosition = (
   state: GameState,
   position: Position,
-  overwriteHistory: boolean
+  overwriteHistory: boolean,
 ): GameState => {
   const { positions, currentPositionIndex } = state;
 
@@ -76,7 +76,7 @@ const addNextPosition = (
     };
   } else {
     throw new Error(
-      "Cannot move from a previous position or this will overwrite the line"
+      "Cannot move from a previous position or this will overwrite the line",
     );
   }
 };
@@ -84,7 +84,7 @@ const addNextPosition = (
 // Return to an existing position in the history.
 const setPositionFromIndex = (
   state: GameState,
-  moveIndex: number
+  moveIndex: number,
 ): GameState => {
   if (moveIndex < 0) {
     throw new Error("Position index is negative");
@@ -132,7 +132,7 @@ export const useChessboardState = (): ChessboardState => {
   const createMoveOrNull = (
     sourceSquare: Square,
     targetSquare: Square,
-    promotion?: PieceSymbol
+    promotion?: PieceSymbol,
   ): [Move, Position] | null => {
     try {
       const moveResult: MoveResult = gameObject.current.move({

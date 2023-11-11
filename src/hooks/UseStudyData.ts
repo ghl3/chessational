@@ -37,7 +37,7 @@ const parseOrDefault = <T>(jsonString: string | null, d: T) => {
 // on the set value.
 const addPostSetAction = <T>(
   setter: React.Dispatch<React.SetStateAction<T>>,
-  postSetAction: (items: T) => void
+  postSetAction: (items: T) => void,
 ): React.Dispatch<React.SetStateAction<T>> => {
   return (action: React.SetStateAction<T>) => {
     // An 'action' is either a function that takes a T
@@ -76,7 +76,7 @@ export const useStudyData = (): StudyData => {
       addPostSetAction(setStudies, (studies: Study[]) => {
         localStorageSet("studies", JSON.stringify(studies));
       }),
-    [setStudies]
+    [setStudies],
   );
 
   const [selectedStudyName, setSelectedStudyName] = useState<
@@ -93,16 +93,16 @@ export const useStudyData = (): StudyData => {
           } else {
             localStorageSet(
               "selected-study",
-              JSON.stringify(selectedStudyName)
+              JSON.stringify(selectedStudyName),
             );
           }
-        }
+        },
       ),
-    [setSelectedStudyName]
+    [setSelectedStudyName],
   );
 
   const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
-    []
+    [],
   );
 
   const setAndStoreSelectedChapterNames = useMemo(
@@ -112,11 +112,11 @@ export const useStudyData = (): StudyData => {
         (selectedChapterNames: string[]) => {
           localStorageSet(
             "selected-chapters",
-            JSON.stringify(selectedChapterNames)
+            JSON.stringify(selectedChapterNames),
           );
-        }
+        },
       ),
-    []
+    [],
   );
 
   const isPopulated = useRef(false);
@@ -125,10 +125,10 @@ export const useStudyData = (): StudyData => {
     if (!isPopulated.current) {
       setAndStoreStudies(parseOrDefault(localStorageGet("studies"), []));
       setAndStoreSelectedStudyName(
-        parseOrDefault(localStorageGet("selected-study"), undefined)
+        parseOrDefault(localStorageGet("selected-study"), undefined),
       );
       setAndStoreSelectedChapterNames(
-        parseOrDefault(localStorageGet("selected-chapters"), [])
+        parseOrDefault(localStorageGet("selected-chapters"), []),
       );
       isPopulated.current = true;
     }

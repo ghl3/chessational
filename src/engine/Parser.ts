@@ -110,7 +110,7 @@ export class EventParser {
         } else {
           info_map[currently_processing] = EventParser.handleInfo(
             currently_processing,
-            current_tokens
+            current_tokens,
           );
           current_tokens = [];
           currently_processing = null;
@@ -128,7 +128,7 @@ export class EventParser {
     if (currently_processing != null) {
       info_map[currently_processing] = EventParser.handleInfo(
         currently_processing,
-        current_tokens
+        current_tokens,
       );
     }
 

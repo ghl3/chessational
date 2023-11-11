@@ -40,7 +40,7 @@ const Table: React.FC<TableProps> = ({
                 &nbsp;
               </td>
             ))}
-          </tr>
+          </tr>,
         );
       }
     }

@@ -66,7 +66,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     setSelectedOptions((prevSelectedOptions) =>
       prevSelectedOptions.includes(optionValue)
         ? prevSelectedOptions.filter((value) => value !== optionValue)
-        : [...prevSelectedOptions, optionValue]
+        : [...prevSelectedOptions, optionValue],
     );
   };
 

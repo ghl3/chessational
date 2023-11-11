@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 const useStateWithTimeout = <T>(
   defaultValue: T,
-  delay: number
+  delay: number,
 ): [T | null, React.Dispatch<React.SetStateAction<T | null>>] => {
   const [value, setValue] = useState<T | null>(defaultValue);
 

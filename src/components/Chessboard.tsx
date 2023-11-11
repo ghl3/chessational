@@ -29,7 +29,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
 }) => {
   const handleFlipBoard = useCallback(() => {
     chessboardState.setOrientation((prevOrientation) =>
-      prevOrientation === WHITE ? BLACK : WHITE
+      prevOrientation === WHITE ? BLACK : WHITE,
     );
   }, [chessboardState]);
 
@@ -38,7 +38,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       return;
     }
     chessboardState.setPositionFromIndex(
-      chessboardState.getPositionIndex() - 1
+      chessboardState.getPositionIndex() - 1,
     );
   }, [chessboardState]);
 
@@ -50,7 +50,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       return;
     }
     chessboardState.setPositionFromIndex(
-      chessboardState.getPositionIndex() + 1
+      chessboardState.getPositionIndex() + 1,
     );
   }, [chessboardState]);
 

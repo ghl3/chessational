@@ -4,8 +4,8 @@ test("buildEvaluationFromInfo white score positive", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { cp: 50 }, depth: 14, pv: [] },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     depth: 14,
     score: 50,
@@ -16,8 +16,8 @@ test("buildEvaluationFromInfo white score negative", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { cp: -50 }, depth: 14, pv: [] },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     depth: 14,
     score: -50,
@@ -28,8 +28,8 @@ test("buildEvaluationFromInfo black score positive", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { cp: 10 }, depth: 14, pv: [] },
-      "b"
-    )
+      "b",
+    ),
   ).toStrictEqual({
     depth: 14,
     score: -10,
@@ -40,8 +40,8 @@ test("buildEvaluationFromInfo black score negative", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { cp: -15 }, depth: 14, pv: [] },
-      "b"
-    )
+      "b",
+    ),
   ).toStrictEqual({
     depth: 14,
     score: 15,
@@ -52,8 +52,8 @@ test("buildEvaluationFromInfo mate positive", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { mate: 5 }, depth: 14, pv: [] },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     depth: 14,
     forced_mate: { in: 5, for: "PLAYER" },
@@ -64,8 +64,8 @@ test("buildEvaluationFromInfo mate negative", () => {
   expect(
     Engine.buildEvaluationFromInfo(
       { type: "INFO", score: { mate: -10 }, depth: 14, pv: [] },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     depth: 14,
     forced_mate: { in: 10, for: "OPPONENT" },
@@ -81,8 +81,8 @@ test("buildMoveAndEvaluationFromInfo pv mate", () => {
         score: { mate: -10 },
         depth: 14,
       },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     move: { color: "w", from: "d8", to: "c8" },
     evaluation: {
@@ -101,8 +101,8 @@ test("buildMoveAndEvaluationFromInfo pv promote", () => {
         score: { mate: -10 },
         depth: 14,
       },
-      "w"
-    )
+      "w",
+    ),
   ).toStrictEqual({
     move: { color: "w", from: "e7", to: "e8", promotion: "q" },
     evaluation: {
@@ -123,7 +123,7 @@ test("selectBestMoves moves in output", () => {
         move: { color: "w", from: "e3", to: "e4" },
         evaluation: { depth: 14, score: 200 },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { color: "w", from: "e3", to: "e4" },
@@ -151,7 +151,7 @@ test("selectBestMoves multiple scores black", () => {
         move: { from: "e5", to: "e8", color: "b" },
         evaluation: { depth: 14, score: 350 },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { from: "e5", to: "e7", color: "b" },
@@ -183,7 +183,7 @@ test("selectBestMoves multiple scores white", () => {
         move: { from: "e5", to: "e8", color: "b" },
         evaluation: { depth: 14, score: 350 },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { from: "e5", to: "e8", color: "b" },
@@ -231,7 +231,7 @@ test("selectBestMoves multiple scores multiple depths white", () => {
         move: { from: "e1", to: "e8", color: "w" },
         evaluation: { depth: 10, score: 400 },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { from: "e1", to: "e4", color: "w" },
@@ -259,7 +259,7 @@ test("selectBestMoves score and forced_mate white", () => {
         move: { from: "e1", to: "e3", color: "w" },
         evaluation: { depth: 14, score: 200 },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { from: "e1", to: "e3", color: "w" },
@@ -291,7 +291,7 @@ test("selectBestMoves multiple forced_mate black", () => {
         move: { from: "e1", to: "e5", color: "w" },
         evaluation: { depth: 14, forced_mate: { in: 5, for: "PLAYER" } },
       },
-    ])
+    ]),
   ).toEqual([
     {
       move: { from: "e1", to: "e5", color: "w" },

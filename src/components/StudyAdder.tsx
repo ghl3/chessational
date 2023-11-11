@@ -30,7 +30,7 @@ const getStudy = async (studyId: string): Promise<Study> => {
     throw new Error("Study has no chapters");
   }
 
-  const studyName = chapters[0].name;
+  const studyName = chapters[0].studyName;
 
   return {
     name: studyName,
@@ -65,7 +65,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     (study: Study) => {
       setStudies((prevStudies) => [...prevStudies, study]);
     },
-    [setStudies]
+    [setStudies],
   );
 
   const fetchStudyData = useCallback(
@@ -85,7 +85,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         console.error("Failed to get study:", error);
       }
     },
-    [addStudy, setSelectedChapterNames, setSelectedStudyName]
+    [addStudy, setSelectedChapterNames, setSelectedStudyName],
   );
 
   // Handle when the user is typing a new URL
@@ -93,7 +93,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setStudyUrl(e.target.value);
     },
-    []
+    [],
   );
 
   // Handle when the user presses enter
@@ -103,7 +103,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         fetchStudyData(studyUrl);
       }
     },
-    [studyUrl, fetchStudyData]
+    [studyUrl, fetchStudyData],
   );
 
   // Handle when the user presses enter

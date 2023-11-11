@@ -18,7 +18,7 @@ export const moveResultToMove = (moveResult: MoveResult): Move => {
 const isPromotion = (
   sourceSquare: Square,
   targetSquare: Square,
-  piece: string
+  piece: string,
 ) => {
   const isPromotion =
     ((piece === "p" && sourceSquare[1] === "7" && targetSquare[1] === "8") ||
@@ -29,7 +29,7 @@ const isPromotion = (
 };
 
 export const convertToPieceSymbol = (
-  piece?: string | null
+  piece?: string | null,
 ): PieceSymbol | undefined => {
   if (piece === undefined) {
     return undefined;
@@ -66,7 +66,7 @@ export const getPromoteToPiece = (
   sourceSquare: Square,
   targetSquare: Square,
   originalPiece: PieceSymbol,
-  promotedToPiece?: PieceSymbol
+  promotedToPiece?: PieceSymbol,
 ): PieceSymbol | undefined => {
   if (isPromotion(sourceSquare, targetSquare, originalPiece)) {
     if (promotedToPiece === undefined) {

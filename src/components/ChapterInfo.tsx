@@ -12,7 +12,7 @@ interface ChapterInfoProps {
 const findPosition = (
   positionNode: PositionNode,
   position: Position,
-  moves: Move[]
+  moves: Move[],
 ): Move[] | null => {
   if (positionNode.position.fen == position.fen) {
     return moves;
@@ -33,7 +33,7 @@ const findPosition = (
 
 const getLastMainLineMoveIndex = (
   chapter: Chapter,
-  position: Position
+  position: Position,
 ): number | null => {
   const moves = findPosition(chapter.positionTree, position, []);
   if (!moves) {

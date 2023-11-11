@@ -182,7 +182,7 @@ export class Engine {
             "->" +
             parsed.to +
             " for " +
-            fen
+            fen,
         );
       }
       if (parsed.type === "ISMATE") {
@@ -209,7 +209,7 @@ export class Engine {
   };
 
   static getDeepestEvaluations = (
-    movesAndEvaluations: MoveAndEvaluation[]
+    movesAndEvaluations: MoveAndEvaluation[],
   ): MoveAndEvaluation[] => {
     var maxDepth = 0;
     for (const { evaluation } of Object.values(movesAndEvaluations)) {
@@ -239,7 +239,7 @@ export class Engine {
 
   static selectBestMoves = (
     color: Color,
-    movesAndEvaluations: MoveAndEvaluation[]
+    movesAndEvaluations: MoveAndEvaluation[],
   ): MoveAndEvaluation[] => {
     // Take the list of INFO messages
     // Dedupe to find the latest depth
@@ -261,7 +261,7 @@ export class Engine {
     // Take all the evals and sort.
     // We want the deepest and best evals to appear first
     const sortedMovesAndEvaluations = Engine.getDeepestEvaluations(
-      movesAndEvaluations
+      movesAndEvaluations,
     ).sort(
       makeComparator((x) => [
         // Sort by "mate in x" for the player, where lower x is better.
@@ -278,7 +278,7 @@ export class Engine {
         x?.evaluation?.forced_mate?.for === "OPPONENT"
           ? -1 * x?.evaluation?.forced_mate?.in
           : Number.MAX_VALUE,
-      ])
+      ]),
     );
 
     const depth = sortedMovesAndEvaluations[0]?.evaluation?.depth;
@@ -294,7 +294,7 @@ export class Engine {
 
   static buildMoveAndEvaluationFromInfo = (
     info: InfoMessage,
-    color: Color
+    color: Color,
   ): MoveAndEvaluation | null => {
     if ("pv" in info && info["pv"].length > 0) {
       const from = info.pv[0].slice(0, 2);
@@ -315,7 +315,7 @@ export class Engine {
   // parsed: A dict
   static buildEvaluationFromInfo = (
     info: InfoMessage,
-    color: Color
+    color: Color,
   ): Evaluation => {
     // Convert from an Info (using UCI's conventions) to an Evaluation
     // (using normal conventions).

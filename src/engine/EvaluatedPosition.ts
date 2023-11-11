@@ -17,7 +17,7 @@ export interface EvaluatedPosition {
 export class EvaluatedPositionUtil {
   static findMoveEval = (
     evaluatedPosition: EvaluatedPosition,
-    m: PieceMove
+    m: PieceMove,
   ) => {
     for (const { move, evaluation } of evaluatedPosition.best_moves) {
       // TODO: Create a move equality function

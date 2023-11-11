@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       new URLSearchParams({
         source: "true",
         orientation: "true",
-      })
+      }),
   );
 
   const pgnText: string = await response.text();
@@ -32,6 +32,6 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 }

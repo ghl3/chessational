@@ -1,6 +1,6 @@
 // Returns a function that returns true if x < y
 export const makeComparator = (
-  f: (x: any) => any
+  f: (x: any) => any,
 ): ((x: any, y: any) => number) => {
   return (x, y) => {
     const x_vals = f(x);

@@ -45,7 +45,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
       e.stopPropagation();
       setIsOpen(!isOpen);
     },
-    [isOpen]
+    [isOpen],
   );
 
   const handleDropdownChange = useCallback(
@@ -53,7 +53,7 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
       onStudyChange(studyName);
       setIsOpen(false);
     },
-    [onStudyChange]
+    [onStudyChange],
   );
 
   const handleDelete = useCallback((studyName: string) => {
