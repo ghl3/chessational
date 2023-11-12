@@ -11,7 +11,7 @@ export const POST = async (req: NextRequest) => {
         new URLSearchParams({
           source: "true",
           orientation: "true",
-        })
+        }),
     );
 
     if (!response.ok) {
@@ -35,7 +35,7 @@ export const POST = async (req: NextRequest) => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   } catch (error) {
     if (error instanceof Error) {
