@@ -48,12 +48,12 @@ const Home: React.FC = () => {
   const [solution, setSolution] = useState<Move | null>(null);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
-    (study) => study.name == studyData.selectedStudyName,
+    (study) => study.name == studyData.selectedStudyName
   );
 
   const selectedChapters: Chapter[] | undefined =
     selectedStudy?.chapters.filter((chapter) =>
-      studyData.selectedChapterNames.includes(chapter.name),
+      studyData.selectedChapterNames.includes(chapter.name)
     );
 
   const chessboardSize = useChessboardSize();
@@ -148,7 +148,7 @@ const Home: React.FC = () => {
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [chessboardState],
+    [chessboardState]
   );
 
   const onPieceDrop = useCallback(
@@ -163,14 +163,14 @@ const Home: React.FC = () => {
         sourceSquare,
         targetSquare,
         originalPiece,
-        convertToPieceSymbol(piece),
+        convertToPieceSymbol(piece)
       );
 
       const [move, newPosition]: [Move | null, Position | null] =
         chessboardState.createMoveOrNull(
           sourceSquare,
           targetSquare,
-          promoteToPiece,
+          promoteToPiece
         ) || [null, null];
 
       if (move == null || newPosition == null) {
@@ -238,7 +238,7 @@ const Home: React.FC = () => {
       mode,
       playOpponentNextMoveIfLineContinues,
       setLineMoveResult,
-    ],
+    ]
   );
 
   const enterExploreMode = () => {
@@ -262,18 +262,21 @@ const Home: React.FC = () => {
     setSolution(null);
   }, [line, lineIndex, mode, chessboardState]);
 
-  const onShowSolution = useCallback(() => {
+  const toggleShowSolution = useCallback(() => {
     if (line == null || lineIndex == -1) {
       throw new Error("line is null");
     }
 
-    const lineSolution = line.positions[lineIndex + 1].lastMove;
-    if (lineSolution == null) {
-      throw new Error("solution is null");
+    if (solution) {
+      setSolution(null);
+    } else {
+      const lineSolution = line.positions[lineIndex + 1].lastMove;
+      if (lineSolution == null) {
+        throw new Error("solution is null");
+      }
+      setSolution(lineSolution);
     }
-
-    setSolution(lineSolution);
-  }, [line, lineIndex]);
+  }, [line, lineIndex, solution]);
 
   const position = chessboardState.getPosition();
 
@@ -345,7 +348,7 @@ const Home: React.FC = () => {
             mode={mode}
             lineStatus={lineStatus}
             onNewLine={onNewLine}
-            onShowSolution={onShowSolution}
+            toggleShowSolution={toggleShowSolution}
             enterExploreMode={enterExploreMode}
             enterLineMode={enterLineMode}
           />

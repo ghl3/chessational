@@ -5,7 +5,6 @@ import { LineStatus } from "@/chess/Line";
 type ControlProps = {
   mode: "LINE" | "EXPLORE";
   lineStatus?: LineStatus;
-
   onShowSolution: () => void;
   onNewLine: () => void;
   enterExploreMode: () => void;
@@ -15,7 +14,6 @@ type ControlProps = {
 export const Controls: React.FC<ControlProps> = ({
   mode,
   lineStatus,
-
   onNewLine,
   onShowSolution,
   enterExploreMode,
