@@ -5,7 +5,7 @@ import { LineStatus } from "@/chess/Line";
 type ControlProps = {
   mode: "LINE" | "EXPLORE";
   lineStatus?: LineStatus;
-  onShowSolution: () => void;
+  toggleShowSolution: () => void;
   onNewLine: () => void;
   enterExploreMode: () => void;
   enterLineMode: () => void;
@@ -15,7 +15,7 @@ export const Controls: React.FC<ControlProps> = ({
   mode,
   lineStatus,
   onNewLine,
-  onShowSolution,
+  toggleShowSolution,
   enterExploreMode,
   enterLineMode,
 }) => {
@@ -31,7 +31,7 @@ export const Controls: React.FC<ControlProps> = ({
       <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
       {hasActiveLine ? (
         <ControlButton
-          onClick={onShowSolution}
+          onClick={toggleShowSolution}
           label="Show Solution"
           size={"large"}
           disabled={lineIsComplete}
