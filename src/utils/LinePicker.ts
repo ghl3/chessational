@@ -24,7 +24,7 @@ export const getNumberOfLines = (node: Node): number => {
 
 const getRandomMove = (
   nodes: Node[],
-  strategy: MoveSelectionStrategy
+  strategy: MoveSelectionStrategy,
 ): Node => {
   if (nodes.length === 0) {
     throw new Error("No children");
@@ -55,7 +55,7 @@ const getRandomMove = (
 
 const selectChapter = (
   chapters: Chapter[],
-  strategy: MoveSelectionStrategy
+  strategy: MoveSelectionStrategy,
 ): Chapter => {
   if (chapters.length === 0) {
     throw new Error("No chapters to select from");
@@ -67,7 +67,7 @@ const selectChapter = (
     return chapters[Math.floor(Math.random() * chapters.length)];
   } else if (strategy === "LINE_WEIGHTED") {
     const linesPerChapter = chapters.map((chapter) =>
-      getNumberOfLines(chapter.positionTree)
+      getNumberOfLines(chapter.positionTree),
     );
     const totalLines = linesPerChapter.reduce((a, b) => a + b, 0);
     const randomIndex = Math.floor(Math.random() * totalLines);
@@ -108,7 +108,7 @@ const createPositionIndex = (node: Node): Map<Fen, Node[]> => {
 
 const getTranspositions = (
   node: Node,
-  positionIndex: Map<Fen, Node[]>
+  positionIndex: Map<Fen, Node[]>,
 ): Node[] => {
   const fen: Fen = node.position.fen;
 
@@ -123,7 +123,7 @@ const getTranspositions = (
 
 export const pickLine = (
   chapters: Chapter[],
-  strategy: MoveSelectionStrategy
+  strategy: MoveSelectionStrategy,
 ): Line => {
   // First, pick a chapter at random
   const chapter = selectChapter(chapters, strategy);
@@ -146,7 +146,7 @@ export const pickLine = (
 
     if (turn === "PLAYER") {
       const transpositions = getTranspositions(node, positionIndex).filter(
-        (n) => n.children.length > 0
+        (n) => n.children.length > 0,
       );
 
       // There should be a single move for the player to make. We don't yet
@@ -154,7 +154,7 @@ export const pickLine = (
       if (node.children.length > 1) {
         console.error(
           "Multiple moves not implemented.  Encountered at line: " +
-            lineToSan(line)
+            lineToSan(line),
         );
         availableMoves = [node.children[0]];
       } else if (node.children.length == 1) {
@@ -167,7 +167,7 @@ export const pickLine = (
           continue;
         } else {
           throw new Error(
-            "No moves available.  Encountered at line: " + lineToSan(line)
+            "No moves available.  Encountered at line: " + lineToSan(line),
           );
         }
       }
@@ -182,7 +182,7 @@ export const pickLine = (
       };
 
       const transpositions = getTranspositions(node, positionIndex).filter(
-        (n) => n.children.length > 0 && n.children.some(hasChild)
+        (n) => n.children.length > 0 && n.children.some(hasChild),
       );
 
       const childNodes = node.children.filter(hasChild);

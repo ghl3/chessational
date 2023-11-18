@@ -7,7 +7,7 @@ describe("pickLine", () => {
   it("should pick the one line", () => {
     const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
-        1. e4 e5 2. Nf3 Nc6 *`
+        1. e4 e5 2. Nf3 Nc6 *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);
@@ -17,7 +17,7 @@ describe("pickLine", () => {
   it("should terminate line that doesn't have chiild moves ", () => {
     const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "white"]
-          1. e4 e5 2. Nf3 Nc6 *`
+          1. e4 e5 2. Nf3 Nc6 *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);
@@ -29,7 +29,7 @@ describe("pickLine", () => {
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6 4. d4 exd4)
-           2... Nc6 3. Nc3 Nf6 *`
+           2... Nc6 3. Nc3 Nf6 *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);
@@ -44,7 +44,7 @@ describe("pickLine", () => {
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6)
-           2... Nc6 3. Nc3 Nf6 *`
+           2... Nc6 3. Nc3 Nf6 *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);
@@ -59,7 +59,7 @@ describe("pickLine", () => {
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6 4. d4)
-           2... Nc6 3. Nc3 Nf6 *`
+           2... Nc6 3. Nc3 Nf6 *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);
@@ -72,7 +72,7 @@ describe("pickLine", () => {
   it("picks the first line when there are multiple player moves", () => {
     const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
-      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
+      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`,
     )[0];
 
     const lines = getLinesForPlayer(chapter);

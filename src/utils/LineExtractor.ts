@@ -6,7 +6,7 @@ import { Position } from "@/chess/Position";
 
 const getTranspositions = (
   node: Node,
-  positionIndex: Map<Fen, Node[]>
+  positionIndex: Map<Fen, Node[]>,
 ): Node[] => {
   const fen: Fen = node.position.fen;
 
@@ -44,12 +44,12 @@ const getAllMoveLists = (
   node: Node,
   currentLine: Position[],
   isPlayerMove: boolean,
-  positionIndex: Map<Fen, Node[]>
+  positionIndex: Map<Fen, Node[]>,
 ): Position[][] => {
   if (node.children.length === 0) {
     // If there are transpositions with children, iterate through them
     const transpositions = getTranspositions(node, positionIndex).filter(
-      (t) => t.children.length > 0
+      (t) => t.children.length > 0,
     );
 
     if (transpositions.length > 0) {
@@ -58,7 +58,7 @@ const getAllMoveLists = (
           transposition,
           currentLine,
           !isPlayerMove,
-          positionIndex
+          positionIndex,
         );
       });
     } else {
@@ -88,7 +88,7 @@ export const getAllLines = (chapter: Chapter): Line[] => {
     node,
     [node.position],
     playerHasFirstMove,
-    createPositionIndex(node)
+    createPositionIndex(node),
   );
 
   return moveLists.map((moveList) => ({
