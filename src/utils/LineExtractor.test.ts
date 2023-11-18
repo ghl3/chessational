@@ -1,6 +1,6 @@
 import { Chapter } from "@/chess/Chapter";
 import { getLinesForPlayer } from "./LineExtractor";
-import { Line, lineToSan } from "@/chess/Line";
+import { lineToSan } from "@/chess/Line";
 import { parsePgnStringToChapters } from "./PgnParser";
 
 describe("pickLine", () => {
@@ -23,79 +23,59 @@ describe("pickLine", () => {
     const lines = getLinesForPlayer(chapter);
     expect(lines.map(lineToSan)).toEqual([["e4", "e5", "Nf3"]]);
   });
-  /*
+
   it("should move to transposition", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
+    const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6 4. d4 exd4)
            2... Nc6 3. Nc3 Nf6 *`
-    );
+    )[0];
 
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual([
-      "e4",
-      "e5",
-      "Nf3",
-      "Nc6",
-      "Nc3",
-      "Nf6",
-      "d4",
-      "exd4",
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([
+      ["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6", "d4", "exd4"],
+      ["e4", "e5", "Nc3", "Nc6", "Nf3", "Nf6", "d4", "exd4"],
     ]);
   });
 
   it("should avoid infinite loop in tranpositions", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
+    const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6)
            2... Nc6 3. Nc3 Nf6 *`
-    );
+    )[0];
 
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([
+      ["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"],
+      ["e4", "e5", "Nc3", "Nc6", "Nf3", "Nf6"],
+    ]);
   });
 
-  it("don't go to transposition with no grand children", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
+  it("truncate lines that don't end with current player's move", () => {
+    const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
       1. e4 e5 2. Nf3
           (2. Nc3 Nc6 3. Nf3 Nf6 4. d4)
            2... Nc6 3. Nc3 Nf6 *`
-    );
+    )[0];
 
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([
+      ["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"],
+      ["e4", "e5", "Nc3", "Nc6", "Nf3", "Nf6"],
+    ]);
   });
 
-  it("picks the first line when multiple player moves available", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
-      `[Orientation "black"]
-      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
-    );
-
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nf6"]);
-  });
-});
-
-describe("getNumberOfLines", () => {
-  it("should get the correct number of lines", () => {
+  it("picks the first line when there are multiple player moves", () => {
     const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
       1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
     )[0];
 
-    expect(getNumberOfLines(chapter.positionTree)).toEqual(2);
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([["e4", "e5", "Nf3", "Nf6"]]);
   });
-
-  it("should get the correct number of lines for pirc", () => {
-    const chapter: Chapter = parsePgnStringToChapters(
-      `[Orientation "white"]
-      1. d4 Nf6 (1... d6 2. e4 {1} ) (1... g6 2. e4 Bg7 3. Nc3 {2} ) 2. Nc3 g6 (2... d6 3. e4 {3}) 3. e4 {4} *`
-    )[0];
-    expect(getNumberOfLines(chapter.positionTree)).toEqual(4);
-  });
-  */
 });

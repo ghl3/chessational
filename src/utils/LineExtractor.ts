@@ -43,6 +43,7 @@ const createPositionIndex = (node: Node): Map<Fen, Node[]> => {
 const getAllMoveLists = (
   node: Node,
   currentLine: Position[],
+  isPlayerMove: boolean,
   positionIndex: Map<Fen, Node[]>
 ): Position[][] => {
   if (node.children.length === 0) {
@@ -53,17 +54,27 @@ const getAllMoveLists = (
 
     if (transpositions.length > 0) {
       return transpositions.flatMap((transposition) => {
-        const nextLine: Position[] = [...currentLine, transposition.position];
-        return getAllMoveLists(transposition, nextLine, positionIndex);
+        return getAllMoveLists(
+          transposition,
+          currentLine,
+          !isPlayerMove,
+          positionIndex
+        );
       });
     } else {
       // Otherwise, terminate the line
       return [currentLine];
     }
+  } else if (isPlayerMove) {
+    // If there are multiple moves for the player,
+    // for now, just pick the first one
+    const child = node.children[0];
+    const nextLine: Position[] = [...currentLine, child.position];
+    return getAllMoveLists(child, nextLine, !isPlayerMove, positionIndex);
   } else {
     return node.children.flatMap((child) => {
       const nextLine: Position[] = [...currentLine, child.position];
-      return getAllMoveLists(child, nextLine, positionIndex);
+      return getAllMoveLists(child, nextLine, !isPlayerMove, positionIndex);
     });
   }
 };
@@ -71,9 +82,12 @@ const getAllMoveLists = (
 export const getAllLines = (chapter: Chapter): Line[] => {
   var node: Node = chapter.positionTree;
 
+  const playerHasFirstMove = chapter.orientation === "w";
+
   const moveLists: Position[][] = getAllMoveLists(
     node,
     [node.position],
+    playerHasFirstMove,
     createPositionIndex(node)
   );
 
@@ -91,6 +105,7 @@ export const getLinesForPlayer = (chapter: Chapter): Line[] => {
     return line.positions.length > 0;
   });
 
+  // TODO: Filter lines that have multiple player moves
   // Ensure all lines end with the player's move (dropping the last move if needed)
   const lines = filteredLines.map((line) => {
     const lastPosition = line.positions[line.positions.length - 1];
