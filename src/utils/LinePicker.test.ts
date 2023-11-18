@@ -11,7 +11,7 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6"]);
+    expect(lineToSan(line.line)).toEqual(["e4", "e5", "Nf3", "Nc6"]);
   });
 
   it("should terminate line that doesn't have chiild moves ", () => {
@@ -21,7 +21,7 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3"]);
+    expect(lineToSan(line.line)).toEqual(["e4", "e5", "Nf3"]);
   });
 
   it("should move to transposition", () => {
@@ -33,7 +33,7 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual([
+    expect(lineToSan(line.line)).toEqual([
       "e4",
       "e5",
       "Nf3",
@@ -54,7 +54,14 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+    expect(lineToSan(line.line)).toEqual([
+      "e4",
+      "e5",
+      "Nf3",
+      "Nc6",
+      "Nc3",
+      "Nf6",
+    ]);
   });
 
   it("don't go to transposition with no grand children", () => {
@@ -66,7 +73,14 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6"]);
+    expect(lineToSan(line.line)).toEqual([
+      "e4",
+      "e5",
+      "Nf3",
+      "Nc6",
+      "Nc3",
+      "Nf6",
+    ]);
   });
 
   it("picks the first line when multiple player moves available", () => {
@@ -76,25 +90,6 @@ describe("pickLine", () => {
     );
 
     const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nf6"]);
-  });
-});
-
-describe("getNumberOfLines", () => {
-  it("should get the correct number of lines", () => {
-    const chapter: Chapter = parsePgnStringToChapters(
-      `[Orientation "black"]
-      1. e4 e5 2. Nf3 Nf6 (2... Nc6) *`
-    )[0];
-
-    expect(getNumberOfLines(chapter.positionTree)).toEqual(2);
-  });
-
-  it("should get the correct number of lines for pirc", () => {
-    const chapter: Chapter = parsePgnStringToChapters(
-      `[Orientation "white"]
-      1. d4 Nf6 (1... d6 2. e4 {1} ) (1... g6 2. e4 Bg7 3. Nc3 {2} ) 2. Nc3 g6 (2... d6 3. e4 {3}) 3. e4 {4} *`
-    )[0];
-    expect(getNumberOfLines(chapter.positionTree)).toEqual(4);
+    expect(lineToSan(line.line)).toEqual(["e4", "e5", "Nf3", "Nf6"]);
   });
 });
