@@ -1,12 +1,13 @@
 import { Line } from "@/chess/Line";
-import { Color } from "chess.js";
-import { Chapter, PositionNode as Node } from "@/chess/Chapter";
+//import { Chapter, PositionNode as Node } from "@/chess/Chapter";
+import { PositionTree, PositionNode as Node } from "@/chess/PositionTree";
 import { Fen } from "@/chess/Fen";
 import { Position } from "@/chess/Position";
+import { Color } from "chess.js";
 
 const getTranspositions = (
   node: Node,
-  positionIndex: Map<Fen, Node[]>,
+  positionIndex: Map<Fen, Node[]>
 ): Node[] => {
   const fen: Fen = node.position.fen;
 
@@ -44,12 +45,12 @@ const getAllMoveLists = (
   node: Node,
   currentLine: Position[],
   isPlayerMove: boolean,
-  positionIndex: Map<Fen, Node[]>,
+  positionIndex: Map<Fen, Node[]>
 ): Position[][] => {
   if (node.children.length === 0) {
     // If there are transpositions with children, iterate through them
     const transpositions = getTranspositions(node, positionIndex).filter(
-      (t) => t.children.length > 0,
+      (t) => t.children.length > 0
     );
 
     if (transpositions.length > 0) {
@@ -58,7 +59,7 @@ const getAllMoveLists = (
           transposition,
           currentLine,
           !isPlayerMove,
-          positionIndex,
+          positionIndex
         );
       });
     } else {
@@ -79,56 +80,44 @@ const getAllMoveLists = (
   }
 };
 
-export const getAllLines = (chapter: Chapter): Line[] => {
-  var node: Node = chapter.positionTree;
+export const getAllLines = (tree: PositionTree, orientation: Color): Line[] => {
+  var node: Node = tree;
 
-  const playerHasFirstMove = chapter.orientation === "w";
+  const playerHasFirstMove = orientation === "w";
 
   const moveLists: Position[][] = getAllMoveLists(
     node,
     [node.position],
     playerHasFirstMove,
-    createPositionIndex(node),
+    createPositionIndex(node)
   );
 
-  return moveLists.map((moveList) => ({
-    chapter,
-    positions: moveList,
-  }));
+  return moveLists;
 };
 
-export const getLinesForPlayer = (chapter: Chapter): Line[] => {
+export const getLinesForPlayer = (
+  tree: PositionTree,
+  orientation: Color
+): Line[] => {
   // Get all non-empty lines
-  const allLines = getAllLines(chapter);
+  const allLines = getAllLines(tree, orientation);
 
   const filteredLines = allLines.filter((line) => {
-    return line.positions.length > 0;
+    return line.length > 0;
   });
 
   // TODO: Filter lines that have multiple player moves
   // Ensure all lines end with the player's move (dropping the last move if needed)
   const lines = filteredLines.map((line) => {
-    const lastPosition = line.positions[line.positions.length - 1];
+    const lastPosition = line[line.length - 1];
     const lastMove = lastPosition.lastMove;
 
-    if (lastMove && lastMove.player === chapter.orientation) {
+    if (lastMove && lastMove.player === orientation) {
       return line;
     } else {
-      return {
-        ...line,
-        positions: line.positions.slice(0, line.positions.length - 1),
-      };
+      return line.slice(0, line.length - 1);
     }
   });
 
   return lines;
 };
-
-//    const positionIndex = createPositionIndex(node);
-
-// const lines: Line[] = [];
-
-//const line: Line = {
-//  chapter,
-//  positions: [node.position],
-//};

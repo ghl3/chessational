@@ -1,10 +1,7 @@
-import { Chapter } from "./Chapter";
+import { Color } from "chess.js";
 import { Position } from "./Position";
 
-export interface Line {
-  chapter: Chapter;
-  positions: Position[];
-}
+export type Line = Position[];
 
 export type LineStatus =
   | "SELECT_MOVE_FOR_WHITE"
@@ -12,7 +9,7 @@ export type LineStatus =
   | "LINE_COMPLETE";
 
 export const getLineStatus = (line: Line, index: number): LineStatus => {
-  if (index === line.positions.length - 1) {
+  if (index === line.length - 1) {
     return "LINE_COMPLETE";
   } else if (index % 2 === 0) {
     return "SELECT_MOVE_FOR_WHITE";
@@ -22,7 +19,7 @@ export const getLineStatus = (line: Line, index: number): LineStatus => {
 };
 
 export const lineToSan = (line: Line): string[] => {
-  return line.positions
+  return line
     .filter((position) => position.lastMove != null)
     .map((position) => position.lastMove?.san ?? "");
 };

@@ -7,14 +7,16 @@ import {
   Move as PgnMove,
   Comment as PgnComment,
 } from "pgn-parser";
-import { Chapter, PositionNode } from "../chess/Chapter";
+import { Chapter } from "../chess/Chapter";
 import { getGameResult } from "../chess/Position";
 import { Position } from "@/chess/Position";
 import { moveResultToMove } from "@/chess/Move";
 import { Chess, Move as MoveResult } from "chess.js";
+import { PositionNode, PositionTree } from "@/chess/PositionTree";
+import { getLinesForPlayer } from "./LineExtractor";
 
 const convertHeaders = (
-  headers: PgnHeader[] | null,
+  headers: PgnHeader[] | null
 ): { [key: string]: string } => {
   if (headers) {
     const res: { [key: string]: string } = {};
@@ -70,7 +72,7 @@ const getOrientation = (headers: { [key: string]: string }): Color | null => {
 
 const createChildPositionNodes = (
   moves: PgnMove[],
-  chess: Chess,
+  chess: Chess
 ): PositionNode[] => {
   // Creates and returns a list of Position Nodes
   // consisting of the next move in the main line
@@ -134,13 +136,30 @@ const createChildPositionNodes = (
   return nodes;
 };
 
+const buildPositionTree = (game: ParsedPGN): PositionTree => {
+  const chess = new Chess();
+  const rootPosition: PositionTree = {
+    position: {
+      fen: chess.fen(),
+      lastMove: null,
+      comments: [],
+      isGameOver: false,
+    },
+    children: createChildPositionNodes(game.moves, chess),
+  };
+
+  return rootPosition;
+};
+
 export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   const headers = convertHeaders(game.headers);
   const [study, chapter] = getStudyAndChapter(headers) ?? ["", ""];
   const orientation = getOrientation(headers) ?? WHITE;
+  const comments: string[] = getComments(game.comments);
+  const positionTree = buildPositionTree(game);
+  const lines = getLinesForPlayer(positionTree, orientation);
 
-  const topLevelComments: string[] = getComments(game.comments);
-
+  /*
   const chess = new Chess();
   const rootPosition: PositionNode = {
     position: {
@@ -151,13 +170,16 @@ export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
     },
     children: createChildPositionNodes(game.moves, chess),
   };
+  */
 
   return {
     name: chapter,
     studyName: study,
     orientation: orientation,
     headers: headers,
-    positionTree: rootPosition,
+    comments: comments,
+    positionTree: positionTree,
+    lines: lines,
   };
 };
 

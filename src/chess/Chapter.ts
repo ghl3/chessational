@@ -1,15 +1,13 @@
 import { Color } from "chess.js";
-import { Position } from "./Position";
-
-export interface PositionNode {
-  position: Position;
-  children: PositionNode[];
-}
+import { Line } from "./Line";
+import { PositionTree } from "./PositionTree";
 
 export type Chapter = {
   name: string;
   studyName: string;
   orientation: Color;
   headers: { [key: string]: string };
-  positionTree: PositionNode;
+  comments: string[];
+  positionTree: PositionTree;
+  lines: Line[];
 };
