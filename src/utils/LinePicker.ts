@@ -14,7 +14,7 @@ export type MoveSelectionStrategy =
 
 const selectChapter = (
   chapters: Chapter[],
-  strategy: MoveSelectionStrategy
+  strategy: MoveSelectionStrategy,
 ): Chapter => {
   if (chapters.length === 0) {
     throw new Error("No chapters to select from");
@@ -62,7 +62,7 @@ const selectLine = (lines: Line[], strategy: MoveSelectionStrategy): Line => {
 
 export const pickLine = (
   chapters: Chapter[],
-  strategy: MoveSelectionStrategy
+  strategy: MoveSelectionStrategy,
 ): ChapterAndLine => {
   // First, pick a chapter at random
   const chapter = selectChapter(chapters, strategy);

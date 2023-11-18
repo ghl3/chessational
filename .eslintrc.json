@@ -1,10 +1,7 @@
 {
   "extends": "next/core-web-vitals",
 
-  "plugins": [
-    // ...
-    "react-hooks" // for activate eslint checking react hooks
-  ],
+  "plugins": ["react-hooks"],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
