@@ -1,6 +1,4 @@
 import { Color } from "chess.js";
-import { Line } from "./Line";
-import { PositionTree } from "./PositionTree";
 
 export type Chapter = {
   name: string;
@@ -8,6 +6,6 @@ export type Chapter = {
   orientation: Color;
   headers: { [key: string]: string };
   comments: string[];
-  positionTree: PositionTree;
-  lines: Line[];
+  //positionTree: PositionTree;
+  //lines: Line[];
 };

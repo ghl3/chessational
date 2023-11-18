@@ -31,34 +31,40 @@ const ChessboardButtons: React.FC<ChessboardButtonProps> = ({
   handleRightClick,
   handleJumpToEnd,
   handleFlipBoard,
-}) => (
-  <div className="flex space-x-4">
-    <ChessboardButton
-      label="&laquo;"
-      action={handleJumpToStart}
-      isDisabled={isDisabled}
-    />
-    <ChessboardButton
-      label="&larr;"
-      action={handleLeftClick}
-      isDisabled={isDisabled}
-    />
-    <ChessboardButton
-      label="&rarr;"
-      action={handleRightClick}
-      isDisabled={isDisabled}
-    />
-    <ChessboardButton
-      label="&raquo;"
-      action={handleJumpToEnd}
-      isDisabled={isDisabled}
-    />
-    <ChessboardButton
-      label="Flip Board"
-      action={handleFlipBoard}
-      isDisabled={isDisabled}
-    />
-  </div>
-);
+}) => {
+  if (isDisabled) {
+    return null;
+  }
+
+  return (
+    <div className="flex space-x-4">
+      <ChessboardButton
+        label="&laquo;"
+        action={handleJumpToStart}
+        isDisabled={isDisabled}
+      />
+      <ChessboardButton
+        label="&larr;"
+        action={handleLeftClick}
+        isDisabled={isDisabled}
+      />
+      <ChessboardButton
+        label="&rarr;"
+        action={handleRightClick}
+        isDisabled={isDisabled}
+      />
+      <ChessboardButton
+        label="&raquo;"
+        action={handleJumpToEnd}
+        isDisabled={isDisabled}
+      />
+      <ChessboardButton
+        label="Flip Board"
+        action={handleFlipBoard}
+        isDisabled={isDisabled}
+      />
+    </div>
+  );
+};
 
 export default ChessboardButtons;

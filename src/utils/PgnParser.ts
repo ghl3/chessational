@@ -1,8 +1,10 @@
 import { BLACK, Color, WHITE } from "chess.js";
 
+import { Line } from "@/chess/Line";
 import { moveResultToMove } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { PositionNode, PositionTree } from "@/chess/PositionTree";
+import { ChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { Chess, Move as MoveResult } from "chess.js";
 import {
   ParsedPGN,
@@ -14,6 +16,7 @@ import {
 import { Chapter } from "../chess/Chapter";
 import { getGameResult } from "../chess/Position";
 import { getLinesForPlayer } from "./LineExtractor";
+import { ChapterAndLine } from "./LinePicker";
 
 const convertHeaders = (
   headers: PgnHeader[] | null,
@@ -151,39 +154,35 @@ const buildPositionTree = (game: ParsedPGN): PositionTree => {
   return rootPosition;
 };
 
-export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
+export const convertParsedPgnToChapter = (game: ParsedPGN): ChapterAndLines => {
   const headers = convertHeaders(game.headers);
-  const [study, chapter] = getStudyAndChapter(headers) ?? ["", ""];
+  const [studyName, chapterName] = getStudyAndChapter(headers) ?? ["", ""];
   const orientation = getOrientation(headers) ?? WHITE;
   const comments: string[] = getComments(game.comments);
   const positionTree = buildPositionTree(game);
-  const lines = getLinesForPlayer(positionTree, orientation);
 
-  /*
-  const chess = new Chess();
-  const rootPosition: PositionNode = {
-    position: {
-      fen: chess.fen(),
-      lastMove: null,
-      comments: topLevelComments,
-      isGameOver: false,
-    },
-    children: createChildPositionNodes(game.moves, chess),
-  };
-  */
-
-  return {
-    name: chapter,
-    studyName: study,
+  const chapter: Chapter = {
+    name: chapterName,
+    studyName: studyName,
     orientation: orientation,
     headers: headers,
     comments: comments,
-    positionTree: positionTree,
+  };
+
+  const lines = getLinesForPlayer(
+    studyName,
+    chapter,
+    positionTree,
+    orientation,
+  );
+
+  return {
+    chapter: chapter,
     lines: lines,
   };
 };
 
-export const parsePgnStringToChapters = (pgn: string): Chapter[] => {
+export const parsePgnStringToChapters = (pgn: string): ChapterAndLines[] => {
   const parsedGames = parse(pgn);
   return parsedGames.map(convertParsedPgnToChapter);
 };

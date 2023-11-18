@@ -1,8 +1,12 @@
-import { Chapter } from "@/chess/Chapter";
-import { Study } from "@/chess/Study";
+import {
+  ChapterAndLines,
+  StudyChapterAndLines,
+} from "@/chess/StudyChapterAndLines";
 import { parsePgnStringToChapters } from "./PgnParser";
 
-export const fetchStudy = async (studyId: string): Promise<Study> => {
+export const fetchStudy = async (
+  studyId: string,
+): Promise<StudyChapterAndLines> => {
   const endpoint = "/api/getStudy";
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const url = new URL(endpoint, apiUrl).href;
@@ -23,17 +27,19 @@ export const fetchStudy = async (studyId: string): Promise<Study> => {
 
   const { pgnText } = await res.json();
 
-  const chapters: Chapter[] = parsePgnStringToChapters(pgnText);
+  const chapterAndLines: ChapterAndLines[] = parsePgnStringToChapters(pgnText);
 
-  if (chapters.length === 0) {
+  if (chapterAndLines.length === 0) {
     throw new Error("Study has no chapters");
   }
 
-  const studyName = chapters[0].studyName;
+  const studyName = chapterAndLines[0].chapter.studyName;
 
   return {
-    name: studyName,
-    url: studyId,
-    chapters: chapters,
+    study: {
+      name: studyName,
+      url: studyId,
+    },
+    chapters: chapterAndLines,
   };
 };

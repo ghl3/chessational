@@ -1,4 +1,3 @@
-import { Study } from "@/chess/Study";
 import { StudyData } from "@/hooks/UseStudyData";
 import React, { useCallback } from "react";
 import { ChapterSelector } from "./ChapterSelector";
@@ -14,94 +13,53 @@ interface StudyChapterSelectorProps
 export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
   studyData,
 }) => {
-  const {
-    studies,
-    setStudies,
-    selectedStudyName,
-    setSelectedStudyName,
-    selectedChapterNames,
-    setSelectedChapterNames,
-  } = studyData;
+  const { studies, selectedStudyName, selectedChapterNames } = studyData;
 
-  // Set a default study
-  if (studies.length > 0 && selectedStudyName === undefined) {
-    setSelectedStudyName(studies[0].name);
-  }
-
-  const selectedStudy: Study | undefined = studies.find(
-    (study) => study.name === selectedStudyName,
-  );
-
-  const chapterNames: string[] | undefined = selectedStudy?.chapters.map(
-    (chapter) => chapter.name,
-  );
+  const chapterNames = studyData.chapters
+    ? studyData.chapters.map((chapter) => chapter.name)
+    : undefined;
 
   const onStudyChange = useCallback(
     (studyName: string) => {
-      // TODO: Clean this up
-      const selectedStudy: Study | undefined = studies.find(
-        (study) => study.name === studyName,
-      );
-
-      if (selectedStudy === undefined) {
-        throw new Error("Selected study is undefined");
-      }
-
-      setSelectedStudyName(studyName);
-      // Default all the chapters to selected
-      setSelectedChapterNames(
-        selectedStudy.chapters.map((chapter) => chapter.name),
-      );
+      studyData.selectStudy(studyName);
     },
-    [studies, setSelectedChapterNames, setSelectedStudyName],
+    [studyData],
   );
 
   const onStudyDelete = useCallback(
     (studyName: string) => {
-      const newStudies = studies.filter((study) => study.name !== studyName);
-      setStudies(newStudies);
-      if (selectedStudyName === studyName) {
-        setSelectedStudyName(undefined);
-        setSelectedChapterNames([]);
-      }
+      studyData.removeStudy(studyName);
     },
-    [
-      studies,
-      selectedStudyName,
-      setSelectedStudyName,
-      setSelectedChapterNames,
-      setStudies,
-    ],
+    [studyData],
   );
 
   return (
     <div className="flex flex-row space-x-4 items-center">
-      <StudySelector
-        studies={studies}
-        selectedStudy={selectedStudyName}
-        onStudyChange={onStudyChange}
-        onStudyDelete={onStudyDelete}
-      />
+      {studies && studies.length > 0 ? (
+        <StudySelector
+          studies={studies}
+          selectedStudy={selectedStudyName}
+          onStudyChange={onStudyChange}
+          onStudyDelete={onStudyDelete}
+        />
+      ) : null}
 
-      <ChapterSelector
-        chapters={chapterNames || []}
-        selectedChapters={selectedChapterNames}
-        setSelectedChapters={setSelectedChapterNames}
-      />
+      {studies && studies.length > 0 ? (
+        <ChapterSelector
+          chapters={chapterNames || []}
+          selectedChapters={selectedChapterNames || null}
+          selectChapter={studyData.addSelectedChapterName}
+          deselectChapter={studyData.removeSelectedChapterName}
+        />
+      ) : null}
 
       <StudyRefresher
-        selectedStudy={selectedStudy}
-        setStudies={setStudies}
-        setSelectedStudyName={setSelectedStudyName}
-        selectedChapterNames={selectedChapterNames}
-        setSelectedChapterNames={setSelectedChapterNames}
+        selectedStudy={studyData.selectedStudy}
+        removeStudy={studyData.removeStudy}
+        addStudyAndChapters={studyData.addStudyAndChapters}
       />
 
-      <StudyAdder
-        setStudies={setStudies}
-        setSelectedStudyName={setSelectedStudyName}
-        setSelectedChapterNames={setSelectedChapterNames}
-      />
+      <StudyAdder addStudyAndChapters={studyData.addStudyAndChapters} />
     </div>
   );
 };

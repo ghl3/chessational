@@ -1,153 +1,209 @@
+import { db } from "@/app/db";
+import { Chapter } from "@/chess/Chapter";
+import { Line } from "@/chess/Line";
 import { Study } from "@/chess/Study";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-const localStorageGet = (key: string): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem(key);
-  }
-  return null;
-};
-
-const localStorageSet = (key: string, value: string) => {
-  if (typeof window !== "undefined") {
-    return localStorage.setItem(key, value);
-  }
-};
-
-const localStorageRemove = (key: string) => {
-  if (typeof window !== "undefined") {
-    return localStorage.removeItem(key);
-  }
-};
-
-const parseOrDefault = <T>(jsonString: string | null, d: T) => {
-  if (jsonString != null) {
-    try {
-      return JSON.parse(jsonString);
-    } catch (e) {
-      console.log(e);
-      return d;
-    }
-  } else {
-    return d;
-  }
-};
-
-// Takes a react setter and adds a post-action to take
-// on the set value.
-const addPostSetAction = <T>(
-  setter: React.Dispatch<React.SetStateAction<T>>,
-  postSetAction: (items: T) => void,
-): React.Dispatch<React.SetStateAction<T>> => {
-  return (action: React.SetStateAction<T>) => {
-    // An 'action' is either a function that takes a T
-    // or a value of type T.
-    if (typeof action === "function") {
-      setter((previousValue) => {
-        const updatedValue = (action as Function)(previousValue);
-        postSetAction(updatedValue);
-        return updatedValue;
-      });
-    } else {
-      setter(action);
-      postSetAction(action);
-    }
-  };
-};
+import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { useLiveQuery } from "dexie-react-hooks";
+import { useCallback } from "react";
 
 export interface StudyData {
   studies: Study[];
   selectedStudyName?: string;
-  // If null, all chapters are selected
-  selectedChapterNames: string[];
+  selectedStudy?: Study;
+  chapters?: Chapter[];
+  selectedChapterNames?: string[];
+  lines?: Line[];
 
-  setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
-  setSelectedStudyName: React.Dispatch<
-    React.SetStateAction<string | undefined>
-  >;
-  setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
+  addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
+  removeStudy: (studyName: string) => void;
+  selectStudy: (studyName: string) => void;
+  addSelectedChapterName: (chapterName: string) => void;
+  removeSelectedChapterName: (chapterName: string) => void;
 }
 
 export const useStudyData = (): StudyData => {
-  const [studies, setStudies] = useState<Study[]>([]);
-
-  const setAndStoreStudies = useMemo(
-    () =>
-      addPostSetAction(setStudies, (studies: Study[]) => {
-        localStorageSet("studies", JSON.stringify(studies));
-      }),
-    [setStudies],
-  );
-
-  const [selectedStudyName, setSelectedStudyName] = useState<
-    string | undefined
-  >(undefined);
-
-  const setAndStoreSelectedStudyName = useMemo(
-    () =>
-      addPostSetAction(
-        setSelectedStudyName,
-        (selectedStudyName: string | undefined) => {
-          if (selectedStudyName == null) {
-            localStorageRemove("selected-study");
-          } else {
-            localStorageSet(
-              "selected-study",
-              JSON.stringify(selectedStudyName),
-            );
-          }
-        },
-      ),
-    [setSelectedStudyName],
-  );
-
-  const [selectedChapterNames, setSelectedChapterNames] = useState<string[]>(
+  const studies: Study[] = useLiveQuery(
+    async () => {
+      const studies = await db.studies.toArray();
+      return studies || [];
+    },
+    [],
     [],
   );
 
-  const setAndStoreSelectedChapterNames = useMemo(
-    () =>
-      addPostSetAction(
-        setSelectedChapterNames,
-        (selectedChapterNames: string[]) => {
-          localStorageSet(
-            "selected-chapters",
-            JSON.stringify(selectedChapterNames),
-          );
-        },
-      ),
-    [],
-  );
-
-  const isPopulated = useRef(false);
-
-  const populateCachedValues = useCallback(() => {
-    if (!isPopulated.current) {
-      setAndStoreStudies(parseOrDefault(localStorageGet("studies"), []));
-      setAndStoreSelectedStudyName(
-        parseOrDefault(localStorageGet("selected-study"), undefined),
-      );
-      setAndStoreSelectedChapterNames(
-        parseOrDefault(localStorageGet("selected-chapters"), []),
-      );
-      isPopulated.current = true;
+  const selectedStudyName: string | undefined = useLiveQuery(async () => {
+    const selectedStudyNames = await db.selectedStudyName.toArray();
+    if (selectedStudyNames.length === 0) {
+      return undefined;
+    } else {
+      return selectedStudyNames[0].studyName;
     }
-  }, [
-    setAndStoreStudies,
-    setAndStoreSelectedStudyName,
-    setAndStoreSelectedChapterNames,
-  ]);
+  }, []);
 
-  useEffect(() => {
-    populateCachedValues();
-  }, [populateCachedValues]);
+  const selectedStudy: Study | undefined = useLiveQuery(async () => {
+    if (selectedStudyName == undefined) {
+      return undefined;
+    }
+    const study = await db.studies
+      .where("name")
+      .equalsIgnoreCase(selectedStudyName)
+      .first();
+    return study;
+  }, [selectedStudyName]);
+
+  // All chapters from the currently selected study
+  const chapters: Chapter[] | undefined = useLiveQuery(async () => {
+    if (selectedStudyName == null) {
+      return [];
+    }
+    const chatpers = await db.chapters
+      .where("studyName")
+      .equalsIgnoreCase(selectedStudyName)
+      .toArray();
+    return chatpers;
+  }, [selectedStudyName]);
+
+  const selectedChapterNames: string[] | undefined = useLiveQuery(async () => {
+    if (selectedStudyName == null) {
+      return undefined;
+    }
+    const selectedChapterNames = await db.selectedChapterNames
+      .where("studyName")
+      .equalsIgnoreCase(selectedStudyName)
+      .toArray();
+
+    if (selectedChapterNames.length === 0) {
+      return [];
+    } else {
+      return selectedChapterNames.map((selectedChapterName) => {
+        return selectedChapterName.chapterName;
+      });
+    }
+  }, [selectedStudyName]);
+
+  // All lines from the current study and
+  // the selected chapters
+  const lines: Line[] | undefined = useLiveQuery(async () => {
+    if (selectedStudyName == null) {
+      return undefined;
+    }
+
+    if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+      return [];
+    }
+
+    const lines = await db.lines
+      .where("studyName")
+      .equalsIgnoreCase(selectedStudyName)
+      .and((line) => {
+        return selectedChapterNames.includes(line.chapter.name);
+      })
+      .toArray();
+    return lines;
+  }, [selectedStudyName, selectedChapterNames]);
+
+  const selectStudy = useCallback((studyName: string) => {
+    db.selectedStudyName.clear();
+    db.selectedStudyName.add({ studyName });
+  }, []);
+
+  const removeStudy = useCallback(
+    (studyName: string) => {
+      db.studies.where("name").equalsIgnoreCase(studyName).delete();
+      db.chapters.where("studyName").equalsIgnoreCase(studyName).delete();
+      db.lines.where("studyName").equalsIgnoreCase(studyName).delete();
+
+      // If the study we're removing is the selected study,
+      // then we need to pick a new selected study.
+
+      if (selectedStudyName === studyName) {
+        db.selectedStudyName.clear();
+
+        const nextSelectedStudyName = studies
+          .map((study) => study.name)
+          .filter((studyName) => studyName !== studyName)[0];
+
+        db.selectedStudyName.put({ studyName: nextSelectedStudyName });
+      }
+    },
+    [selectedStudyName, studies],
+  );
+
+  const addSelectedChapterName = useCallback(
+    (chapterName: string) => {
+      if (selectedStudyName == null) {
+        throw new Error("No study selected");
+      }
+
+      if (selectedChapterNames == null) {
+        throw new Error("No chapters selected");
+      }
+
+      if (selectedChapterNames.includes(chapterName)) {
+        return;
+      }
+
+      db.selectedChapterNames.add({
+        studyName: selectedStudyName!,
+        chapterName,
+      });
+    },
+    [selectedStudyName, selectedChapterNames],
+  );
+
+  const removeSelectedChapterName = useCallback(
+    (chapterName: string) => {
+      if (selectedStudyName == null) {
+        throw new Error("No study selected");
+      }
+
+      db.selectedChapterNames
+        .where("studyName")
+        .equalsIgnoreCase(selectedStudyName!)
+        .and((selectedChapterName) => {
+          return selectedChapterName.chapterName === chapterName;
+        })
+        .delete();
+    },
+    [selectedStudyName],
+  );
+
+  const addStudyAndChapters = useCallback(
+    (studyAndChapters: StudyChapterAndLines) => {
+      const { study, chapters } = studyAndChapters;
+      db.studies.add(study);
+      chapters.forEach((chapterAndLines) => {
+        db.chapters.add(chapterAndLines.chapter);
+        for (const line of chapterAndLines.lines) {
+          db.lines.add(line);
+        }
+      });
+
+      // Set a new study as the selected study
+      selectStudy(study.name);
+
+      // Select all chapters by default
+      db.selectedChapterNames.bulkPut(
+        chapters.map((chapter) => {
+          return { studyName: study.name, chapterName: chapter.chapter.name };
+        }),
+      );
+    },
+    [selectStudy],
+  );
 
   return {
     studies,
     selectedStudyName,
+    selectedStudy,
+    chapters,
     selectedChapterNames,
-    setStudies: setAndStoreStudies,
-    setSelectedStudyName: setAndStoreSelectedStudyName,
-    setSelectedChapterNames: setAndStoreSelectedChapterNames,
+    lines,
+
+    addStudyAndChapters,
+    removeStudy,
+    selectStudy,
+    addSelectedChapterName,
+    removeSelectedChapterName,
   };
 };

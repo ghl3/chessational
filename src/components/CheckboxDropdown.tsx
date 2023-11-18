@@ -9,7 +9,9 @@ interface CheckboxDropdownProps {
   text: string;
   options: Option[];
   selectedOptions: string[];
-  setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
+  //setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
+  selectOption: (optionValue: string) => void;
+  deselectOption: (optionValue: string) => void;
   defaultOn?: boolean;
 }
 
@@ -17,7 +19,9 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   text,
   options,
   selectedOptions,
-  setSelectedOptions,
+  selectOption,
+  deselectOption,
+  //setSelectedOptions,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -61,7 +65,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   const toggleDropdown = useCallback(() => {
     setIsOpen((isOpen) => !isOpen);
   }, []);
-
+  /*
   const toggleOption = (optionValue: string) => {
     setSelectedOptions((prevSelectedOptions) =>
       prevSelectedOptions.includes(optionValue)
@@ -69,13 +73,19 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
         : [...prevSelectedOptions, optionValue],
     );
   };
-
+*/
   const selectAll = () => {
-    setSelectedOptions(options.map((option) => option.value));
+    for (const option of options) {
+      selectOption(option.value);
+    }
+    //setSelectedOptions(options.map((option) => option.value));
   };
 
   const clearAll = () => {
-    setSelectedOptions([]);
+    for (const option of options) {
+      deselectOption(option.value);
+    }
+    //setSelectedOptions([]);
   };
 
   return (
@@ -111,7 +121,13 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
                 type="checkbox"
                 id={option.value}
                 checked={selectedOptions.includes(option.value)}
-                onChange={() => toggleOption(option.value)}
+                onChange={() => {
+                  if (selectedOptions.includes(option.value)) {
+                    deselectOption(option.value);
+                  } else {
+                    selectOption(option.value);
+                  }
+                }}
               />
               <label htmlFor={option.value}>{option.label}</label>
             </div>

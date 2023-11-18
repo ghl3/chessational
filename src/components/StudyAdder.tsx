@@ -1,18 +1,12 @@
 "use client";
 
-import { Chapter } from "@/chess/Chapter";
-import { Study } from "@/chess/Study";
-import { parsePgnStringToChapters } from "@/utils/PgnParser";
+import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { fetchStudy } from "@/utils/StudyFetcher";
 import { useCallback, useEffect, useState } from "react";
 import Modal from "react-modal";
 
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
-  setStudies: React.Dispatch<React.SetStateAction<Study[]>>;
-  setSelectedStudyName: React.Dispatch<
-    React.SetStateAction<string | undefined>
-  >;
-  setSelectedChapterNames: React.Dispatch<React.SetStateAction<string[]>>;
+  addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
 const extractStudyName = (url: string) => {
@@ -22,9 +16,7 @@ const extractStudyName = (url: string) => {
 };
 
 export const StudyAdder: React.FC<StudyAdderProps> = ({
-  setStudies,
-  setSelectedStudyName,
-  setSelectedChapterNames,
+  addStudyAndChapters,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +35,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   };
 
   const [studyUrl, setStudyUrl] = useState("");
-
+  /*
   // TODO: Don't re-add the same study
   const addStudy = useCallback(
     (study: Study) => {
@@ -51,20 +43,21 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     },
     [setStudies],
   );
+  */
 
   const fetchStudyData = useCallback(
     async (studyUrl: string) => {
       setIsLoading(true);
       try {
-        const study: Study = await fetchStudy(studyUrl);
+        const study: StudyChapterAndLines = await fetchStudy(studyUrl);
         if (study.chapters.length === 0) {
           throw new Error("Study has no chapters");
         }
 
-        addStudy(study);
-        setSelectedStudyName(study.name);
+        addStudyAndChapters(study);
+        //selectStudy(study.study.name);
         // Default all the chapters to selected
-        setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
+        //setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
         setStudyUrl("");
         setIsLoading(false);
       } catch (error) {
@@ -72,7 +65,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         setIsLoading(false);
       }
     },
-    [addStudy, setSelectedChapterNames, setSelectedStudyName],
+    [addStudyAndChapters],
   );
 
   // Handle when the user is typing a new URL

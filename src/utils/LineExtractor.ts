@@ -1,7 +1,9 @@
+import { Chapter } from "@/chess/Chapter";
 import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { PositionNode as Node, PositionTree } from "@/chess/PositionTree";
+import { Study } from "@/chess/Study";
 import { Color } from "chess.js";
 
 const getTranspositions = (
@@ -79,7 +81,12 @@ const getAllMoveLists = (
   }
 };
 
-export const getAllLines = (tree: PositionTree, orientation: Color): Line[] => {
+export const getAllLines = (
+  studyName: string,
+  chapter: Chapter,
+  tree: PositionTree,
+  orientation: Color,
+): Line[] => {
   var node: Node = tree;
 
   const playerHasFirstMove = orientation === "w";
@@ -91,30 +98,38 @@ export const getAllLines = (tree: PositionTree, orientation: Color): Line[] => {
     createPositionIndex(node),
   );
 
-  return moveLists;
+  const lines = [];
+
+  for (let moveList of moveLists) {
+    lines.push({ studyName, chapter, moves: moveList });
+  }
+
+  return lines;
 };
 
 export const getLinesForPlayer = (
+  studyName: string,
+  chapter: Chapter,
   tree: PositionTree,
   orientation: Color,
 ): Line[] => {
   // Get all non-empty lines
-  const allLines = getAllLines(tree, orientation);
+  const allLines = getAllLines(studyName, chapter, tree, orientation);
 
   const filteredLines = allLines.filter((line) => {
-    return line.length > 0;
+    return line.moves.length > 0;
   });
 
   // TODO: Filter lines that have multiple player moves
   // Ensure all lines end with the player's move (dropping the last move if needed)
   const lines = filteredLines.map((line) => {
-    const lastPosition = line[line.length - 1];
+    const lastPosition = line.moves[line.moves.length - 1];
     const lastMove = lastPosition.lastMove;
 
     if (lastMove && lastMove.player === orientation) {
       return line;
     } else {
-      return line.slice(0, line.length - 1);
+      return { ...line, moves: line.moves.slice(0, line.moves.length - 1) };
     }
   });
 
