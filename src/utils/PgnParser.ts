@@ -16,7 +16,7 @@ import { PositionNode, PositionTree } from "@/chess/PositionTree";
 import { getLinesForPlayer } from "./LineExtractor";
 
 const convertHeaders = (
-  headers: PgnHeader[] | null
+  headers: PgnHeader[] | null,
 ): { [key: string]: string } => {
   if (headers) {
     const res: { [key: string]: string } = {};
@@ -72,7 +72,7 @@ const getOrientation = (headers: { [key: string]: string }): Color | null => {
 
 const createChildPositionNodes = (
   moves: PgnMove[],
-  chess: Chess
+  chess: Chess,
 ): PositionNode[] => {
   // Creates and returns a list of Position Nodes
   // consisting of the next move in the main line
