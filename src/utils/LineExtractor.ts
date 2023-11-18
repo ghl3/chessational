@@ -83,18 +83,20 @@ export const getAllLines = (chapter: Chapter): Line[] => {
   }));
 };
 
-export const getLinesForPlayer = (chapter: Chapter, player: Color): Line[] => {
+export const getLinesForPlayer = (chapter: Chapter): Line[] => {
   // Get all non-empty lines
-  const allLines = getAllLines(chapter).filter((line) => {
-    line.positions.length > 0;
+  const allLines = getAllLines(chapter);
+
+  const filteredLines = allLines.filter((line) => {
+    return line.positions.length > 0;
   });
 
   // Ensure all lines end with the player's move (dropping the last move if needed)
-  const lines = allLines.map((line) => {
+  const lines = filteredLines.map((line) => {
     const lastPosition = line.positions[line.positions.length - 1];
     const lastMove = lastPosition.lastMove;
 
-    if (lastMove && lastMove.player === player) {
+    if (lastMove && lastMove.player === chapter.orientation) {
       return line;
     } else {
       return {

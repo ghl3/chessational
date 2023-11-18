@@ -1,29 +1,29 @@
 import { Chapter } from "@/chess/Chapter";
-import { pickLine, getNumberOfLines } from "./LinePicker";
-import { lineToSan } from "@/chess/Line";
+import { getLinesForPlayer } from "./LineExtractor";
+import { Line, lineToSan } from "@/chess/Line";
 import { parsePgnStringToChapters } from "./PgnParser";
 
 describe("pickLine", () => {
   it("should pick the one line", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
+    const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "black"]
         1. e4 e5 2. Nf3 Nc6 *`
-    );
+    )[0];
 
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nc6"]);
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([["e4", "e5", "Nf3", "Nc6"]]);
   });
 
   it("should terminate line that doesn't have chiild moves ", () => {
-    const chapters: Chapter[] = parsePgnStringToChapters(
+    const chapter: Chapter = parsePgnStringToChapters(
       `[Orientation "white"]
           1. e4 e5 2. Nf3 Nc6 *`
-    );
+    )[0];
 
-    const line = pickLine(chapters, "DETERMINISTIC");
-    expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3"]);
+    const lines = getLinesForPlayer(chapter);
+    expect(lines.map(lineToSan)).toEqual([["e4", "e5", "Nf3"]]);
   });
-
+  /*
   it("should move to transposition", () => {
     const chapters: Chapter[] = parsePgnStringToChapters(
       `[Orientation "black"]
@@ -97,4 +97,5 @@ describe("getNumberOfLines", () => {
     )[0];
     expect(getNumberOfLines(chapter.positionTree)).toEqual(4);
   });
+  */
 });

@@ -20,3 +20,9 @@ export const getLineStatus = (line: Line, index: number): LineStatus => {
     return "SELECT_MOVE_FOR_BLACK";
   }
 };
+
+export const lineToSan = (line: Line): string[] => {
+  return line.positions
+    .filter((position) => position.lastMove != null)
+    .map((position) => position.lastMove?.san ?? "");
+};
