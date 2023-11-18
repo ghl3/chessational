@@ -1,29 +1,29 @@
 "use client";
 
+import { Chapter } from "@/chess/Chapter";
+import { getLineStatus } from "@/chess/Line";
+import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
+import { Position } from "@/chess/Position";
+import { Study } from "@/chess/Study";
+import Chessboard, { Arrow } from "@/components/Chessboard";
+import { Controls } from "@/components/Controls";
+import { DetailsPanel } from "@/components/DetailsPanel";
+import { LineMoveResult } from "@/components/MoveDescription";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
+import { Engine } from "@/engine/Engine";
+import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
+import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
+import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
+import { useStudyData } from "@/hooks/UseStudyData";
+import { ChapterAndLine, pickLine } from "@/utils/LinePicker";
+import { PieceSymbol } from "chess.js";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StudyChapterSelector } from "@/components/StudyChapterSelector";
-import { Controls } from "@/components/Controls";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { useStudyData } from "@/hooks/UseStudyData";
-import { Study } from "@/chess/Study";
-import { Chapter } from "@/chess/Chapter";
-import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
-import { Engine } from "@/engine/Engine";
-import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { getLineStatus } from "@/chess/Line";
-import { LineMoveResult } from "@/components/MoveDescription";
-import { DetailsPanel } from "@/components/DetailsPanel";
-import Chessboard, { Arrow } from "@/components/Chessboard";
-import { ChapterAndLine, pickLine } from "@/utils/LinePicker";
-import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { Position } from "@/chess/Position";
-import { PieceSymbol } from "chess.js";
-import { useChessboardSize } from "@/hooks/UseChessboardSize";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -48,12 +48,12 @@ const Home: React.FC = () => {
   const [solution, setSolution] = useState<Move | null>(null);
 
   const selectedStudy: Study | undefined = studyData.studies.find(
-    (study) => study.name == studyData.selectedStudyName,
+    (study) => study.name == studyData.selectedStudyName
   );
 
   const selectedChapters: Chapter[] | undefined =
     selectedStudy?.chapters.filter((chapter) =>
-      studyData.selectedChapterNames.includes(chapter.name),
+      studyData.selectedChapterNames.includes(chapter.name)
     );
 
   const chessboardSize = useChessboardSize();
@@ -148,7 +148,7 @@ const Home: React.FC = () => {
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [chessboardState],
+    [chessboardState]
   );
 
   const onPieceDrop = useCallback(
@@ -163,14 +163,14 @@ const Home: React.FC = () => {
         sourceSquare,
         targetSquare,
         originalPiece,
-        convertToPieceSymbol(piece),
+        convertToPieceSymbol(piece)
       );
 
       const [move, newPosition]: [Move | null, Position | null] =
         chessboardState.createMoveOrNull(
           sourceSquare,
           targetSquare,
-          promoteToPiece,
+          promoteToPiece
         ) || [null, null];
 
       if (move == null || newPosition == null) {
@@ -237,7 +237,7 @@ const Home: React.FC = () => {
       mode,
       playOpponentNextMoveIfLineContinues,
       setLineMoveResult,
-    ],
+    ]
   );
 
   const enterExploreMode = () => {

@@ -1,22 +1,22 @@
-import { Color, WHITE, BLACK } from "chess.js";
+import { BLACK, Color, WHITE } from "chess.js";
 
+import { moveResultToMove } from "@/chess/Move";
+import { Position } from "@/chess/Position";
+import { PositionNode, PositionTree } from "@/chess/PositionTree";
+import { Chess, Move as MoveResult } from "chess.js";
 import {
-  parse,
   ParsedPGN,
+  Comment as PgnComment,
   Header as PgnHeader,
   Move as PgnMove,
-  Comment as PgnComment,
+  parse,
 } from "pgn-parser";
 import { Chapter } from "../chess/Chapter";
 import { getGameResult } from "../chess/Position";
-import { Position } from "@/chess/Position";
-import { moveResultToMove } from "@/chess/Move";
-import { Chess, Move as MoveResult } from "chess.js";
-import { PositionNode, PositionTree } from "@/chess/PositionTree";
 import { getLinesForPlayer } from "./LineExtractor";
 
 const convertHeaders = (
-  headers: PgnHeader[] | null,
+  headers: PgnHeader[] | null
 ): { [key: string]: string } => {
   if (headers) {
     const res: { [key: string]: string } = {};
@@ -72,7 +72,7 @@ const getOrientation = (headers: { [key: string]: string }): Color | null => {
 
 const createChildPositionNodes = (
   moves: PgnMove[],
-  chess: Chess,
+  chess: Chess
 ): PositionNode[] => {
   // Creates and returns a list of Position Nodes
   // consisting of the next move in the main line
