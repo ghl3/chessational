@@ -1,7 +1,9 @@
+"use client";
+
 import { Chapter } from "@/chess/Chapter";
 import { Study } from "@/chess/Study";
 import { parsePgnStringToChapters } from "@/utils/PgnParser";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Modal from "react-modal";
 
 const getStudy = async (studyId: string): Promise<Study> => {
@@ -61,6 +63,11 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      Modal.setAppElement("#root");
+    }
+  }, []);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -146,7 +153,6 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         isOpen={isModalOpen}
         onRequestClose={closeModal}
         contentLabel="Add Study Modal"
-        appElement={document.getElementById("root") as HTMLElement}
         className="modal"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
