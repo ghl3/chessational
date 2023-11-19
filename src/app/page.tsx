@@ -261,6 +261,14 @@ const Home: React.FC = () => {
     setSolution(null);
   }, [line, lineIndex, mode, chessboardState]);
 
+  const toggleExploreMode = useCallback(() => {
+    if (mode == "EXPLORE") {
+      enterLineMode();
+    } else {
+      enterExploreMode();
+    }
+  }, [mode, enterLineMode, enterExploreMode]);
+
   const toggleShowSolution = useCallback(() => {
     if (line == null || lineIndex == -1) {
       throw new Error("line is null");
@@ -340,16 +348,14 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <Controls
-            mode={mode}
-            lineStatus={lineStatus}
-            onNewLine={onNewLine}
-            toggleShowSolution={toggleShowSolution}
-            enterExploreMode={enterExploreMode}
-            enterLineMode={enterLineMode}
-          />
-        </div>
+        <Controls
+          mode={mode}
+          lineStatus={lineStatus}
+          onNewLine={onNewLine}
+          toggleShowSolution={toggleShowSolution}
+          enterExploreMode={enterExploreMode}
+          enterLineMode={enterLineMode}
+        />
       </main>
     </>
   );
