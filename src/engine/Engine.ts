@@ -1,10 +1,9 @@
-import { Evaluation } from "./Evaluation";
-import { MoveAndEvaluation, EvaluatedPosition } from "./EvaluatedPosition";
-import { EventParser, InfoMessage } from "./Parser";
-import { Chess } from "chess.js";
+import { Chess, Color } from "chess.js";
 import { Fen, FenUtil } from "../chess/Fen";
 import { makeComparator } from "./Comparator";
-import { Color } from "chess.js";
+import { EvaluatedPosition, MoveAndEvaluation } from "./EvaluatedPosition";
+import { Evaluation } from "./Evaluation";
+import { EventParser, InfoMessage } from "./Parser";
 
 interface WebWorker {
   onmessage: ((ev: MessageEvent<any>) => any) | null;
@@ -61,6 +60,8 @@ export class Engine {
     // Resolve: What do to with the answer
     // Reject: What to do when we can't get an answer
     return new Promise((resolve, reject) => {
+      this._log("Engine -- Queueing eval of: " + fen);
+
       if (this.positions.length === 0) {
         // If the engine isn't running, we send right away
         this.positions.push(fen);
@@ -80,8 +81,12 @@ export class Engine {
       return;
     } else {
       // Only pick the first element so no future evals are done.
-      this.positions = this.positions.slice(0);
-      this.resolvers = this.resolvers.slice(0);
+      this._log(
+        "Engine -- Clearing future evals.  Currently running: " +
+          this.positions[0],
+      );
+      this.positions = this.positions.slice(0, 1);
+      this.resolvers = this.resolvers.slice(0, 1);
     }
 
     // Then, try to stop the current eval right away
@@ -168,29 +173,7 @@ export class Engine {
 
       // Get the resolved position
       const fen: Fen = this.positions.shift() as string;
-
-      // 'w' for white, 'b' for black
-      const color = FenUtil.getTurn(fen);
-
-      // Get the resolver for the corresponding promise
       const resolver = this.resolvers.shift() as PositionResolver;
-
-      if (parsed.type === "BESTMOVE") {
-        this._log(
-          "Engine -- Got Best Move: " +
-            parsed.from +
-            "->" +
-            parsed.to +
-            " for " +
-            fen,
-        );
-      }
-      if (parsed.type === "ISMATE") {
-        this._log("Engine -- Checkmate found at: " + fen);
-      }
-      if (parsed.type === "NOMOVE") {
-        this._log("Engine -- Game is over at: " + fen);
-      }
 
       // If there are more positions to evaluate, we kick off the evaluation of the
       // next position.
@@ -200,6 +183,25 @@ export class Engine {
         this._sendEvalMessage(nextFen);
       }
 
+      if (parsed.type === "BESTMOVE") {
+        this._log(
+          "Engine -- Got Best Move for " +
+            fen +
+            ": " +
+            parsed.from +
+            "->" +
+            parsed.to,
+        );
+      }
+      if (parsed.type === "ISMATE") {
+        this._log("Engine -- Checkmate found at: " + fen);
+      }
+      if (parsed.type === "NOMOVE") {
+        this._log("Engine -- Game is over at: " + fen);
+      }
+
+      // 'w' for white, 'b' for black
+      const color = FenUtil.getTurn(fen);
       const positionEvaluation = this._createPositionEvaluation(fen, color);
 
       // Reset movesAndEvals and resolve the result
