@@ -1,9 +1,9 @@
-import React, { useCallback } from "react";
-import { StudyData } from "@/hooks/UseStudyData";
-import { StudyAdder } from "./StudyAdder";
-import { ChapterSelector } from "./ChapterSelector";
-import { StudySelector } from "./StudySelector";
 import { Study } from "@/chess/Study";
+import { StudyData } from "@/hooks/UseStudyData";
+import React, { useCallback } from "react";
+import { ChapterSelector } from "./ChapterSelector";
+import { StudyAdder } from "./StudyAdder";
+import { StudySelector } from "./StudySelector";
 
 interface StudyChapterSelectorProps
   extends React.HTMLAttributes<HTMLDivElement> {
@@ -74,13 +74,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
   );
 
   return (
-    <div className="flex flex-col space-y-4">
-      <StudyAdder
-        setStudies={setStudies}
-        setSelectedStudyName={setSelectedStudyName}
-        setSelectedChapterNames={setSelectedChapterNames}
-      />
-
+    <div className="flex flex-row space-x-4 items-center">
       <StudySelector
         studies={studies}
         selectedStudy={selectedStudyName}
@@ -92,6 +86,12 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         chapters={chapterNames || []}
         selectedChapters={selectedChapterNames}
         setSelectedChapters={setSelectedChapterNames}
+      />
+
+      <StudyAdder
+        setStudies={setStudies}
+        setSelectedStudyName={setSelectedStudyName}
+        setSelectedChapterNames={setSelectedChapterNames}
       />
     </div>
   );

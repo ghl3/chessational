@@ -314,11 +314,9 @@ const Home: React.FC = () => {
           <h1 className="text-4xl">Chessational: Opening Review</h1>
         </div>
 
-        <div className="mb-6">
+        <div className="flex flex-col items-center items-start mb-6 max-w-screen-xl space-y-2">
           <StudyChapterSelector studyData={studyData} />
-        </div>
 
-        <div className="flex justify-center items-start mb-6 w-full max-w-screen-xl">
           <div className="flex flex-row justify-center items-start mb-6 w-screen">
             <div ref={chessboardRef}>
               <Chessboard

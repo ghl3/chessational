@@ -136,7 +136,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   return (
     <div className="flex space-x-4">
       <button
-        className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white"
+        className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
         onClick={openModal}
       >
         Add New Study
@@ -162,7 +162,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
                 onClick={closeModal}
                 className="text-white text-2xl focus:outline-none"
               >
-                ×
+                &#xd7;
               </button>
             </div>
             <input

@@ -82,7 +82,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     <div className="relative">
       <div
         ref={buttonRef}
-        className="border rounded p-2 cursor-pointer flex justify-between items-center"
+        className="border rounded p-2 cursor-pointer flex justify-between items-center whitespace-nowrap"
         onClick={toggleDropdown}
       >
         <span>{text}</span>
@@ -103,10 +103,10 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
         <div
           ref={dropdownRef}
           style={{ minWidth: `${buttonWidth}px` }}
-          className="absolute z-10 border border-gray-400 rounded p-2 bg-black"
+          className="absolute z-10 border border-gray-400 rounded p-2 bg-black w-auto"
         >
           {options.map((option) => (
-            <div key={option.value}>
+            <div key={option.value} className="whitespace-nowrap">
               <input
                 type="checkbox"
                 id={option.value}
