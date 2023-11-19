@@ -240,11 +240,11 @@ const Home: React.FC = () => {
     ],
   );
 
-  const enterExploreMode = () => {
+  const enterExploreMode = useCallback(() => {
     setMode("EXPLORE");
     setLineMoveResult(null);
     setSolution(null);
-  };
+  }, [setLineMoveResult]);
 
   const enterLineMode = useCallback(() => {
     if (mode == "EXPLORE") {
