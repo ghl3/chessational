@@ -1,14 +1,14 @@
-import { PositionEvaluation } from "@/components/PositionEvaluation";
+import { Chapter } from "@/chess/Chapter";
+import { LineStatus } from "@/chess/Line";
+import { Position } from "@/chess/Position";
 import { Database } from "@/components/Database";
+import { EngineEvaluation } from "@/components/EngineEvaluation";
 import { LineMoveResult, MoveDescription } from "@/components/MoveDescription";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { LineStatus } from "@/chess/Line";
+import { useCallback, useState } from "react";
+import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
 import { ControlButton } from "./ControlButton";
-import { Position } from "@/chess/Position";
-import { useCallback, useState } from "react";
-import { Chapter } from "@/chess/Chapter";
-import ChapterInfo from "./ChapterInfo";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
@@ -92,7 +92,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           result={moveResult || undefined}
         />
 
-        <PositionEvaluation
+        <EngineEvaluation
           showEngine={showEngine}
           positionEvaluation={positionEvaluation || undefined}
         />

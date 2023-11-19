@@ -40,7 +40,7 @@ export const Controls: React.FC<ControlProps> = ({
 
       <ControlButton
         onClick={mode === "LINE" ? enterExploreMode : enterLineMode}
-        label={mode === "LINE" ? "Enter Explore Mode" : "Enter Review Mode"}
+        label={mode === "LINE" ? "Enter Explore Mode" : "Return to Line"}
         size={"large"}
       />
     </div>
