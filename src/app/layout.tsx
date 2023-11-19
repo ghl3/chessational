@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+// For details on the layout of this app, see:
+// https://nextjs.org/docs/app/building-your-application/routing
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {

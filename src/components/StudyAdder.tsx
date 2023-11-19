@@ -60,6 +60,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   setSelectedChapterNames,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -81,6 +82,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
 
   const fetchStudyData = useCallback(
     async (studyUrl: string) => {
+      setIsLoading(true);
       try {
         const study: Study = await getStudy(studyUrl);
         if (study.chapters.length === 0) {
@@ -92,8 +94,10 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         // Default all the chapters to selected
         setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
         setStudyUrl("");
+        setIsLoading(false);
       } catch (error) {
         console.error("Failed to get study:", error);
+        setIsLoading(false);
       }
     },
     [addStudy, setSelectedChapterNames, setSelectedStudyName],
@@ -111,7 +115,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        fetchStudyData(studyUrl);
+        fetchStudyData(studyUrl).then(closeModal);
       }
     },
     [studyUrl, fetchStudyData],
@@ -126,7 +130,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     if (studyName === null) {
       throw new Error("Please enter a valid Lichess study URL");
     }
-    fetchStudyData(studyName);
+    fetchStudyData(studyName).then(closeModal);
   }, [studyUrl, fetchStudyData]);
 
   return (
@@ -137,6 +141,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
       >
         Add New Study
       </button>
+
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
@@ -145,41 +150,44 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         className="modal"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
-        <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
-          {" "}
-          {/* Opaque background for modal content */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg text-white">Add New Study</h2>
+        {isLoading ? (
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full flex items-center justify-center">
+            <span className="text-white">Loading...</span>
+          </div>
+        ) : (
+          <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg text-white">Add New Study</h2>
+              <button
+                onClick={closeModal}
+                className="text-white text-2xl focus:outline-none"
+              >
+                ×
+              </button>
+            </div>
+            <input
+              className="w-full p-2 mb-4 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+              type="text"
+              placeholder="Enter Lichess Study URL"
+              value={studyUrl}
+              onChange={handleStudyUrlChange}
+              onKeyDown={handleKeyDown}
+            />
             <button
-              onClick={closeModal}
-              className="text-white text-2xl focus:outline-none"
+              className={`w-full p-2 text-white rounded ${
+                studyUrl
+                  ? "bg-blue-500 hover:bg-blue-700"
+                  : "bg-gray-500 cursor-not-allowed"
+              }`}
+              onClick={() => {
+                onStudySubmit();
+              }}
+              disabled={!studyUrl || studyUrl === ""}
             >
-              ×
+              Add Study
             </button>
           </div>
-          <input
-            className="w-full p-2 mb-4 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
-            type="text"
-            placeholder="Enter Lichess Study URL"
-            value={studyUrl}
-            onChange={handleStudyUrlChange}
-            onKeyDown={handleKeyDown}
-          />
-          <button
-            className={`w-full p-2 text-white rounded ${
-              studyUrl
-                ? "bg-blue-500 hover:bg-blue-700"
-                : "bg-gray-500 cursor-not-allowed"
-            }`}
-            onClick={() => {
-              onStudySubmit();
-              closeModal();
-            }}
-            disabled={!studyUrl || studyUrl === ""}
-          >
-            Add Study
-          </button>
-        </div>
+        )}
       </Modal>
     </div>
   );
