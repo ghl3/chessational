@@ -61,7 +61,16 @@ const Home: React.FC = () => {
 
   const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
 
-  // Set up the engine
+  // Set and maintain the size of the board
+  const chessboardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    if (chessboardRef.current) {
+      setHeight(chessboardRef.current.clientHeight);
+    }
+  }, [chessboardSize]);
+
+  // Set up the engine listener on component load
   const [positionEvaluation, setPositionEvaluation] =
     useState<EvaluatedPosition | null>(null);
   useEffect(() => {
@@ -77,23 +86,18 @@ const Home: React.FC = () => {
     setRunEngine(showEngine);
   }, []);
 
-  // Set and maintain the size of the board
-  const chessboardRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | null>(null);
-  useEffect(() => {
-    if (chessboardRef.current) {
-      setHeight(chessboardRef.current.clientHeight);
-    }
-  }, [chessboardSize]);
-
   // Run the engine when needed
   const fen = chessboardState.getFen();
   useEffect(() => {
     setPositionEvaluation(null);
 
     if (engine && runEngine && fen) {
+      console.log("Canceling old position, running engine for: " + fen);
       engine.cancel();
-      engine.evaluatePosition(fen).then(setPositionEvaluation);
+      engine.evaluatePosition(fen).then((evaluation) => {
+        console.log("Got Final Position Evaluation for: " + evaluation.fen);
+        setPositionEvaluation(evaluation);
+      });
     }
   }, [fen, runEngine]);
 
