@@ -1,6 +1,7 @@
-import { Chapter, PositionNode } from "@/chess/Chapter";
+import { Chapter } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
+import { PositionNode } from "@/chess/PositionTree";
 import React from "react";
 
 interface ChapterInfoProps {
