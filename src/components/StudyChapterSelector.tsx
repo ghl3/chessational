@@ -3,6 +3,7 @@ import { StudyData } from "@/hooks/UseStudyData";
 import React, { useCallback } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudyAdder } from "./StudyAdder";
+import { StudyRefresher } from "./StudyRefresher";
 import { StudySelector } from "./StudySelector";
 
 interface StudyChapterSelectorProps
@@ -86,6 +87,14 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         chapters={chapterNames || []}
         selectedChapters={selectedChapterNames}
         setSelectedChapters={setSelectedChapterNames}
+      />
+
+      <StudyRefresher
+        selectedStudy={selectedStudy}
+        setStudies={setStudies}
+        setSelectedStudyName={setSelectedStudyName}
+        selectedChapterNames={selectedChapterNames}
+        setSelectedChapterNames={setSelectedChapterNames}
       />
 
       <StudyAdder
