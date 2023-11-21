@@ -1,9 +1,10 @@
+import { Fen } from "@/chess/Fen";
 import {
   EvaluatedPosition,
   MoveAndEvaluation,
 } from "@/engine/EvaluatedPosition";
 import { EvaluationUtil } from "@/engine/Evaluation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Table from "./Table";
 
 const MAX_NUM_MOVES_SHOWN = 3;
@@ -17,71 +18,77 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
   showEngine,
   positionEvaluation,
 }) => {
-  const [moveEvals, setMoveEvals] = useState<Map<string, MoveAndEvaluation>>(
-    new Map(),
-  );
+  const [moveEvals, setMoveEvals] = useState<
+    Map<Fen, Map<string, MoveAndEvaluation>>
+  >(new Map());
+
+  // Ensure moveEvals contains the latest eval for each move
+  useEffect(() => {
+    if (!positionEvaluation) {
+      setMoveEvals(new Map());
+      return;
+    }
+
+    setMoveEvals((prevMoveEvals) => {
+      const fen = positionEvaluation.fen;
+
+      const updatedMoveEvals = new Map(prevMoveEvals);
+
+      // Clear other fens
+      for (const existingFen of updatedMoveEvals.keys()) {
+        if (existingFen !== fen) {
+          updatedMoveEvals.delete(existingFen);
+        }
+      }
+
+      if (!updatedMoveEvals.has(fen)) {
+        updatedMoveEvals.set(fen, new Map());
+      }
+
+      for (const move of positionEvaluation.best_moves) {
+        const san = move.move.san ?? "";
+        updatedMoveEvals.get(fen)?.set(san, move);
+      }
+      return updatedMoveEvals;
+    });
+  }, [positionEvaluation]);
+
+  const bestMoves = useMemo(() => {
+    if (!positionEvaluation) {
+      return [];
+    }
+
+    return Array.from(moveEvals.get(positionEvaluation.fen) || [])
+      .filter((x) => x[1].evaluation?.score != null)
+      .sort((a, b) => {
+        const scoreA = a[1]?.evaluation?.score || 0;
+        const scoreB = b[1]?.evaluation?.score || 0;
+        return positionEvaluation.color === "w"
+          ? scoreB - scoreA
+          : scoreA - scoreB;
+      })
+      .map((x) => x[1])
+      .slice(0, MAX_NUM_MOVES_SHOWN);
+  }, [moveEvals, positionEvaluation]);
 
   if (!showEngine) {
     return null;
   }
 
-  if (positionEvaluation == null) {
+  if (!positionEvaluation || moveEvals.size === 0) {
     return (
       <Table
-        title={"Engine Analysis - Depth: " + 0}
+        title={
+          "Engine Analysis - Depth: " +
+          (positionEvaluation?.best_moves[0]?.evaluation.depth || 0)
+        }
         headers={["Index", "Move", "Evaluation"]}
         rows={[]}
-        loading={positionEvaluation == null}
+        loading={!positionEvaluation}
         minRows={MAX_NUM_MOVES_SHOWN}
       />
     );
   }
-
-  const moves = positionEvaluation.best_moves;
-  const depth = moves[0].evaluation.depth;
-
-  if (!showEngine || moves.length === 0) {
-    return null;
-  }
-
-  // Update the move evaluations
-  const evalUpdates = new Map<string, MoveAndEvaluation>();
-
-  for (const move of moves) {
-    if (move.evaluation.score == null) {
-      continue;
-    }
-    if (!moveEvals.has(move.move.san || "")) {
-      evalUpdates.set(move.move.san || "", move);
-    } else if (
-      move.evaluation.score !=
-      moveEvals.get(move.move.san || "")?.evaluation.score
-    ) {
-      evalUpdates.set(move.move.san || "", move);
-    }
-  }
-
-  if (evalUpdates.size > 0) {
-    setMoveEvals((prevMoveEvals) => {
-      const updatedMoveEvals = new Map(prevMoveEvals);
-      evalUpdates.forEach((value, key) => {
-        updatedMoveEvals.set(key, value);
-      });
-      return updatedMoveEvals;
-    });
-  }
-
-  // Take moveEvals and order by the score (based on the current color)
-  const bestMoves = Array.from(moveEvals)
-    .filter((x) => x[1].evaluation?.score != null)
-    .sort((a, b) => {
-      if (positionEvaluation.color === "w") {
-        return (b[1]?.evaluation?.score || 0) - (a[1]?.evaluation?.score || 0);
-      } else {
-        return (a[1]?.evaluation?.score || 0) - (b[1]?.evaluation?.score || 0);
-      }
-    })
-    .map((x) => x[1]);
 
   const rows = bestMoves.slice(0, MAX_NUM_MOVES_SHOWN).map((move, idx) => {
     return [
@@ -91,17 +98,14 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
     ];
   });
 
-  console.log("Position Evaluation");
-  console.log(positionEvaluation);
-  console.log("moveEvals");
-  console.log(moveEvals);
+  const depth = positionEvaluation.best_moves[0].evaluation.depth;
 
   return (
     <Table
       title={"Engine Analysis - Depth: " + depth}
       headers={["Index", "Move", "Evaluation"]}
       rows={rows}
-      loading={positionEvaluation == null}
+      loading={!positionEvaluation}
       minRows={MAX_NUM_MOVES_SHOWN}
     />
   );
