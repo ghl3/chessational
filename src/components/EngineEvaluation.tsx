@@ -18,6 +18,7 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
   showEngine,
   positionEvaluation,
 }) => {
+  // Create a map of the position to moves to their evaluations
   const [moveEvals, setMoveEvals] = useState<
     Map<Fen, Map<string, MoveAndEvaluation>>
   >(new Map());
@@ -31,20 +32,23 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
 
     setMoveEvals((prevMoveEvals) => {
       const fen = positionEvaluation.fen;
-
       const updatedMoveEvals = new Map(prevMoveEvals);
 
-      // Clear other fens
+      // Clear older fens.  We only store the fens in a map
+      // to make it easy to ensure we're properly associating each
+      // move and score with the right position.
       for (const existingFen of updatedMoveEvals.keys()) {
         if (existingFen !== fen) {
           updatedMoveEvals.delete(existingFen);
         }
       }
 
+      // Create an empty map for the current position if we need to
       if (!updatedMoveEvals.has(fen)) {
         updatedMoveEvals.set(fen, new Map());
       }
 
+      // Update the map with the latest move evals
       for (const move of positionEvaluation.best_moves) {
         const san = move.move.san ?? "";
         updatedMoveEvals.get(fen)?.set(san, move);
@@ -63,6 +67,8 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
       .sort((a, b) => {
         const scoreA = a[1]?.evaluation?.score || 0;
         const scoreB = b[1]?.evaluation?.score || 0;
+        // For white, we sort in descending order (b-a)
+        // and for black, we sort in ascending order (a-b)
         return positionEvaluation.color === "w"
           ? scoreB - scoreA
           : scoreA - scoreB;
