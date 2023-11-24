@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback, useReducer, useEffect } from "react";
-import { Square } from "react-chessboard/dist/chessboard/types";
-import { Position, createPosition } from "@/chess/Position";
-import { Chess, Move as MoveResult, Color, WHITE, PieceSymbol } from "chess.js";
 import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
+import { Position, createPosition } from "@/chess/Position";
+import { Chess, Color, Move as MoveResult, PieceSymbol, WHITE } from "chess.js";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { Square } from "react-chessboard/dist/chessboard/types";
 
 // A Chessboard can be thought of as a series of moves and
 // positions as well as an orientation and board size.
@@ -12,6 +12,7 @@ export interface ChessboardState {
   orientation: Color;
 
   getPosition: () => Position | null;
+  getGameMoves: () => Move[];
   getPositionIndex: () => number;
   getFen: () => Fen | null;
   createMoveOrNull: (
@@ -179,11 +180,30 @@ export const useChessboardState = (): ChessboardState => {
     }
   }, [getPosition]);
 
+  const getGameMoves = useCallback((): Move[] => {
+    if (
+      gameState.positions.length === 0 ||
+      gameState.currentPositionIndex < 0
+    ) {
+      return [];
+    }
+    return gameState.positions
+      .slice(1, gameState.currentPositionIndex + 1)
+      .flatMap((position) => {
+        if (position.lastMove != null) {
+          return [position.lastMove];
+        } else {
+          return [];
+        }
+      });
+  }, [gameState]);
+
   return {
     positions,
     orientation,
 
     getPosition,
+    getGameMoves,
     getPositionIndex: () => currentPositionIndex,
     getFen,
     createMoveOrNull,

@@ -343,6 +343,7 @@ const Home: React.FC = () => {
             <DetailsPanel
               chapter={line?.chapter}
               position={position || undefined}
+              gameMoves={chessboardState.getGameMoves()}
               positionEvaluation={positionEvaluation}
               moveResult={lineMoveResult}
               lineStatus={lineStatus}

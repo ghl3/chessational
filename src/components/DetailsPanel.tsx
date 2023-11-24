@@ -1,5 +1,6 @@
 import { Chapter } from "@/chess/Chapter";
 import { LineStatus } from "@/chess/Line";
+import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { Database } from "@/components/Database";
 import { EngineEvaluation } from "@/components/EngineEvaluation";
@@ -9,10 +10,12 @@ import { useCallback, useState } from "react";
 import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
 import { ControlButton } from "./ControlButton";
+import { PositionDescription } from "./PositionDescription";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
   position?: Position;
+  gameMoves: Move[];
   positionEvaluation: EvaluatedPosition | null;
   moveResult: LineMoveResult | null;
   lineStatus: LineStatus | undefined;
@@ -25,12 +28,11 @@ export interface DetailsPanelProps {
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   chapter,
   position,
+  gameMoves,
   positionEvaluation,
   moveResult,
   lineStatus,
-
   onToggleShowEngine,
-
   height,
 }) => {
   const comments = position?.comments || [];
@@ -86,10 +88,10 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       </div>
 
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
-        <MoveDescription
+        <ChapterInfo
+          chapter={chapter}
+          showChapter={showChapter}
           position={position}
-          status={lineStatus}
-          result={moveResult || undefined}
         />
 
         <EngineEvaluation
@@ -99,13 +101,18 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
         <Database showDatabase={showDatabase} position={position} />
 
-        <ChapterInfo
-          chapter={chapter}
-          showChapter={showChapter}
+        <CommentArea comments={comments} showComments={showComments} />
+
+        <MoveDescription
           position={position}
+          status={lineStatus}
+          result={moveResult || undefined}
         />
 
-        <CommentArea comments={comments} showComments={showComments} />
+        {/* Spacer div will grow to fill space*/}
+        <div className="flex-grow"></div>
+
+        <PositionDescription position={position} gameMoves={gameMoves} />
       </div>
     </div>
   );
