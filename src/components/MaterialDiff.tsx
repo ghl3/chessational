@@ -1,7 +1,7 @@
 import React, { HTMLAttributes } from "react";
 
 import { PieceCount } from "@/chess/Fen";
-import { PieceSymbol, Color, WHITE, BLACK } from "chess.js";
+import { BLACK, Color, PieceSymbol, WHITE } from "chess.js";
 
 const pieceToUnicode = (piece: PieceSymbol, color: Color): string => {
   const pieceMap = {
@@ -57,22 +57,30 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
 
   return (
     <>
-      <div className="piece-diff flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          {Array.from(diffs).map(([piece, num]) => (
-            <span key={piece} className="text-2xl">
-              {Array.from({ length: Math.abs(num) }).map((_, i) => (
-                <span key={i}>{pieceToUnicode(piece, color)}</span>
-              ))}
+      <div className="flex items-center space-x-2">
+        {Array.from(diffs).map(([piece, num]) => (
+          <span key={piece} className="text-2xl">
+            {Array.from({ length: Math.abs(num) }).map((_, i) => (
+              <span key={i} className="">
+                {pieceToUnicode(piece, color)}
+              </span>
+            ))}
+          </span>
+        ))}
+        {materialDiff > 0 ? (
+          <div className="text-md font-bold ">
+            {`+${Math.max(materialDiff, 0)}`}
+          </div>
+        ) : null}
+
+        {/* A hack to make sure the div doesn't change size
+        when a material difference is created*/}
+        <div className="text-md font-bold opacity-0">
+          <span key="k2" className="text-2xl">
+            <span key="-1" className="">
+              {pieceToUnicode("k", "w")}
             </span>
-          ))}
-        </div>
-        <div
-          className={`text-md font-bold items-center flex h-6 w-8 ${
-            materialDiff > 0 ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          {`+${Math.max(materialDiff, 0)}`}
+          </span>
         </div>
       </div>
     </>
