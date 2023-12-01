@@ -122,12 +122,36 @@ const Home: React.FC = () => {
     setSolution(null);
   }, [line, lineIndex, mode, chessboardState]);
 
-  const onNewLine = useCallback(() => {
+  const clearLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
     setLine(null);
     setLineIndex(-1);
-    enterLineMode();
+  }, [chessboardState]);
+
+  const initializeLine = useCallback(
+    (line: ChapterAndLine) => {
+      enterLineMode();
+
+      setLine(line);
+      chessboardState.setOrientation(line.chapter.orientation);
+
+      // Initialize the first position
+      chessboardState.setNextPosition(line.line[0], true);
+      setLineIndex((lineIndex) => lineIndex + 1);
+
+      // If we are black, we first have to do white's move
+      if (line.chapter.orientation == "b") {
+        const firstPosition: Position = line.line[1];
+        chessboardState.setNextPosition(firstPosition, false);
+        setLineIndex((lineIndex) => lineIndex + 1);
+      }
+    },
+    [chessboardState, enterLineMode],
+  );
+
+  const onNewLine = useCallback(() => {
+    clearLine();
 
     if (selectedStudy == null) {
       throw new Error("study is null");
@@ -142,44 +166,17 @@ const Home: React.FC = () => {
       throw new Error("selectedChapters is empty");
     }
 
-    // Pick the line
     const line = pickLine(selectedChapters, "RANDOM");
-    setLine(line);
-    chessboardState.setOrientation(line.chapter.orientation);
-
-    // Initialize the first position
-    chessboardState.setNextPosition(line.line[0], true);
-    setLineIndex((lineIndex) => lineIndex + 1);
-
-    // If we are black, we first have to do white's move
-    if (line.chapter.orientation == "b") {
-      const firstPosition: Position = line.line[1];
-      chessboardState.setNextPosition(firstPosition, false);
-      setLineIndex((lineIndex) => lineIndex + 1);
-    }
-  }, [chessboardState, enterLineMode, selectedStudy, selectedChapters]);
+    initializeLine(line);
+  }, [clearLine, initializeLine, selectedChapters, selectedStudy]);
 
   const onRestartLine = useCallback(() => {
     if (line == null) {
       throw new Error("line is null");
     }
-
-    // Reset the game
-    chessboardState.clearGame();
-    setLineIndex(-1);
-    enterLineMode();
-
-    // Initialize the first position
-    chessboardState.setNextPosition(line.line[0], true);
-    setLineIndex((lineIndex) => lineIndex + 1);
-
-    // If we are black, we first have to do white's move
-    if (line.chapter.orientation == "b") {
-      const firstPosition: Position = line.line[1];
-      chessboardState.setNextPosition(firstPosition, false);
-      setLineIndex((lineIndex) => lineIndex + 1);
-    }
-  }, [chessboardState, enterLineMode, line]);
+    clearLine();
+    initializeLine(line);
+  }, [line, clearLine, initializeLine]);
 
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: ChapterAndLine, lineIndex: number) => {
