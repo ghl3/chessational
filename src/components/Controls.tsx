@@ -7,6 +7,7 @@ type ControlProps = {
   lineStatus?: LineStatus;
   toggleShowSolution: () => void;
   onNewLine: () => void;
+  onRestartLine: () => void;
   enterExploreMode: () => void;
   enterLineMode: () => void;
 };
@@ -15,12 +16,11 @@ export const Controls: React.FC<ControlProps> = ({
   mode,
   lineStatus,
   onNewLine,
+  onRestartLine,
   toggleShowSolution,
   enterExploreMode,
   enterLineMode,
 }) => {
-  const exploreModeButtons = <div className="flex space-x-4"></div>;
-
   const hasActiveLine = lineStatus != undefined;
 
   const lineIsComplete = lineStatus === "LINE_COMPLETE";
@@ -29,6 +29,15 @@ export const Controls: React.FC<ControlProps> = ({
     <div className="flex space-x-4">
       {/* Buttons for Line Mode */}
       <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
+
+      {hasActiveLine ? (
+        <ControlButton
+          onClick={onRestartLine}
+          label="Restart Line"
+          size={"large"}
+        />
+      ) : null}
+
       {hasActiveLine ? (
         <ControlButton
           onClick={toggleShowSolution}

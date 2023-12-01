@@ -101,11 +101,33 @@ const Home: React.FC = () => {
     }
   }, [fen, runEngine]);
 
+  const enterExploreMode = useCallback(() => {
+    setMode("EXPLORE");
+    setLineMoveResult(null);
+    setSolution(null);
+  }, [setLineMoveResult]);
+
+  const enterLineMode = useCallback(() => {
+    if (mode == "EXPLORE") {
+      chessboardState.clearGame();
+
+      // Recreate the original line
+      if (line != null) {
+        for (const position of line.line.slice(0, lineIndex + 1)) {
+          chessboardState.setNextPosition(position, true);
+        }
+      }
+    }
+    setMode("LINE");
+    setSolution(null);
+  }, [line, lineIndex, mode, chessboardState]);
+
   const onNewLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
     setLine(null);
     setLineIndex(-1);
+    enterLineMode();
 
     if (selectedStudy == null) {
       throw new Error("study is null");
@@ -135,7 +157,29 @@ const Home: React.FC = () => {
       chessboardState.setNextPosition(firstPosition, false);
       setLineIndex((lineIndex) => lineIndex + 1);
     }
-  }, [chessboardState, selectedStudy, selectedChapters]);
+  }, [chessboardState, enterLineMode, selectedStudy, selectedChapters]);
+
+  const onRestartLine = useCallback(() => {
+    if (line == null) {
+      throw new Error("line is null");
+    }
+
+    // Reset the game
+    chessboardState.clearGame();
+    setLineIndex(-1);
+    enterLineMode();
+
+    // Initialize the first position
+    chessboardState.setNextPosition(line.line[0], true);
+    setLineIndex((lineIndex) => lineIndex + 1);
+
+    // If we are black, we first have to do white's move
+    if (line.chapter.orientation == "b") {
+      const firstPosition: Position = line.line[1];
+      chessboardState.setNextPosition(firstPosition, false);
+      setLineIndex((lineIndex) => lineIndex + 1);
+    }
+  }, [chessboardState, enterLineMode, line]);
 
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: ChapterAndLine, lineIndex: number) => {
@@ -244,35 +288,6 @@ const Home: React.FC = () => {
     ],
   );
 
-  const enterExploreMode = useCallback(() => {
-    setMode("EXPLORE");
-    setLineMoveResult(null);
-    setSolution(null);
-  }, [setLineMoveResult]);
-
-  const enterLineMode = useCallback(() => {
-    if (mode == "EXPLORE") {
-      chessboardState.clearGame();
-
-      // Recreate the original line
-      if (line != null) {
-        for (const position of line.line.slice(0, lineIndex + 1)) {
-          chessboardState.setNextPosition(position, true);
-        }
-      }
-    }
-    setMode("LINE");
-    setSolution(null);
-  }, [line, lineIndex, mode, chessboardState]);
-
-  const toggleExploreMode = useCallback(() => {
-    if (mode == "EXPLORE") {
-      enterLineMode();
-    } else {
-      enterExploreMode();
-    }
-  }, [mode, enterLineMode, enterExploreMode]);
-
   const toggleShowSolution = useCallback(() => {
     if (line == null || lineIndex == -1) {
       throw new Error("line is null");
@@ -357,6 +372,7 @@ const Home: React.FC = () => {
           mode={mode}
           lineStatus={lineStatus}
           onNewLine={onNewLine}
+          onRestartLine={onRestartLine}
           toggleShowSolution={toggleShowSolution}
           enterExploreMode={enterExploreMode}
           enterLineMode={enterLineMode}
