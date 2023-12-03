@@ -31,6 +31,8 @@ export const fetchStudy = async (
 
   const chapters: Chapter[] = parsePgnStringToChapters(pgnText);
 
+  const studyName = chapters[0].studyName;
+
   const chapterAndLines: ChapterAndLines[] = chapters.map((chapter) => {
     const lines = getLinesForPlayer(studyName, chapter);
     return { chapter, lines };
@@ -39,8 +41,6 @@ export const fetchStudy = async (
   if (chapterAndLines.length === 0) {
     throw new Error("Study has no chapters");
   }
-
-  const studyName = chapterAndLines[0].chapter.studyName;
 
   return {
     study: {
