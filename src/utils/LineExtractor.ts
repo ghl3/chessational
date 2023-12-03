@@ -3,7 +3,6 @@ import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { PositionNode as Node, PositionTree } from "@/chess/PositionTree";
-import { Study } from "@/chess/Study";
 import { Color } from "chess.js";
 
 const getTranspositions = (

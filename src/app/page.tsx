@@ -1,10 +1,8 @@
 "use client";
 
-import { Chapter } from "@/chess/Chapter";
 import { Line, getLineStatus } from "@/chess/Line";
 import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
-import { Study } from "@/chess/Study";
 import Chessboard, { Arrow } from "@/components/Chessboard";
 import { Controls } from "@/components/Controls";
 import { DetailsPanel } from "@/components/DetailsPanel";
@@ -19,7 +17,7 @@ import {
 } from "@/hooks/UseChessboardState";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
-//import { ChapterAndLine, pickLine } from "@/utils/LinePicker";
+import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -46,20 +44,6 @@ const Home: React.FC = () => {
 
   // When not null, the solution to show to the user.
   const [solution, setSolution] = useState<Move | null>(null);
-
-  /*
-  const selectedStudy = studyData.
-
-
-  const selectedStudy: Study | undefined = studyData.studies.find(
-    (study) => study.name == studyData.selectedStudyName,
-  );
-
-  const selectedChapters: Chapter[] | undefined =
-    selectedStudy?.chapters.filter((chapter) =>
-      studyData.selectedChapterNames.includes(chapter.name),
-    );
-    */
 
   const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
@@ -158,27 +142,12 @@ const Home: React.FC = () => {
   const onNewLine = useCallback(() => {
     clearLine();
 
-    /*
-    if (selectedStudy == null) {
-      throw new Error("study is null");
-    }
-
-    if (selectedChapters == null) {
-      throw new Error("selectedChapters is null");
-    }
-
-    // TODO: Make this into a nicer dialog
-    if (selectedChapters.length == 0) {
-      throw new Error("selectedChapters is empty");
-    }
-*/
     if (studyData.lines == null) {
       throw new Error("studyData.lines is null");
     }
 
-    //const line = pickLine(selectedChapters, "RANDOM");
-    const line =
-      studyData.lines[Math.floor(Math.random() * studyData.lines.length)];
+    const line = pickLine(studyData.lines, "RANDOM");
+
     initializeLine(line);
   }, [clearLine, initializeLine, studyData.lines]);
 

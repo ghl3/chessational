@@ -1,10 +1,9 @@
 import { BLACK, Color, WHITE } from "chess.js";
 
-import { Line } from "@/chess/Line";
 import { moveResultToMove } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { PositionNode, PositionTree } from "@/chess/PositionTree";
-import { ChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { ChapterAndTree } from "@/chess/StudyChapterAndLines";
 import { Chess, Move as MoveResult } from "chess.js";
 import {
   ParsedPGN,
@@ -15,8 +14,6 @@ import {
 } from "pgn-parser";
 import { Chapter } from "../chess/Chapter";
 import { getGameResult } from "../chess/Position";
-import { getLinesForPlayer } from "./LineExtractor";
-import { ChapterAndLine } from "./LinePicker";
 
 const convertHeaders = (
   headers: PgnHeader[] | null,
@@ -154,35 +151,37 @@ const buildPositionTree = (game: ParsedPGN): PositionTree => {
   return rootPosition;
 };
 
-export const convertParsedPgnToChapter = (game: ParsedPGN): ChapterAndLines => {
+export const convertParsedPgnToChapter = (game: ParsedPGN): ChapterAndTree => {
   const headers = convertHeaders(game.headers);
   const [studyName, chapterName] = getStudyAndChapter(headers) ?? ["", ""];
   const orientation = getOrientation(headers) ?? WHITE;
   const comments: string[] = getComments(game.comments);
-  const positionTree = buildPositionTree(game);
+  const positionTree: PositionTree = buildPositionTree(game);
 
   const chapter: Chapter = {
-    name: chapterName,
-    studyName: studyName,
+    name: chapterName.trim(),
+    studyName: studyName.trim(),
     orientation: orientation,
     headers: headers,
     comments: comments,
   };
 
+  /*
   const lines = getLinesForPlayer(
     studyName,
     chapter,
     positionTree,
     orientation,
   );
+  */
 
   return {
     chapter: chapter,
-    lines: lines,
+    tree: positionTree,
   };
 };
 
-export const parsePgnStringToChapters = (pgn: string): ChapterAndLines[] => {
-  const parsedGames = parse(pgn);
+export const parsePgnStringToChapters = (pgn: string): ChapterAndTree[] => {
+  const parsedGames: ParsedPGN[] = parse(pgn);
   return parsedGames.map(convertParsedPgnToChapter);
 };

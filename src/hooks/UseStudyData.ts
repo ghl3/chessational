@@ -121,9 +121,11 @@ export const useStudyData = (): StudyData => {
 
         const nextSelectedStudyName = studies
           .map((study) => study.name)
-          .filter((studyName) => studyName !== studyName)[0];
+          .filter((sn) => sn !== studyName)[0];
 
-        db.selectedStudyName.put({ studyName: nextSelectedStudyName });
+        if (nextSelectedStudyName != null) {
+          db.selectedStudyName.put({ studyName: nextSelectedStudyName });
+        }
       }
     },
     [selectedStudyName, studies],

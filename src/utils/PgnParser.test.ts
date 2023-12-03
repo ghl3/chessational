@@ -27,17 +27,19 @@ describe("PgnParser", () => {
   it("should parse a simple pgn with alternate move", () => {
     const pgn = `[Foo "Bar"]
     1. e4 e5 2. Nf3 Nc6 (Nf6) *`;
-    const tree = parsePgnStringToChapters(pgn);
-    expect(tree).toEqual([
+    const chapterAndTrees = parsePgnStringToChapters(pgn);
+    expect(chapterAndTrees).toEqual([
       {
-        name: "",
-        studyName: "",
-        orientation: "w",
-        headers: {
-          Foo: "Bar",
+        chapter: {
+          name: "",
+          studyName: "",
+          orientation: "w",
+          headers: {
+            Foo: "Bar",
+          },
+          comments: [],
         },
-        comments: [],
-        positionTree: {
+        tree: {
           position: {
             fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             lastMove: null,
@@ -130,108 +132,6 @@ describe("PgnParser", () => {
             },
           ],
         },
-        lines: [
-          [
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-              isGameOver: false,
-              lastMove: null,
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e2",
-                piece: "p",
-                player: "w",
-                promotion: undefined,
-                san: "e4",
-                to: "e4",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e7",
-                piece: "p",
-                player: "b",
-                promotion: undefined,
-                san: "e5",
-                to: "e5",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "g1",
-                piece: "n",
-                player: "w",
-                promotion: undefined,
-                san: "Nf3",
-                to: "f3",
-              },
-            },
-          ],
-          [
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-              isGameOver: false,
-              lastMove: null,
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e2",
-                piece: "p",
-                player: "w",
-                promotion: undefined,
-                san: "e4",
-                to: "e4",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e7",
-                piece: "p",
-                player: "b",
-                promotion: undefined,
-                san: "e5",
-                to: "e5",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "g1",
-                piece: "n",
-                player: "w",
-                promotion: undefined,
-                san: "Nf3",
-                to: "f3",
-              },
-            },
-          ],
-        ],
       },
     ]);
   });
@@ -243,14 +143,16 @@ describe("PgnParser", () => {
     const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
-        name: "",
-        studyName: "",
-        orientation: "w",
-        headers: {
-          Foo: "Bar",
+        chapter: {
+          name: "",
+          studyName: "",
+          orientation: "w",
+          headers: {
+            Foo: "Bar",
+          },
+          comments: [],
         },
-        comments: [],
-        positionTree: {
+        tree: {
           position: {
             fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             lastMove: null,
@@ -393,184 +295,6 @@ describe("PgnParser", () => {
             },
           ],
         },
-        lines: [
-          [
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-              isGameOver: false,
-              lastMove: null,
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e2",
-                piece: "p",
-                player: "w",
-                promotion: undefined,
-                san: "e4",
-                to: "e4",
-              },
-            },
-            {
-              comments: [
-                {
-                  text: "The standard response",
-                },
-              ],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e7",
-                piece: "p",
-                player: "b",
-                promotion: undefined,
-                san: "e5",
-                to: "e5",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "g1",
-                piece: "n",
-                player: "w",
-                promotion: undefined,
-                san: "Nf3",
-                to: "f3",
-              },
-            },
-            {
-              comments: [
-                {
-                  text: "Defending the pawn",
-                },
-              ],
-              fen: "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "b8",
-                piece: "n",
-                player: "b",
-                promotion: undefined,
-                san: "Nc6",
-                to: "c6",
-              },
-            },
-            {
-              comments: [
-                {
-                  text: "The Ruy Lopez",
-                },
-              ],
-              fen: "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "f1",
-                piece: "b",
-                player: "w",
-                promotion: undefined,
-                san: "Bb5",
-                to: "b5",
-              },
-            },
-          ],
-          [
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-              isGameOver: false,
-              lastMove: null,
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e2",
-                piece: "p",
-                player: "w",
-                promotion: undefined,
-                san: "e4",
-                to: "e4",
-              },
-            },
-            {
-              comments: [
-                {
-                  text: "The standard response",
-                },
-              ],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "e7",
-                piece: "p",
-                player: "b",
-                promotion: undefined,
-                san: "e5",
-                to: "e5",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "g1",
-                piece: "n",
-                player: "w",
-                promotion: undefined,
-                san: "Nf3",
-                to: "f3",
-              },
-            },
-            {
-              comments: [
-                {
-                  text: "Going into the Petrov",
-                },
-              ],
-              fen: "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "g8",
-                piece: "n",
-                player: "b",
-                promotion: undefined,
-                san: "Nf6",
-                to: "f6",
-              },
-            },
-            {
-              comments: [],
-              fen: "rnbqkb1r/pppp1ppp/5n2/4N3/4P3/8/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
-              gameResult: "UNKNOWN",
-              isGameOver: false,
-              lastMove: {
-                from: "f3",
-                piece: "n",
-                player: "w",
-                promotion: undefined,
-                san: "Nxe5",
-                to: "e5",
-              },
-            },
-          ],
-        ],
       },
     ]);
   });
