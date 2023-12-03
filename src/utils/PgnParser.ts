@@ -3,7 +3,6 @@ import { BLACK, Color, WHITE } from "chess.js";
 import { moveResultToMove } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { PositionNode, PositionTree } from "@/chess/PositionTree";
-import { ChapterAndTree } from "@/chess/StudyChapterAndLines";
 import { Chess, Move as MoveResult } from "chess.js";
 import {
   ParsedPGN,
@@ -151,37 +150,24 @@ const buildPositionTree = (game: ParsedPGN): PositionTree => {
   return rootPosition;
 };
 
-export const convertParsedPgnToChapter = (game: ParsedPGN): ChapterAndTree => {
+export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   const headers = convertHeaders(game.headers);
   const [studyName, chapterName] = getStudyAndChapter(headers) ?? ["", ""];
   const orientation = getOrientation(headers) ?? WHITE;
   const comments: string[] = getComments(game.comments);
   const positionTree: PositionTree = buildPositionTree(game);
 
-  const chapter: Chapter = {
+  return {
     name: chapterName.trim(),
     studyName: studyName.trim(),
     orientation: orientation,
     headers: headers,
     comments: comments,
-  };
-
-  /*
-  const lines = getLinesForPlayer(
-    studyName,
-    chapter,
-    positionTree,
-    orientation,
-  );
-  */
-
-  return {
-    chapter: chapter,
-    tree: positionTree,
+    positionTree: positionTree,
   };
 };
 
-export const parsePgnStringToChapters = (pgn: string): ChapterAndTree[] => {
+export const parsePgnStringToChapters = (pgn: string): Chapter[] => {
   const parsedGames: ParsedPGN[] = parse(pgn);
   return parsedGames.map(convertParsedPgnToChapter);
 };

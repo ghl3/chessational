@@ -30,16 +30,14 @@ describe("PgnParser", () => {
     const chapterAndTrees = parsePgnStringToChapters(pgn);
     expect(chapterAndTrees).toEqual([
       {
-        chapter: {
-          name: "",
-          studyName: "",
-          orientation: "w",
-          headers: {
-            Foo: "Bar",
-          },
-          comments: [],
+        name: "",
+        studyName: "",
+        orientation: "w",
+        headers: {
+          Foo: "Bar",
         },
-        tree: {
+        comments: [],
+        positionTree: {
           position: {
             fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             lastMove: null,
@@ -143,16 +141,14 @@ describe("PgnParser", () => {
     const tree = parsePgnStringToChapters(pgn);
     expect(tree).toEqual([
       {
-        chapter: {
-          name: "",
-          studyName: "",
-          orientation: "w",
-          headers: {
-            Foo: "Bar",
-          },
-          comments: [],
+        name: "",
+        studyName: "",
+        orientation: "w",
+        headers: {
+          Foo: "Bar",
         },
-        tree: {
+        comments: [],
+        positionTree: {
           position: {
             fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
             lastMove: null,

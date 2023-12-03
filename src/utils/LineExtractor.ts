@@ -83,10 +83,9 @@ const getAllMoveLists = (
 export const getAllLines = (
   studyName: string,
   chapter: Chapter,
-  tree: PositionTree,
   orientation: Color,
 ): Line[] => {
-  var node: Node = tree;
+  var node: Node = chapter.positionTree;
 
   const playerHasFirstMove = orientation === "w";
 
@@ -109,11 +108,10 @@ export const getAllLines = (
 export const getLinesForPlayer = (
   studyName: string,
   chapter: Chapter,
-  tree: PositionTree,
-  orientation: Color,
 ): Line[] => {
   // Get all non-empty lines
-  const allLines = getAllLines(studyName, chapter, tree, orientation);
+  const orientation = chapter.orientation;
+  const allLines = getAllLines(studyName, chapter, orientation);
 
   const filteredLines = allLines.filter((line) => {
     return line.moves.length > 0;
