@@ -143,6 +143,7 @@ describe("PgnParser", () => {
       {
         name: "",
         studyName: "",
+        chapterIndex: 0,
         orientation: "w",
         headers: {
           Foo: "Bar",

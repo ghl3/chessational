@@ -150,7 +150,10 @@ const buildPositionTree = (game: ParsedPGN): PositionTree => {
   return rootPosition;
 };
 
-export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
+export const convertParsedPgnToChapter = (
+  game: ParsedPGN,
+  chapterIndex: number,
+): Chapter => {
   const headers = convertHeaders(game.headers);
   const [studyName, chapterName] = getStudyAndChapter(headers) ?? ["", ""];
   const orientation = getOrientation(headers) ?? WHITE;
@@ -160,6 +163,7 @@ export const convertParsedPgnToChapter = (game: ParsedPGN): Chapter => {
   return {
     name: chapterName.trim(),
     studyName: studyName.trim(),
+    chapterIndex: chapterIndex,
     orientation: orientation,
     headers: headers,
     comments: comments,

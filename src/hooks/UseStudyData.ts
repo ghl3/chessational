@@ -59,7 +59,7 @@ export const useStudyData = (): StudyData => {
     const chatpers = await db.chapters
       .where("studyName")
       .equalsIgnoreCase(selectedStudyName)
-      .toArray();
+      .sortBy("chapterIndex");
     return chatpers;
   }, [selectedStudyName]);
 
