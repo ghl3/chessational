@@ -1,4 +1,5 @@
 // db.ts
+import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { LichessDatabase } from "@/chess/DatabasePosition";
 import { Fen } from "@/chess/Fen";
@@ -13,6 +14,7 @@ export class OpeningsDb extends Dexie {
   selectedStudyName!: Table<{ studyName: string }>;
   selectedChapterNames!: Table<{ studyName: string; chapterName: string }>;
   positions!: Table<{ fen: Fen; database: LichessDatabase }>;
+  attempts!: Table<{ lineId: string; attempt: Attempt }>;
 
   constructor() {
     super("OpeningsDb");
@@ -25,6 +27,9 @@ export class OpeningsDb extends Dexie {
     });
     this.version(2).stores({
       positions: "fen",
+    });
+    this.version(3).stores({
+      attempts: "lineId",
     });
   }
 }

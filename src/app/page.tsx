@@ -18,11 +18,13 @@ import {
 } from "@/hooks/UseChessboardState";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
+import { storeAttemptResult } from "@/utils/Attempt";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
 import Head from "next/head";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
+import { db } from "./db";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -44,6 +46,8 @@ const Home: React.FC = () => {
 
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
+
+  const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
   // When not null, the solution to show to the user.
   const [solution, setSolution] = useState<Move | null>(null);
@@ -149,6 +153,7 @@ const Home: React.FC = () => {
 
   const onNewLine = useCallback(() => {
     clearLine();
+    setAttemptResult(null);
 
     if (studyData.lines == null) {
       throw new Error("studyData.lines is null");
@@ -178,7 +183,14 @@ const Home: React.FC = () => {
       const endOfLine = lineIndex == line.positions.length - 1;
 
       // If this is the end of the line, we're done.
-      if (!endOfLine) {
+      if (endOfLine) {
+        // If we got to the end of the line without any attempt failures,
+        // we mark the attempt as complete
+        if (attemptResult == null) {
+          setAttemptResult(true);
+          storeAttemptResult(line, true, db.attempts);
+        }
+      } else {
         // Otherwise, pick the opponent's next move in the line
         // Do this in a delay to simulate a game.
         setTimeout(async () => {
@@ -188,7 +200,7 @@ const Home: React.FC = () => {
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [chessboardState],
+    [attemptResult, chessboardState],
   );
 
   const onPieceDrop = useCallback(
@@ -274,16 +286,21 @@ const Home: React.FC = () => {
 
       // If we got here, the move is not correct
       setLineMoveResult("INCORRECT");
+      if (attemptResult == null) {
+        setAttemptResult(false);
+        storeAttemptResult(lineAndChapter.line, false, db.attempts);
+      }
       setSolution(null);
       return false;
     },
     [
-      lineAndChapter,
-      lineIndex,
       chessboardState,
       mode,
-      playOpponentNextMoveIfLineContinues,
+      lineAndChapter,
+      lineIndex,
       setLineMoveResult,
+      attemptResult,
+      playOpponentNextMoveIfLineContinues,
     ],
   );
 
