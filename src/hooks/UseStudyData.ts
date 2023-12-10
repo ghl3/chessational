@@ -3,6 +3,7 @@ import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { Attempt } from "@/utils/Attempt";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback } from "react";
 
@@ -13,6 +14,7 @@ export interface StudyData {
   chapters?: Chapter[];
   selectedChapterNames?: string[];
   lines?: Line[];
+  attempts?: Attempt[]; // Attempts for the selected chapters
 
   addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
   removeStudy: (studyName: string) => void;
@@ -194,6 +196,28 @@ export const useStudyData = (): StudyData => {
     [selectStudy],
   );
 
+  // Get all attempts for the active chapters
+  // in the current study
+  const attempts: Attempt[] | undefined = useLiveQuery(async () => {
+    if (selectedStudyName == null) {
+      return undefined;
+    }
+
+    if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+      return [];
+    }
+
+    const attempts = await db.attempts
+      .where("studyName")
+      .equalsIgnoreCase(selectedStudyName)
+      .and((attempt) => {
+        return selectedChapterNames.includes(attempt.chapterName);
+      })
+      .toArray();
+
+    return attempts;
+  }, [selectedStudyName, selectedChapterNames]);
+
   return {
     studies,
     selectedStudyName,
@@ -201,6 +225,7 @@ export const useStudyData = (): StudyData => {
     chapters,
     selectedChapterNames,
     lines,
+    attempts,
 
     addStudyAndChapters,
     removeStudy,

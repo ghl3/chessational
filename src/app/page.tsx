@@ -159,7 +159,11 @@ const Home: React.FC = () => {
       throw new Error("studyData.lines is null");
     }
 
-    const line = pickLine(studyData.lines, "RANDOM");
+    const line = pickLine(
+      studyData.lines,
+      "SPACED_REPITITION",
+      studyData.attempts,
+    );
     const chapter = studyData.chapters?.find(
       (chapter) => chapter.name == line.chapterName,
     );
@@ -168,7 +172,13 @@ const Home: React.FC = () => {
     }
 
     initializeLine({ line, chapter });
-  }, [clearLine, initializeLine, studyData.chapters, studyData.lines]);
+  }, [
+    clearLine,
+    initializeLine,
+    studyData.attempts,
+    studyData.chapters,
+    studyData.lines,
+  ]);
 
   const onRestartLine = useCallback(() => {
     if (lineAndChapter == null) {

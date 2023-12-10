@@ -14,7 +14,7 @@ export class OpeningsDb extends Dexie {
   selectedStudyName!: Table<{ studyName: string }>;
   selectedChapterNames!: Table<{ studyName: string; chapterName: string }>;
   positions!: Table<{ fen: Fen; database: LichessDatabase }>;
-  attempts!: Table<{ lineId: string; attempt: Attempt }>;
+  attempts!: Table<Attempt>;
 
   constructor() {
     super("OpeningsDb");
@@ -29,7 +29,7 @@ export class OpeningsDb extends Dexie {
       positions: "fen",
     });
     this.version(3).stores({
-      attempts: "lineId",
+      attempts: "++id, lineId, studyName, chapterName",
     });
   }
 }

@@ -1,10 +1,13 @@
+import { db } from "@/app/db";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
+import { Attempt } from "./Attempt";
 
 export type MoveSelectionStrategy =
   | "DETERMINISTIC"
   | "RANDOM"
   | "LINE_WEIGHTED"
+  | "SPACED_REPITITION"
   | "DATABASE_WEIGHTED";
 
 const weightedPick = <T>(elements: T[], weights: number[]): T => {
@@ -31,9 +34,72 @@ const weightedPick = <T>(elements: T[], weights: number[]): T => {
   return elements[0];
 };
 
+const pickElementWithMinWeight = <T>(elements: T[], weights: number[]): T => {
+  if (elements.length !== weights.length) {
+    throw new Error("Elements and weights must be of the same length");
+  }
+
+  const minWeightIndex = weights.reduce((minIndex, weight, index) => {
+    if (weight < weights[minIndex]) {
+      return index;
+    } else {
+      return minIndex;
+    }
+  }, 0);
+
+  return elements[minWeightIndex];
+};
+
+const calculateProbability = (
+  line: Line,
+  attempts: Attempt[],
+  defaultProbability: number = 0.5,
+): number => {
+  const totalNumberOfAttempts = attempts.length;
+
+  const attemptsForLineAndIndices = attempts
+    .map((attempt, index) => {
+      return {
+        attempt: attempt,
+        index: totalNumberOfAttempts - index,
+      };
+    })
+    .filter((attempt) => {
+      return attempt.attempt.lineId === line.lineId;
+    });
+
+  if (attemptsForLineAndIndices.length === 0) {
+    return defaultProbability;
+  }
+
+  const weightsAndsuccesses = attemptsForLineAndIndices.map((attempt) => {
+    // Drop by 1/e every 10 attempts
+    const epsilon = 10;
+    const weight = Math.exp(-attempt.index / epsilon);
+    const success = attempt.attempt.correct ? 1 : 0;
+    return { weight, success };
+  });
+
+  const totalWeight = weightsAndsuccesses.reduce(
+    (sum, weightAndSuccess) => sum + weightAndSuccess.weight,
+    0,
+  );
+
+  const weightedSuccesses = weightsAndsuccesses.reduce(
+    (sum, weightAndSuccess) =>
+      sum + weightAndSuccess.weight * weightAndSuccess.success,
+    0,
+  );
+
+  const probability = weightedSuccesses / totalWeight;
+
+  return probability;
+};
+
 export const pickLine = (
   lines: Line[],
   strategy: MoveSelectionStrategy,
+  attempts?: Attempt[],
 ): Line => {
   if (lines.length === 0) {
     throw new Error("No chapters to select from");
@@ -43,6 +109,20 @@ export const pickLine = (
     return lines[0];
   } else if (strategy === "RANDOM") {
     return lines[Math.floor(Math.random() * lines.length)];
+  } else if (strategy === "SPACED_REPITITION") {
+    if (attempts == null) {
+      throw new Error("No attempts provided");
+    }
+
+    const probabilities = [];
+    for (const line of lines) {
+      const noise = Math.random() * 0.2 - 0.1;
+      probabilities.push(calculateProbability(line, attempts, 0.5) + noise);
+    }
+
+    // Pick the line with the lowest "known probability"
+    const selectedLine = pickElementWithMinWeight(lines, probabilities);
+    return selectedLine;
   } else if (strategy === "LINE_WEIGHTED") {
     const numLinesPerChapter = lines
       .map((line) => line.chapterName) // Extract chapter names
