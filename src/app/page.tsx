@@ -3,6 +3,7 @@
 import { Line, getLineStatus } from "@/chess/Line";
 import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
+import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import Chessboard, { Arrow } from "@/components/Chessboard";
 import { Controls } from "@/components/Controls";
 import { DetailsPanel } from "@/components/DetailsPanel";
@@ -34,7 +35,9 @@ if (typeof window !== "undefined") {
 const Home: React.FC = () => {
   const studyData = useStudyData();
 
-  const [line, setLine] = useState<Line | null>(null);
+  const [lineAndChapter, setLineAndChapter] = useState<LineAndChapter | null>(
+    null,
+  );
   // The current position in the line.
   // The next move to play is line.moves[lineIndex+1]
   const [lineIndex, setLineIndex] = useState<number>(-1);
@@ -101,28 +104,33 @@ const Home: React.FC = () => {
       chessboardState.clearGame();
 
       // Recreate the original line
-      if (line != null) {
-        for (const position of line.positions.slice(0, lineIndex + 1)) {
+      if (lineAndChapter != null) {
+        for (const position of lineAndChapter.line.positions.slice(
+          0,
+          lineIndex + 1,
+        )) {
           chessboardState.setNextPosition(position, true);
         }
       }
     }
     setMode("LINE");
     setSolution(null);
-  }, [line, lineIndex, mode, chessboardState]);
+  }, [lineAndChapter, lineIndex, mode, chessboardState]);
 
   const clearLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
-    setLine(null);
+    setLineAndChapter(null);
     setLineIndex(-1);
   }, [chessboardState]);
 
   const initializeLine = useCallback(
-    (line: Line) => {
+    (lineAndChapter: LineAndChapter) => {
+      const { line, chapter } = lineAndChapter;
+
       enterLineMode();
 
-      setLine(line);
+      setLineAndChapter(lineAndChapter);
       chessboardState.setOrientation(line.orientation);
 
       // Initialize the first position
@@ -147,17 +155,23 @@ const Home: React.FC = () => {
     }
 
     const line = pickLine(studyData.lines, "RANDOM");
+    const chapter = studyData.chapters?.find(
+      (chapter) => chapter.name == line.chapterName,
+    );
+    if (chapter == null) {
+      throw new Error("chapter is null");
+    }
 
-    initializeLine(line);
-  }, [clearLine, initializeLine, studyData.lines]);
+    initializeLine({ line, chapter });
+  }, [clearLine, initializeLine, studyData.chapters, studyData.lines]);
 
   const onRestartLine = useCallback(() => {
-    if (line == null) {
+    if (lineAndChapter == null) {
       throw new Error("line is null");
     }
     clearLine();
-    initializeLine(line);
-  }, [line, clearLine, initializeLine]);
+    initializeLine(lineAndChapter);
+  }, [lineAndChapter, clearLine, initializeLine]);
 
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: Line, lineIndex: number) => {
@@ -210,7 +224,7 @@ const Home: React.FC = () => {
       }
 
       // Otherwise, we're in line mode.
-      if (line == null) {
+      if (lineAndChapter == null) {
         window.alert('Please click "New Line" to start a new line.');
         return false;
       }
@@ -218,14 +232,17 @@ const Home: React.FC = () => {
       // If the current board position is not the next position in the line,
       // we don't accept the move.  This can happen if the user uses
       // the left/right arrows to move around the line.
-      if (line.positions[lineIndex] != chessboardState.getPosition()) {
+      if (
+        lineAndChapter.line.positions[lineIndex] !=
+        chessboardState.getPosition()
+      ) {
         setLineMoveResult(null);
         return false;
       }
 
       // Check whether the attempted move is the next move in the line.
       const nextMoveInLine: Move | null =
-        line.positions[lineIndex + 1].lastMove;
+        lineAndChapter.line.positions[lineIndex + 1].lastMove;
       if (nextMoveInLine == null) {
         throw new Error("nextMoveInLine is null");
       }
@@ -238,7 +255,10 @@ const Home: React.FC = () => {
         // and we update the current line and the board state.
         // Note that we use line.positions[lineIndex + 1] because
         // we want to make sure to keep the comments.
-        chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
+        chessboardState.setNextPosition(
+          lineAndChapter.line.positions[lineIndex + 1],
+          false,
+        );
 
         // Since the move was correct, we move to the next position in the line
         setLineIndex((lineIndex) => lineIndex + 1);
@@ -246,7 +266,7 @@ const Home: React.FC = () => {
         setSolution(null);
 
         // We play the opponent's next move if the line continues.
-        playOpponentNextMoveIfLineContinues(line, lineIndex + 1);
+        playOpponentNextMoveIfLineContinues(lineAndChapter.line, lineIndex + 1);
 
         // Return true to accept the move
         return true;
@@ -258,7 +278,7 @@ const Home: React.FC = () => {
       return false;
     },
     [
-      line,
+      lineAndChapter,
       lineIndex,
       chessboardState,
       mode,
@@ -268,25 +288,28 @@ const Home: React.FC = () => {
   );
 
   const toggleShowSolution = useCallback(() => {
-    if (line == null || lineIndex == -1) {
+    if (lineAndChapter == null || lineIndex == -1) {
       throw new Error("line is null");
     }
 
     if (solution) {
       setSolution(null);
     } else {
-      const lineSolution = line.positions[lineIndex + 1].lastMove;
+      const lineSolution =
+        lineAndChapter.line.positions[lineIndex + 1].lastMove;
       if (lineSolution == null) {
         throw new Error("solution is null");
       }
       setSolution(lineSolution);
     }
-  }, [line, lineIndex, solution]);
+  }, [lineAndChapter, lineIndex, solution]);
 
   const position = chessboardState.getPosition();
 
   const lineStatus =
-    mode == "LINE" && line ? getLineStatus(line, lineIndex) : undefined;
+    mode == "LINE" && lineAndChapter
+      ? getLineStatus(lineAndChapter.line, lineIndex)
+      : undefined;
 
   const solutionArrows: Arrow[] =
     solution != null
@@ -335,7 +358,7 @@ const Home: React.FC = () => {
             </div>
 
             <DetailsPanel
-              chapter={undefined} // line?.chapter || undefined}
+              chapter={lineAndChapter?.chapter || undefined}
               position={position || undefined}
               gameMoves={chessboardState.getGameMoves()}
               positionEvaluation={positionEvaluation}

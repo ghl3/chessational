@@ -18,8 +18,8 @@ export class OpeningsDb extends Dexie {
     super("OpeningsDb");
     this.version(1).stores({
       studies: "name",
-      chapters: "++id, studyName, name",
-      lines: "++id, studyName, chapterName",
+      chapters: "name, studyName",
+      lines: "lineId, studyName, chapterName",
       selectedStudyName: "studyName",
       selectedChapterNames: "++id, studyName, chapterName",
     });
