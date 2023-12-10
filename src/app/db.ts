@@ -1,5 +1,7 @@
 // db.ts
 import { Chapter } from "@/chess/Chapter";
+import { LichessDatabase } from "@/chess/DatabasePosition";
+import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
 import { Study } from "@/chess/Study";
 import Dexie, { Table } from "dexie";
@@ -10,6 +12,7 @@ export class OpeningsDb extends Dexie {
   lines!: Table<Line>;
   selectedStudyName!: Table<{ studyName: string }>;
   selectedChapterNames!: Table<{ studyName: string; chapterName: string }>;
+  positions!: Table<{ fen: Fen; database: LichessDatabase }>;
 
   constructor() {
     super("OpeningsDb");
@@ -19,6 +22,9 @@ export class OpeningsDb extends Dexie {
       lines: "++id, studyName, chapterName",
       selectedStudyName: "studyName",
       selectedChapterNames: "++id, studyName, chapterName",
+    });
+    this.version(2).stores({
+      positions: "fen",
     });
   }
 }

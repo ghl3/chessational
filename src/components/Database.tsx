@@ -1,34 +1,9 @@
+import { db } from "@/app/db";
+import { LichessDatabase } from "@/chess/DatabasePosition";
+import { Position } from "@/chess/Position";
+import { getOrFetchAndCacheDatabase } from "@/utils/PositionFetcher";
 import { useEffect, useState } from "react";
 import Table from "./Table";
-import { Position } from "@/chess/Position";
-
-interface LichessMove {
-  uci: string;
-  san: string;
-  white: number;
-  black: number;
-  draws: number;
-  averageRating: number;
-}
-
-interface LichessDatabase {
-  white: number;
-  black: number;
-  draws: number;
-  moves: LichessMove[];
-}
-
-const fetchTopMoves = async (fen: string): Promise<LichessDatabase> => {
-  const response = await fetch(
-    `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`,
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to fetch data: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data;
-};
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
   showDatabase: boolean;
@@ -45,7 +20,7 @@ export const Database: React.FC<DatabaseProps> = ({
   useEffect(() => {
     setLoading(showDatabase && position !== null);
     if (position) {
-      fetchTopMoves(position.fen)
+      getOrFetchAndCacheDatabase(position.fen, db.positions)
         .then((data) => {
           setDatabase(data);
           setLoading(false);
