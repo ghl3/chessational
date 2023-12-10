@@ -102,7 +102,7 @@ const Home: React.FC = () => {
 
       // Recreate the original line
       if (line != null) {
-        for (const position of line.moves.slice(0, lineIndex + 1)) {
+        for (const position of line.positions.slice(0, lineIndex + 1)) {
           chessboardState.setNextPosition(position, true);
         }
       }
@@ -123,15 +123,15 @@ const Home: React.FC = () => {
       enterLineMode();
 
       setLine(line);
-      chessboardState.setOrientation(line.chapter.orientation);
+      chessboardState.setOrientation(line.orientation);
 
       // Initialize the first position
-      chessboardState.setNextPosition(line.moves[0], true);
+      chessboardState.setNextPosition(line.positions[0], true);
       setLineIndex((lineIndex) => lineIndex + 1);
 
       // If we are black, we first have to do white's move
-      if (line.chapter.orientation == "b") {
-        const firstPosition: Position = line.moves[1];
+      if (line.orientation == "b") {
+        const firstPosition: Position = line.positions[1];
         chessboardState.setNextPosition(firstPosition, false);
         setLineIndex((lineIndex) => lineIndex + 1);
       }
@@ -161,14 +161,14 @@ const Home: React.FC = () => {
 
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: Line, lineIndex: number) => {
-      const endOfLine = lineIndex == line.moves.length - 1;
+      const endOfLine = lineIndex == line.positions.length - 1;
 
       // If this is the end of the line, we're done.
       if (!endOfLine) {
         // Otherwise, pick the opponent's next move in the line
         // Do this in a delay to simulate a game.
         setTimeout(async () => {
-          const nextPosition = line.moves[lineIndex + 1];
+          const nextPosition = line.positions[lineIndex + 1];
           chessboardState.setNextPosition(nextPosition, false);
           setLineIndex((lineIndex) => lineIndex + 1);
         }, OPPONENT_MOVE_DELAY);
@@ -218,13 +218,14 @@ const Home: React.FC = () => {
       // If the current board position is not the next position in the line,
       // we don't accept the move.  This can happen if the user uses
       // the left/right arrows to move around the line.
-      if (line.moves[lineIndex] != chessboardState.getPosition()) {
+      if (line.positions[lineIndex] != chessboardState.getPosition()) {
         setLineMoveResult(null);
         return false;
       }
 
       // Check whether the attempted move is the next move in the line.
-      const nextMoveInLine: Move | null = line.moves[lineIndex + 1].lastMove;
+      const nextMoveInLine: Move | null =
+        line.positions[lineIndex + 1].lastMove;
       if (nextMoveInLine == null) {
         throw new Error("nextMoveInLine is null");
       }
@@ -237,7 +238,7 @@ const Home: React.FC = () => {
         // and we update the current line and the board state.
         // Note that we use line.positions[lineIndex + 1] because
         // we want to make sure to keep the comments.
-        chessboardState.setNextPosition(line.moves[lineIndex + 1], false);
+        chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
 
         // Since the move was correct, we move to the next position in the line
         setLineIndex((lineIndex) => lineIndex + 1);
@@ -274,7 +275,7 @@ const Home: React.FC = () => {
     if (solution) {
       setSolution(null);
     } else {
-      const lineSolution = line.moves[lineIndex + 1].lastMove;
+      const lineSolution = line.positions[lineIndex + 1].lastMove;
       if (lineSolution == null) {
         throw new Error("solution is null");
       }
@@ -334,7 +335,7 @@ const Home: React.FC = () => {
             </div>
 
             <DetailsPanel
-              chapter={line?.chapter || undefined}
+              chapter={undefined} // line?.chapter || undefined}
               position={position || undefined}
               gameMoves={chessboardState.getGameMoves()}
               positionEvaluation={positionEvaluation}

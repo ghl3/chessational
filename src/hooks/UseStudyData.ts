@@ -96,7 +96,7 @@ export const useStudyData = (): StudyData => {
       .where("studyName")
       .equalsIgnoreCase(selectedStudyName)
       .and((line) => {
-        return selectedChapterNames.includes(line.chapter.name);
+        return selectedChapterNames.includes(line.chapterName);
       })
       .toArray();
     return lines;

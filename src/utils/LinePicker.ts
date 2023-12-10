@@ -45,7 +45,7 @@ export const pickLine = (
     return lines[Math.floor(Math.random() * lines.length)];
   } else if (strategy === "LINE_WEIGHTED") {
     const numLinesPerChapter = lines
-      .map((line) => line.chapter.name) // Extract chapter names
+      .map((line) => line.chapterName) // Extract chapter names
       .reduce(
         (acc, chapterName) => {
           acc[chapterName] = (acc[chapterName] || 0) + 1;
@@ -60,7 +60,7 @@ export const pickLine = (
     const selectedChapter = weightedPick(chapterNames, chapterWeights);
 
     const linesForChapter = lines.filter(
-      (line) => line.chapter.name === selectedChapter,
+      (line) => line.chapterName === selectedChapter,
     );
 
     // Now, randomly pick a line from that chapter
