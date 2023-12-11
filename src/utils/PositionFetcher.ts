@@ -11,9 +11,7 @@ class LichessError extends Error {
   }
 }
 
-export const fetchDatabaseForFen = async (
-  fen: string,
-): Promise<LichessDatabase> => {
+const fetchDatabaseForFen = async (fen: string): Promise<LichessDatabase> => {
   const response = await fetch(
     `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(fen)}`,
   );
@@ -34,7 +32,6 @@ export const getOrFetchAndCacheDatabase = async (
 ): Promise<LichessDatabase> => {
   const existingPosition = await positionTable.get({ fen: fen });
   if (existingPosition != undefined) {
-    console.log("Using cached database for fen", fen);
     return existingPosition.database;
   }
 
