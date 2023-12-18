@@ -350,66 +350,46 @@ const Home: React.FC = () => {
       : [];
 
   return (
-    <>
-      <Head>
-        <title>Chessational: Opening Review</title>
-        <meta
-          name="description"
-          content="Enter a chess.com game ID to review"
-        />
-        <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-      </Head>
+    <main className="flex flex-col items-center">
+      <div className="flex flex-col items-center items-start mb-6 max-w-screen-xl space-y-2">
+        <StudyChapterSelector studyData={studyData} />
 
-      <main className="charcoal-bg text-white min-h-screen flex flex-col items-center">
-        <div className="mb-6">
-          <h1 className="text-4xl">Chessational: Opening Review</h1>
-        </div>
-
-        <div className="flex flex-col items-center items-start mb-6 max-w-screen-xl space-y-2">
-          <StudyChapterSelector studyData={studyData} />
-
-          <div className="flex flex-row justify-center items-start mb-6 w-screen">
-            <div ref={chessboardRef}>
-              <Chessboard
-                chessboardSize={chessboardSize}
-                chessboardState={chessboardState}
-                onPieceDrop={onPieceDrop}
-                className="flex-none"
-                arrows={solutionArrows || []}
-              />
-            </div>
-
-            <DetailsPanel
-              chapter={lineAndChapter?.chapter || undefined}
-              position={position || undefined}
-              gameMoves={chessboardState.getGameMoves()}
-              positionEvaluation={positionEvaluation}
-              moveResult={lineMoveResult}
-              lineStatus={lineStatus}
-              onToggleShowEngine={onToggleShowEngine}
-              height={height || 0}
+        <div className="flex flex-row justify-center items-start mb-6 w-screen">
+          <div ref={chessboardRef}>
+            <Chessboard
+              chessboardSize={chessboardSize}
+              chessboardState={chessboardState}
+              onPieceDrop={onPieceDrop}
+              className="flex-none"
+              arrows={solutionArrows || []}
             />
           </div>
-        </div>
 
-        {studyData.selectedStudy != null ? (
-          <Controls
-            mode={mode}
+          <DetailsPanel
+            chapter={lineAndChapter?.chapter || undefined}
+            position={position || undefined}
+            gameMoves={chessboardState.getGameMoves()}
+            positionEvaluation={positionEvaluation}
+            moveResult={lineMoveResult}
             lineStatus={lineStatus}
-            onNewLine={onNewLine}
-            onRestartLine={onRestartLine}
-            toggleShowSolution={toggleShowSolution}
-            enterExploreMode={enterExploreMode}
-            enterLineMode={enterLineMode}
+            onToggleShowEngine={onToggleShowEngine}
+            height={height || 0}
           />
-        ) : null}
-      </main>
-    </>
+        </div>
+      </div>
+
+      {studyData.selectedStudy != null ? (
+        <Controls
+          mode={mode}
+          lineStatus={lineStatus}
+          onNewLine={onNewLine}
+          onRestartLine={onRestartLine}
+          toggleShowSolution={toggleShowSolution}
+          enterExploreMode={enterExploreMode}
+          enterLineMode={enterLineMode}
+        />
+      ) : null}
+    </main>
   );
 };
 
