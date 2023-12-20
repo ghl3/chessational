@@ -1,10 +1,13 @@
 "use client";
 
-import { Line } from "@/chess/Line";
+import { db } from "@/app/db";
 import SuperTable from "@/components/SuperTable";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { Attempt } from "@/utils/Attempt";
+import { calculateProbability } from "@/utils/LinePicker";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
+import { Row } from "react-table";
 
 type AttemptStat = {
   study: string;
@@ -51,19 +54,50 @@ const getStats = (attempts: Attempt[]) => {
       attempt.timestamp > attemptStat.latestAttempt
         ? attempt.timestamp
         : attemptStat.latestAttempt;
-    attemptStat.estimatedSuccessRate =
-      attemptStat.numCorrect / attemptStat.numAttempts;
+    attemptStat.estimatedSuccessRate = calculateProbability(
+      attempt.lineId,
+      attempts,
+      0.5,
+    );
+    // attemptStat.numCorrect / attemptStat.numAttempts;
+
+    // const prob =
   }
 
   return stats;
 };
 
+const numericSortType = <T extends object>(
+  rowA: Row<T>,
+  rowB: Row<T>,
+  columnId: string,
+  desc?: boolean,
+): number => {
+  const valueA = rowA.values[columnId];
+  const valueB = rowB.values[columnId];
+
+  // Convert to numbers if they are not already
+  const numA = typeof valueA === "number" ? valueA : parseFloat(valueA);
+  const numB = typeof valueB === "number" ? valueB : parseFloat(valueB);
+
+  // Handle NaN and undefined values
+  if (isNaN(numA)) return 1;
+  if (isNaN(numB)) return -1;
+
+  // Sorting
+  return numA > numB ? 1 : -1;
+};
+
 const StatsPage = () => {
   const studyData: StudyData = useStudyData();
 
+  const attempts: Attempt[] | undefined = useLiveQuery(async () => {
+    return await db.attempts.toArray();
+  }, []);
+
   const stats = useMemo(() => {
-    return getStats(studyData.attempts || []);
-  }, [studyData.attempts]);
+    return getStats(attempts || []);
+  }, [attempts]);
 
   const columns = useMemo(
     () => [
@@ -91,11 +125,13 @@ const StatsPage = () => {
             Header: "Num Attempts",
             id: "numAttempts",
             accessor: "stat.numAttempts",
+            sortType: numericSortType,
           },
           {
             Header: "Num Correct",
             id: "numCorrect",
             accessor: "stat.numCorrect",
+            sortType: numericSortType,
           },
           /*
           {
@@ -130,6 +166,7 @@ const StatsPage = () => {
             Header: "Estimated Success Rate",
             id: "estimatedSuccessRate",
             accessor: "stat.estimatedSuccessRate",
+            sortType: numericSortType,
             Cell: ({ value }: { value: any }) => value.toFixed(3),
           },
         ],

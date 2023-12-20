@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
   <html lang="en">
     <body className={inter.className} id="root">
-      <div className="charcoal-bg text-white min-h-screen flex flex-col items-center">
+      <div className="charcoal-bg text-white min-h-screen">
         <Title />
         <NavBar />
         {children}

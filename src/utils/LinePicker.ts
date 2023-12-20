@@ -1,6 +1,5 @@
-import { db } from "@/app/db";
-import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
+import cdf from "@stdlib/stats-base-dists-beta-cdf";
 import { Attempt } from "./Attempt";
 
 export type MoveSelectionStrategy =
@@ -9,6 +8,25 @@ export type MoveSelectionStrategy =
   | "LINE_WEIGHTED"
   | "SPACED_REPITITION"
   | "DATABASE_WEIGHTED";
+
+const probabilityAboveThreshold = (
+  numerator: number,
+  denominator: number,
+  threshold: number,
+): number => {
+  if (denominator < numerator || numerator < 0 || denominator <= 0) {
+    throw new Error("Invalid input");
+  }
+
+  const alpha = numerator + 1;
+  const beta = denominator - numerator + 1;
+
+  // Calculate the CDF at the threshold
+  const cdfAtThreshold = cdf(threshold, alpha, beta);
+
+  // The probability that the true ratio is > threshold is 1 - CDF(threshold)
+  return 1 - cdfAtThreshold;
+};
 
 const weightedPick = <T>(elements: T[], weights: number[]): T => {
   if (elements.length !== weights.length) {
@@ -50,9 +68,10 @@ const pickElementWithMinWeight = <T>(elements: T[], weights: number[]): T => {
   return elements[minWeightIndex];
 };
 
-const calculateProbability = (
-  line: Line,
+export const calculateProbability = (
+  lineId: string,
   attempts: Attempt[],
+  confidenceThreshold: number = 0.9,
   defaultProbability: number = 0.5,
 ): number => {
   const totalNumberOfAttempts = attempts.length;
@@ -65,7 +84,7 @@ const calculateProbability = (
       };
     })
     .filter((attempt) => {
-      return attempt.attempt.lineId === line.lineId;
+      return attempt.attempt.lineId === lineId;
     });
 
   if (attemptsForLineAndIndices.length === 0) {
@@ -91,7 +110,11 @@ const calculateProbability = (
     0,
   );
 
-  const probability = weightedSuccesses / totalWeight;
+  const probability = probabilityAboveThreshold(
+    weightedSuccesses,
+    totalWeight,
+    confidenceThreshold,
+  );
 
   return probability;
 };
@@ -117,7 +140,9 @@ export const pickLine = (
     const probabilities = [];
     for (const line of lines) {
       const noise = Math.random() * 0.2 - 0.1;
-      probabilities.push(calculateProbability(line, attempts, 0.5) + noise);
+      probabilities.push(
+        calculateProbability(line.lineId, attempts, 0.5) + noise,
+      );
     }
 
     // Pick the line with the lowest "known probability"
