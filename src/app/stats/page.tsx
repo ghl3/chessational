@@ -88,6 +88,22 @@ const numericSortType = <T extends object>(
   return numA > numB ? 1 : -1;
 };
 
+const dateSortType = <T extends object>(
+  rowA: Row<T>,
+  rowB: Row<T>,
+  columnId: string,
+): number => {
+  const valueA = rowA.values[columnId];
+  const valueB = rowB.values[columnId];
+
+  const dateA = new Date(valueA);
+  const dateB = new Date(valueB);
+
+  if (dateA > dateB) return 1;
+  if (dateA < dateB) return -1;
+  return 0;
+};
+
 const StatsPage = () => {
   const studyData: StudyData = useStudyData();
 
@@ -140,17 +156,20 @@ const StatsPage = () => {
             accessor: "stat.numWrong",
           },
           */
-          /*
+
           {
             Header: "Latest Attempt",
             id: "latestAttempt",
             accessor: "stat.latestAttempt",
+            sortType: dateSortType,
             Cell: ({ value }: { value: string }) => {
               // Custom rendering logic for the 'Latest Attempt' column
               const date = new Date(value);
-              return date.toLocaleDateString(); // Format the date as needed
+              // Format the date as a date/time
+              return date.toLocaleString();
             },
           },
+          /*
           {
             Header: "Latest Success",
             id: "latestSuccess",
