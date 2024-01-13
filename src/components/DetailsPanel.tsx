@@ -65,30 +65,34 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       className="flex flex-col w-1/3 ml-6 space-y-2 "
       style={{ height: height ? `${height}px` : "auto" }}
     >
-      <div className="flex flex-row space-x-1">
-        <SwitchButton
-          onChange={toggleShowEngine}
-          checked={showEngine}
-          label="Engine"
-        />
-        <SwitchButton
-          onChange={toggleDatabase}
-          checked={showDatabase}
-          label="Database"
-        />
-        <SwitchButton
-          onChange={toggleShowChapter}
-          checked={showChapter}
-          label="Chapter"
-        />
-        <SwitchButton
-          onChange={toggleShowComments}
-          checked={showComments}
-          label="Comments"
-        />
-      </div>
-
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
+        <div className="flex flex-row justify-between text-sm">
+          <SwitchButton
+            onChange={toggleShowEngine}
+            checked={showEngine}
+            label="Engine"
+            labelPosition="top"
+          />
+          <SwitchButton
+            onChange={toggleDatabase}
+            checked={showDatabase}
+            label="Database"
+            labelPosition="top"
+          />
+          <SwitchButton
+            onChange={toggleShowChapter}
+            checked={showChapter}
+            label="Chapter"
+            labelPosition="top"
+          />
+          <SwitchButton
+            onChange={toggleShowComments}
+            checked={showComments}
+            label="Comments"
+            labelPosition="top"
+          />
+        </div>
+
         <ChapterInfo
           chapter={chapter}
           showChapter={showChapter}

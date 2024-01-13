@@ -22,16 +22,19 @@ const SuperTable = <T extends object>({
   return (
     <table {...getTableProps()} className="min-w-full divide-y divide-gray-700">
       <thead className="bg-gray-800">
-        {headerGroups.map((headerGroup: any) => (
-          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-            {headerGroup.headers.map((column: any) => (
+        {headerGroups.map((headerGroup: any, headerIdx: number) => (
+          <tr
+            {...headerGroup.getHeaderGroupProps()}
+            key={`header-tr-${headerIdx}`}
+          >
+            {headerGroup.headers.map((column: any, idx: number) => (
               <th
                 {...column.getHeaderProps(column.getSortByToggleProps())}
-                key={column.id}
+                key={`header-th-${headerIdx}-${idx}`}
                 className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
               >
                 {column.render("Header")}
-                <span>
+                <span key={`header-span-${headerIdx}-${idx}`}>
                   {column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}
                 </span>
               </th>
@@ -43,18 +46,18 @@ const SuperTable = <T extends object>({
         {...getTableBodyProps()}
         className="bg-gray-900 divide-y divide-gray-700"
       >
-        {rows.map((row: Row<T>) => {
+        {rows.map((row: Row<T>, trIdx: number) => {
           prepareRow(row);
           return (
             <tr
               {...row.getRowProps()}
-              key={row.id}
+              key={`row-tr-${trIdx}`}
               className="hover:bg-gray-700"
             >
-              {row.cells.map((cell: any) => (
+              {row.cells.map((cell: any, tdIdx: number) => (
                 <td
                   {...cell.getCellProps()}
-                  key={cell.column.id}
+                  key={`row-td-${trIdx}-${tdIdx}`}
                   className="px-6 py-4 whitespace-nowrap text-gray-300"
                 >
                   {cell.render("Cell")}

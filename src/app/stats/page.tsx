@@ -22,6 +22,7 @@ type AttemptStat = {
 };
 
 const getStats = (attempts: Attempt[]) => {
+  console.log("Starting getStats");
   const stats = new Map<string, AttemptStat>();
 
   for (const attempt of attempts) {
@@ -59,10 +60,9 @@ const getStats = (attempts: Attempt[]) => {
       attempts,
       0.5,
     );
-    // attemptStat.numCorrect / attemptStat.numAttempts;
-
-    // const prob =
   }
+
+  console.log("Finished getStats");
 
   return stats;
 };
@@ -149,13 +149,6 @@ const StatsPage = () => {
             accessor: "stat.numCorrect",
             sortType: numericSortType,
           },
-          /*
-          {
-            Header: "Num Wrong",
-            id: "numWrong",
-            accessor: "stat.numWrong",
-          },
-          */
 
           {
             Header: "Latest Attempt",
@@ -169,18 +162,7 @@ const StatsPage = () => {
               return date.toLocaleString();
             },
           },
-          /*
-          {
-            Header: "Latest Success",
-            id: "latestSuccess",
-            accessor: "stat.latestSuccess",
-            Cell: ({ value }: { value: string }) => {
-              // Custom rendering logic for the 'Latest Success' column
-              const date = new Date(value);
-              return date.toLocaleDateString(); // Format the date as needed
-            },
-          },
-          */
+
           {
             Header: "Estimated Success Rate",
             id: "estimatedSuccessRate",
