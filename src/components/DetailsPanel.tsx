@@ -11,6 +11,7 @@ import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
 import { ControlButton } from "./ControlButton";
 import { PositionDescription } from "./PositionDescription";
+import { SwitchButton } from "./SwitchButton";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
@@ -61,29 +62,29 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   return (
     <div
-      className="flex flex-col w-1/3 ml-6 space-y-2"
+      className="flex flex-col w-1/3 ml-6 space-y-2 "
       style={{ height: height ? `${height}px` : "auto" }}
     >
-      <div className="flex flex-row space-x-1 ">
-        <ControlButton
-          onClick={toggleShowEngine}
-          label={showEngine ? "Hide Engine" : "Show Engine"}
-          size={"small"}
+      <div className="flex flex-row space-x-1">
+        <SwitchButton
+          onChange={toggleShowEngine}
+          checked={showEngine}
+          label="Engine"
         />
-        <ControlButton
-          onClick={toggleDatabase}
-          label={showDatabase ? "Hide Database" : "Show Database"}
-          size={"small"}
+        <SwitchButton
+          onChange={toggleDatabase}
+          checked={showDatabase}
+          label="Database"
         />
-        <ControlButton
-          onClick={toggleShowChapter}
-          label={showChapter ? "Hide Chapter" : "Show Chapter"}
-          size={"small"}
+        <SwitchButton
+          onChange={toggleShowChapter}
+          checked={showChapter}
+          label="Chapter"
         />
-        <ControlButton
-          onClick={toggleShowComments}
-          label={showComments ? "Hide Comments" : "Show Comments"}
-          size={"small"}
+        <SwitchButton
+          onChange={toggleShowComments}
+          checked={showComments}
+          label="Comments"
         />
       </div>
 
