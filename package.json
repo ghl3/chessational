@@ -11,6 +11,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@stdlib/stats-base-dists-beta": "^0.1.0",
     "@stdlib/stats-base-dists-beta-cdf": "^0.1.0",
     "@vercel/analytics": "^1.1.1",
     "chess.js": "^1.0.0-beta.6",

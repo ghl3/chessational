@@ -1,6 +1,7 @@
 "use client";
 
 import { db } from "@/app/db";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import SuperTable from "@/components/SuperTable";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { Attempt } from "@/utils/Attempt";
@@ -185,9 +186,12 @@ const StatsPage = () => {
   }, [stats]);
 
   return (
-    <div>
+    <main>
+      <div className="flex flex-col items-center">
+        <StudyChapterSelector studyData={studyData} />
+      </div>
       <SuperTable columns={columns} data={data} />
-    </div>
+    </main>
   );
 };
 

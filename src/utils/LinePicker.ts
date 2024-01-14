@@ -1,5 +1,7 @@
 import { Line } from "@/chess/Line";
-import cdf from "@stdlib/stats-base-dists-beta-cdf";
+import { cdf, pdf } from "@stdlib/stats-base-dists-beta";
+//import cdf from "@stdlib/stats-base-dists-beta-cdf";
+
 import { Attempt } from "./Attempt";
 
 export type MoveSelectionStrategy =
@@ -8,6 +10,19 @@ export type MoveSelectionStrategy =
   | "LINE_WEIGHTED"
   | "SPACED_REPITITION"
   | "DATABASE_WEIGHTED";
+
+const probabilityWithPrior = (
+  numerator: number,
+  denominator: number,
+  numeratorPrior: number,
+  denominatorPrior: number,
+): number => {
+  if (denominator < numerator || numerator < 0 || denominator <= 0) {
+    throw new Error("Invalid input");
+  }
+
+  return (numerator + numeratorPrior) / (denominator + denominatorPrior);
+};
 
 const probabilityAboveThreshold = (
   numerator: number,
@@ -92,8 +107,8 @@ export const calculateProbability = (
   }
 
   const weightsAndsuccesses = attemptsForLineAndIndices.map((attempt) => {
-    // Drop by 1/e every 10 attempts
-    const epsilon = 10;
+    // Drop by 1/e every quarter of the way through the attempts
+    const epsilon = totalNumberOfAttempts / 4;
     const weight = Math.exp(-attempt.index / epsilon);
     const success = attempt.attempt.correct ? 1 : 0;
     return { weight, success };
@@ -110,10 +125,18 @@ export const calculateProbability = (
     0,
   );
 
-  const probability = probabilityAboveThreshold(
+  //const probability = probabilityAboveThreshold(
+  //  weightedSuccesses,
+  //  totalWeight,
+  //  confidenceThreshold,
+  //);
+
+  // Include a loose prior of 50% accuracy.
+  const probability = probabilityWithPrior(
     weightedSuccesses,
     totalWeight,
-    confidenceThreshold,
+    1,
+    2,
   );
 
   return probability;

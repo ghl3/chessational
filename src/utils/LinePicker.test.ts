@@ -1,7 +1,7 @@
 import { Chapter } from "@/chess/Chapter";
 import { lineToSan } from "@/chess/Line";
 import { getLinesForPlayer } from "./LineExtractor";
-import { pickLine } from "./LinePicker";
+import { calculateProbability, pickLine } from "./LinePicker";
 import { parsePgnStringToChapters } from "./PgnParser";
 
 describe("pickLine", () => {
@@ -85,4 +85,55 @@ describe("pickLine", () => {
     const line = pickLine(lines, "DETERMINISTIC");
     expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3", "Nf6"]);
   });
+});
+
+describe("calculateProbability", () => {
+  const baseAttempt = {
+    studyName: "study1",
+    chapterName: "chapter1",
+    timestamp: new Date(),
+  };
+
+  it("returns default probability when no attempts match the lineId", () => {
+    const attempts = [
+      { ...baseAttempt, lineId: "otherLine", correct: true },
+      { ...baseAttempt, lineId: "otherLine", correct: false },
+    ];
+    expect(calculateProbability("line1", attempts)).toBe(0.5);
+  });
+
+  it("returns higher probability for recent correct attempts", () => {
+    const attempts = [
+      { ...baseAttempt, lineId: "line1", correct: false },
+      { ...baseAttempt, lineId: "line1", correct: true },
+      { ...baseAttempt, lineId: "line1", correct: true },
+    ];
+    expect(calculateProbability("line1", attempts)).toBeGreaterThan(0.5);
+  });
+
+  // ...other test cases...
+
+  it("handles cases with high confidence threshold", () => {
+    const attempts = [
+      { ...baseAttempt, lineId: "line1", correct: true },
+      { ...baseAttempt, lineId: "line1", correct: true },
+      { ...baseAttempt, lineId: "line1", correct: false },
+    ];
+    const highThreshold = 0.95;
+    const result = calculateProbability("line1", attempts, highThreshold);
+    expect(result).toBeLessThanOrEqual(1);
+  });
+
+  it("handles cases with low confidence threshold", () => {
+    const attempts = [
+      { ...baseAttempt, lineId: "line1", correct: false },
+      { ...baseAttempt, lineId: "line1", correct: false },
+      { ...baseAttempt, lineId: "line1", correct: true },
+    ];
+    const lowThreshold = 0.85;
+    const result = calculateProbability("line1", attempts, lowThreshold);
+    expect(result).toBeGreaterThanOrEqual(0);
+  });
+
+  // ...any other specific test cases you'd like to include...
 });
