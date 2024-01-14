@@ -113,8 +113,20 @@ const StatsPage = () => {
   }, []);
 
   const stats = useMemo(() => {
-    return getStats(attempts || []);
-  }, [attempts]);
+    const studyChapterSet = new Set<string>();
+    for (const selectedChapter of studyData.selectedChapterNames || []) {
+      studyChapterSet.add(selectedChapter);
+    }
+
+    const selectedAttempts = attempts?.filter((attempt) => {
+      return (
+        attempt.studyName === studyData.selectedStudyName &&
+        studyChapterSet.has(attempt.chapterName)
+      );
+    });
+
+    return getStats(selectedAttempts || []);
+  }, [attempts, studyData.selectedStudyName, studyData.selectedChapterNames]);
 
   const columns = useMemo(
     () => [
