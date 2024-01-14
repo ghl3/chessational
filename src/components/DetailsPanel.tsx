@@ -72,24 +72,28 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
             checked={showEngine}
             label="Engine"
             labelPosition="top"
+            size="medium"
           />
           <SwitchButton
             onChange={toggleDatabase}
             checked={showDatabase}
             label="Database"
             labelPosition="top"
+            size="medium"
           />
           <SwitchButton
             onChange={toggleShowChapter}
             checked={showChapter}
             label="Chapter"
             labelPosition="top"
+            size="medium"
           />
           <SwitchButton
             onChange={toggleShowComments}
             checked={showComments}
             label="Comments"
             labelPosition="top"
+            size="medium"
           />
         </div>
 
