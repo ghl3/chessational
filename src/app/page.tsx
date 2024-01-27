@@ -16,13 +16,13 @@ import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
+import useEvaluationCache from "@/hooks/UseEvaluationCache";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { storeAttemptResult } from "@/utils/Attempt";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
-import Head from "next/head";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { db } from "./db";
 
@@ -67,15 +67,24 @@ const Home: React.FC = () => {
   }, [chessboardSize]);
 
   // Set up the engine listener on component load
-  const [positionEvaluation, setPositionEvaluation] =
-    useState<EvaluatedPosition | null>(null);
+
+  //const evaluationCache = useRef(new PositionEvaluationCache());
+
+  //const [positionEvaluation, setPositionEvaluation] =
+  //  useState<EvaluatedPosition | null>(null);
+
+  const [getEvaluation, addEvaluation] = useEvaluationCache();
+
   useEffect(() => {
     if (engine) {
-      engine.listener = (position: EvaluatedPosition) => {
-        setPositionEvaluation(position);
+      engine.listener = (evaluation: EvaluatedPosition) => {
+        console.log("SetPositionEvaluation - " + evaluation.fen);
+        addEvaluation(evaluation);
+        //evaluationCache.current.addNewEvaluation(evaluation);
+        //setPositionEvaluation(position);
       };
     }
-  }, []);
+  }, [addEvaluation]);
 
   const [runEngine, setRunEngine] = useState<boolean>(false);
   const onToggleShowEngine = useCallback((showEngine: boolean) => {
@@ -85,17 +94,22 @@ const Home: React.FC = () => {
   // Run the engine when needed
   const fen = chessboardState.getFen();
   useEffect(() => {
-    setPositionEvaluation(null);
+    console.log("Setting position evaluation to null");
+    //setPositionEvaluation(null);
 
     if (engine && runEngine && fen) {
       console.log("Canceling old position, running engine for: " + fen);
       engine.cancel();
       engine.evaluatePosition(fen).then((evaluation) => {
         console.log("Got Final Position Evaluation for: " + evaluation.fen);
-        setPositionEvaluation(evaluation);
+        console.log(evaluation);
+        addEvaluation(evaluation);
+        // evaluationCache.current.addNewEvaluation(evaluation);
+
+        // setPositionEvaluation(evaluation);
       });
     }
-  }, [fen, runEngine]);
+  }, [addEvaluation, fen, runEngine]);
 
   const enterExploreMode = useCallback(() => {
     setMode("EXPLORE");
@@ -348,6 +362,14 @@ const Home: React.FC = () => {
           },
         ]
       : [];
+
+  const positionEvaluation = useMemo(() => {
+    if (position == null) {
+      return null;
+    }
+
+    return getEvaluation(position.fen);
+  }, [position, getEvaluation]);
 
   return (
     <main className="flex flex-col items-center">

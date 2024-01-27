@@ -9,7 +9,6 @@ import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { useCallback, useState } from "react";
 import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
-import { ControlButton } from "./ControlButton";
 import { PositionDescription } from "./PositionDescription";
 import { SwitchButton } from "./SwitchButton";
 

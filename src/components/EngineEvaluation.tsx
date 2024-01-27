@@ -18,7 +18,8 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
   showEngine,
   positionEvaluation,
 }) => {
-  // Create a map of the position to moves to their evaluations
+  // Create a map that contains, for each Fen position,
+  // a map of all the moves to the evaluation of each move.
   const [moveEvals, setMoveEvals] = useState<
     Map<Fen, Map<string, MoveAndEvaluation>>
   >(new Map());
