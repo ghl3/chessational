@@ -66,8 +66,9 @@ const pickLineSpacedRepitition = (lines: Line[], attempts: Attempt[]): Line => {
   const probabilities = [];
   for (const line of lines) {
     const stats = lineStats.get(line.lineId);
+    const probability = stats?.estimatedSuccessRate || 0.5;
     const noise = Math.random() * 0.2 - 0.1;
-    probabilities.push((stats?.estimatedSuccessRate || 0) + noise);
+    probabilities.push(probability + noise);
   }
 
   return pickElementWithMinWeight(lines, probabilities);

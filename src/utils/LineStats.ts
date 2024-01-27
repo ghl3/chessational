@@ -63,7 +63,7 @@ export const calculateProbability = (
   attempts: Attempt[],
   defaultProbability: number = 0.5,
   currentTime: Date = new Date(),
-  halflifeInDays: number = 7,
+  halflifeInDays: number = 28,
 ): number => {
   const totalNumberOfAttempts = attempts.length;
 
