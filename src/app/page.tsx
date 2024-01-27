@@ -22,7 +22,7 @@ import { useStudyData } from "@/hooks/UseStudyData";
 import { storeAttemptResult } from "@/utils/Attempt";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
-import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 import { db } from "./db";
 
@@ -66,13 +66,6 @@ const Home: React.FC = () => {
     }
   }, [chessboardSize]);
 
-  // Set up the engine listener on component load
-
-  //const evaluationCache = useRef(new PositionEvaluationCache());
-
-  //const [positionEvaluation, setPositionEvaluation] =
-  //  useState<EvaluatedPosition | null>(null);
-
   const [getEvaluation, addEvaluation] = useEvaluationCache();
 
   useEffect(() => {
@@ -80,8 +73,6 @@ const Home: React.FC = () => {
       engine.listener = (evaluation: EvaluatedPosition) => {
         console.log("SetPositionEvaluation - " + evaluation.fen);
         addEvaluation(evaluation);
-        //evaluationCache.current.addNewEvaluation(evaluation);
-        //setPositionEvaluation(position);
       };
     }
   }, [addEvaluation]);
@@ -95,7 +86,6 @@ const Home: React.FC = () => {
   const fen = chessboardState.getFen();
   useEffect(() => {
     console.log("Setting position evaluation to null");
-    //setPositionEvaluation(null);
 
     if (engine && runEngine && fen) {
       console.log("Canceling old position, running engine for: " + fen);
@@ -104,9 +94,6 @@ const Home: React.FC = () => {
         console.log("Got Final Position Evaluation for: " + evaluation.fen);
         console.log(evaluation);
         addEvaluation(evaluation);
-        // evaluationCache.current.addNewEvaluation(evaluation);
-
-        // setPositionEvaluation(evaluation);
       });
     }
   }, [addEvaluation, fen, runEngine]);
@@ -363,13 +350,7 @@ const Home: React.FC = () => {
         ]
       : [];
 
-  const positionEvaluation = useMemo(() => {
-    if (position == null) {
-      return null;
-    }
-
-    return getEvaluation(position.fen);
-  }, [position, getEvaluation]);
+  const positionEvaluation = position ? getEvaluation(position.fen) : null;
 
   return (
     <main className="flex flex-col items-center">
