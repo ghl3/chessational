@@ -1,8 +1,10 @@
 import NavBar from "@/components/NavBar";
 import Title from "@/components/Title";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+
 import "./globals.css";
 
 // For details on the layout of this app, see:
@@ -24,6 +26,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
         {children}
       </div>
       <Analytics />
+      <SpeedInsights />
     </body>
   </html>
 );
