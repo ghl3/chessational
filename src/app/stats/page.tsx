@@ -5,68 +5,10 @@ import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import SuperTable from "@/components/SuperTable";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { Attempt } from "@/utils/Attempt";
-import { calculateProbability } from "@/utils/LinePicker";
+import { getStats } from "@/utils/LineStats";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 import { Row } from "react-table";
-
-type AttemptStat = {
-  study: string;
-  chapter: string;
-  lineId: string;
-  numAttempts: number;
-  numCorrect: number;
-  numWrong: number;
-  latestAttempt: Date;
-  latestSuccess: Date;
-  estimatedSuccessRate: number;
-};
-
-const getStats = (attempts: Attempt[]) => {
-  console.log("Starting getStats");
-  const stats = new Map<string, AttemptStat>();
-
-  for (const attempt of attempts) {
-    const lineId = attempt.lineId;
-    if (!stats.has(lineId)) {
-      stats.set(lineId, {
-        study: attempt.studyName,
-        chapter: attempt.chapterName,
-        lineId,
-        numAttempts: 0,
-        numCorrect: 0,
-        numWrong: 0,
-        latestAttempt: new Date(0),
-        latestSuccess: new Date(0),
-        estimatedSuccessRate: 0,
-      });
-    }
-    const attemptStat = stats.get(lineId);
-    if (!attemptStat) {
-      throw new Error("Unexpected missing attemptStat");
-    }
-    attemptStat.numAttempts++;
-    if (attempt.correct) {
-      attemptStat.numCorrect++;
-      attemptStat.latestSuccess = attempt.timestamp;
-    } else {
-      attemptStat.numWrong++;
-    }
-    attemptStat.latestAttempt =
-      attempt.timestamp > attemptStat.latestAttempt
-        ? attempt.timestamp
-        : attemptStat.latestAttempt;
-    attemptStat.estimatedSuccessRate = calculateProbability(
-      attempt.lineId,
-      attempts,
-      0.5,
-    );
-  }
-
-  console.log("Finished getStats");
-
-  return stats;
-};
 
 const numericSortType = <T extends object>(
   rowA: Row<T>,
