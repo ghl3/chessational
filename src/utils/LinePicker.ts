@@ -1,5 +1,5 @@
 import { Line } from "@/chess/Line";
-import { Attempt } from "./Attempt";
+import { Attempt } from "../chess/Attempt";
 import { LineStats, getStats } from "./LineStats";
 
 export type MoveSelectionStrategy =

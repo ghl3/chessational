@@ -1,10 +1,10 @@
 // db.ts
+import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { LichessDatabase } from "@/chess/DatabasePosition";
 import { Fen } from "@/chess/Fen";
 import { Line } from "@/chess/Line";
 import { Study } from "@/chess/Study";
-import { Attempt } from "@/utils/Attempt";
 import Dexie, { Table } from "dexie";
 
 export class OpeningsDb extends Dexie {

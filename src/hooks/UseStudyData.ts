@@ -1,9 +1,9 @@
 import { db } from "@/app/db";
+import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
-import { Attempt } from "@/utils/Attempt";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback } from "react";
 

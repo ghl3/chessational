@@ -1,5 +1,5 @@
 import { cdf, pdf } from "@stdlib/stats-base-dists-beta";
-import { Attempt } from "./Attempt";
+import { Attempt } from "../chess/Attempt";
 
 export type LineStats = {
   study: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { storeAttemptResult } from "@/chess/Attempt";
 import { Line, getLineStatus } from "@/chess/Line";
 import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
@@ -19,7 +20,6 @@ import {
 import useEvaluationCache from "@/hooks/UseEvaluationCache";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
-import { storeAttemptResult } from "@/utils/Attempt";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
