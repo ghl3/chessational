@@ -117,7 +117,6 @@ export const useStudyData = (): StudyData => {
 
       // If the study we're removing is the selected study,
       // then we need to pick a new selected study.
-
       if (selectedStudyName === studyName) {
         db.selectedStudyName.clear();
 
@@ -179,7 +178,15 @@ export const useStudyData = (): StudyData => {
       chapters.forEach((chapterAndLines) => {
         db.chapters.add(chapterAndLines.chapter);
         for (const line of chapterAndLines.lines) {
-          db.lines.add(line);
+          db.lines.add(line).catch((error) => {
+            if (error.name === "ConstraintError") {
+              // Ignore duplicate key errors.
+              // We could alternatively use put, but we want to
+              // keep the original line.
+            } else {
+              throw error;
+            }
+          });
         }
       });
 
