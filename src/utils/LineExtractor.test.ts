@@ -82,4 +82,21 @@ describe("pickLine", () => {
 
     expect(lines.map(lineToSan)).toEqual([["e4", "e5", "Nf3", "Nf6"]]);
   });
+
+  // Create a test that has a cross-chapter transposition
+  it("should move to transposition across chapters", () => {
+    const lines: Line[] = parseToLines(
+      `[Orientation "white"]
+      1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Bc4 *
+           
+      [Orientation "white"]
+      1. e4 e5 2. Nf3 Nf6 3. Nc3 d5 ( 3... Nc6) 4. exd5 *`,
+    );
+
+    expect(lines.map(lineToSan)).toEqual([
+      ["e4", "e5", "Nf3", "Nc6", "Nc3", "Nf6", "Bc4"],
+      ["e4", "e5", "Nf3", "Nf6", "Nc3", "d5", "exd5"],
+      ["e4", "e5", "Nf3", "Nf6", "Nc3", "Nc6", "Bc4"],
+    ]);
+  });
 });
