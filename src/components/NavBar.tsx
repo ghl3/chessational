@@ -29,14 +29,7 @@ const NavBar = () => {
         </li>
         <li
           className={pathname === "/tree" ? "border-b-2 border-blue-500" : ""}
-        >
-          <Link
-            href="/tree"
-            className="hover:text-blue-300 transition duration-300"
-          >
-            Tree
-          </Link>
-        </li>
+        ></li>
       </ul>
     </nav>
   );
