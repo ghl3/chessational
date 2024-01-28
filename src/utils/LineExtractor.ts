@@ -2,8 +2,8 @@ import { Chapter } from "@/chess/Chapter";
 import { Fen } from "@/chess/Fen";
 import { Line, createLineId } from "@/chess/Line";
 import { Position } from "@/chess/Position";
-import { PositionNode as Node, PositionTree } from "@/chess/PositionTree";
-import { Color } from "chess.js";
+import { PositionNode as Node } from "@/chess/PositionTree";
+import { ChapterAndLines } from "@/chess/StudyChapterAndLines";
 
 const getTranspositions = (
   node: Node,
@@ -20,7 +20,7 @@ const getTranspositions = (
   }
 };
 
-const createPositionIndex = (node: Node): Map<Fen, Node[]> => {
+const createPositionIndex = (chapters: Chapter[]): Map<Fen, Node[]> => {
   const positionIndex = new Map<Fen, Node[]>();
 
   const addNodeAndChildrenToIndex = (node: Node) => {
@@ -36,7 +36,9 @@ const createPositionIndex = (node: Node): Map<Fen, Node[]> => {
     node.children.forEach(addNodeAndChildrenToIndex);
   };
 
-  addNodeAndChildrenToIndex(node);
+  for (const chapter of chapters) {
+    addNodeAndChildrenToIndex(chapter.positionTree);
+  }
 
   return positionIndex;
 };
@@ -80,26 +82,25 @@ const getAllMoveLists = (
   }
 };
 
-export const getAllLines = (
+const getLinesFromChapter = (
   studyName: string,
   chapter: Chapter,
-  orientation: Color,
+  positionIndex: Map<Fen, Node[]>,
 ): Line[] => {
+  const orientation = chapter.orientation;
   var node: Node = chapter.positionTree;
-
   const playerHasFirstMove = orientation === "w";
 
   const positionLists: Position[][] = getAllMoveLists(
     node,
     [node.position],
     playerHasFirstMove,
-    createPositionIndex(node),
+    positionIndex,
   );
 
-  const lines = [];
-
+  const allLines = [];
   for (let positions of positionLists) {
-    lines.push({
+    allLines.push({
       studyName,
       chapterName: chapter.name,
       lineId: createLineId(positions),
@@ -107,17 +108,6 @@ export const getAllLines = (
       orientation: orientation,
     });
   }
-
-  return lines;
-};
-
-export const getLinesForPlayer = (
-  studyName: string,
-  chapter: Chapter,
-): Line[] => {
-  // Get all non-empty lines
-  const orientation = chapter.orientation;
-  const allLines = getAllLines(studyName, chapter, orientation);
 
   const filteredLines = allLines.filter((line) => {
     return line.positions.length > 0;
@@ -140,4 +130,16 @@ export const getLinesForPlayer = (
   });
 
   return lines;
+};
+
+export const getLinesFromChapters = (
+  studyName: string,
+  chapters: Chapter[],
+): ChapterAndLines[] => {
+  const positionIndex = createPositionIndex(chapters);
+
+  return chapters.map((chapter) => {
+    const lines = getLinesFromChapter(studyName, chapter, positionIndex);
+    return { chapter, lines };
+  });
 };

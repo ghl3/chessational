@@ -71,7 +71,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     if (engine) {
       engine.listener = (evaluation: EvaluatedPosition) => {
-        console.log("SetPositionEvaluation - " + evaluation.fen);
         addEvaluation(evaluation);
       };
     }
@@ -85,14 +84,9 @@ const Home: React.FC = () => {
   // Run the engine when needed
   const fen = chessboardState.getFen();
   useEffect(() => {
-    console.log("Setting position evaluation to null");
-
     if (engine && runEngine && fen) {
-      console.log("Canceling old position, running engine for: " + fen);
       engine.cancel();
       engine.evaluatePosition(fen).then((evaluation) => {
-        console.log("Got Final Position Evaluation for: " + evaluation.fen);
-        console.log(evaluation);
         addEvaluation(evaluation);
       });
     }
@@ -131,7 +125,7 @@ const Home: React.FC = () => {
 
   const initializeLine = useCallback(
     (lineAndChapter: LineAndChapter) => {
-      const { line, chapter } = lineAndChapter;
+      const { line } = lineAndChapter;
 
       enterLineMode();
 
@@ -254,7 +248,8 @@ const Home: React.FC = () => {
 
       // If the current board position is not the next position in the line,
       // we don't accept the move.  This can happen if the user uses
-      // the left/right arrows to move around the line.
+      // the left/right arrows to move around the line and then tries to move
+      // when not in the latest position in the line.
       if (
         lineAndChapter.line.positions[lineIndex] !=
         chessboardState.getPosition()
@@ -269,6 +264,7 @@ const Home: React.FC = () => {
       if (nextMoveInLine == null) {
         throw new Error("nextMoveInLine is null");
       }
+
       if (
         nextMoveInLine.from === sourceSquare &&
         nextMoveInLine.to === targetSquare &&

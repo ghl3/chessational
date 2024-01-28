@@ -1,9 +1,6 @@
 import { Chapter } from "@/chess/Chapter";
-import {
-  ChapterAndLines,
-  StudyChapterAndLines,
-} from "@/chess/StudyChapterAndLines";
-import { getLinesForPlayer } from "./LineExtractor";
+import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { getLinesFromChapters } from "./LineExtractor";
 import { parsePgnStringToChapters } from "./PgnParser";
 
 export const fetchStudy = async (
@@ -30,13 +27,9 @@ export const fetchStudy = async (
   const { pgnText } = await res.json();
 
   const chapters: Chapter[] = parsePgnStringToChapters(pgnText);
-
   const studyName = chapters[0].studyName;
 
-  const chapterAndLines: ChapterAndLines[] = chapters.map((chapter) => {
-    const lines = getLinesForPlayer(studyName, chapter);
-    return { chapter, lines };
-  });
+  const chapterAndLines = getLinesFromChapters(studyName, chapters);
 
   if (chapterAndLines.length === 0) {
     throw new Error("Study has no chapters");
