@@ -16,6 +16,43 @@ interface StudyAdderEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
+interface StudySelectorProps {
+  studies: Study[];
+  selectedStudy: Study | null;
+  selectStudy: (studyName: string) => void;
+  addStudyAndChapters: (study: StudyChapterAndLines) => void;
+  deleteStudy: (studyName: string) => void;
+}
+
+const StudySelector: React.FC<StudySelectorProps> = ({
+  studies,
+  selectedStudy,
+  selectStudy,
+  addStudyAndChapters,
+  deleteStudy,
+}) => {
+  return (
+    <div className="flex flex-col items-center  space-y-4">
+      <StudyCardList
+        studies={studies}
+        selectedStudy={selectedStudy}
+        selectStudy={selectStudy}
+        addStudyAndChapters={addStudyAndChapters}
+        deleteStudy={deleteStudy}
+      />
+      <StudyAdder addStudyAndChapters={addStudyAndChapters} />
+    </div>
+  );
+};
+
+const LoadingScreen: React.FC = () => {
+  return (
+    <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full flex items-center justify-center">
+      <span className="text-white">Loading...</span>
+    </div>
+  );
+};
+
 export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   studies,
   selectedStudy,
@@ -42,6 +79,12 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
 
   const title = selectedStudy == null ? "Add Study" : selectedStudy.name;
 
+  // State Machine:
+  // Initial State (No Studies Present, No Studies Selected)
+  // 1. Add Study
+  // 2. Add Study and Chapters
+  // 3. Delete Study
+
   return (
     <div className="flex space-x-4">
       <button
@@ -58,16 +101,13 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
         className="modal bg-gray-800 mx-auto rounded-lg p-6 max-w-xl w-full"
         overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
       >
-        <div className="flex flex-col items-center  space-y-4">
-          <StudyCardList
-            studies={studies}
-            selectedStudy={selectedStudy}
-            selectStudy={selectStudy}
-            addStudyAndChapters={addStudyAndChapters}
-            deleteStudy={deleteStudy}
-          />
-          <StudyAdder addStudyAndChapters={addStudyAndChapters} />
-        </div>
+        <StudySelector
+          studies={studies}
+          selectedStudy={selectedStudy}
+          selectStudy={selectStudy}
+          addStudyAndChapters={addStudyAndChapters}
+          deleteStudy={deleteStudy}
+        />
       </Modal>
     </div>
   );
