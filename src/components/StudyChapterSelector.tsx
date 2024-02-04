@@ -2,6 +2,7 @@ import { StudyData } from "@/hooks/UseStudyData";
 import React, { useCallback } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudyAdder } from "./StudyAdder";
+import { StudyAdderEditor } from "./StudyAdderEditor";
 import { StudyRefresher } from "./StudyRefresher";
 import { StudySelector } from "./StudySelector";
 
@@ -53,13 +54,13 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         />
       ) : null}
 
-      <StudyRefresher
-        selectedStudy={studyData.selectedStudy}
-        removeStudy={studyData.removeStudy}
-        addStudyAndChapters={studyData.addStudyAndChapters}
+      <StudyAdderEditor
+        studies={studies}
+        selectedStudyName={studyData.selectedStudy?.name || null}
+        selectStudy={studyData.selectStudy}
+        //removeStudy={studyData.removeStudy}
+        // addStudyAndChapters={studyData.addStudyAndChapters}
       />
-
-      <StudyAdder addStudyAndChapters={studyData.addStudyAndChapters} />
     </div>
   );
 };
