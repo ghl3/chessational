@@ -1,9 +1,7 @@
 import { StudyData } from "@/hooks/UseStudyData";
 import React, { useCallback } from "react";
 import { ChapterSelector } from "./ChapterSelector";
-import { StudyAdder } from "./StudyAdder";
 import { StudyAdderEditor } from "./StudyAdderEditor";
-import { StudyRefreshButton } from "./StudyRefreshButton";
 import { StudySelector } from "./StudySelector";
 
 interface StudyChapterSelectorProps
@@ -45,6 +43,14 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
         />
       ) : null}
 
+      <StudyAdderEditor
+        studies={studies}
+        selectedStudy={studyData.selectedStudy || null}
+        selectStudy={studyData.selectStudy}
+        deleteStudy={studyData.removeStudy}
+        addStudyAndChapters={studyData.addStudyAndChapters}
+      />
+
       {studies && studies.length > 0 ? (
         <ChapterSelector
           chapters={chapterNames || []}
@@ -53,14 +59,6 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
           deselectChapter={studyData.removeSelectedChapterName}
         />
       ) : null}
-
-      <StudyAdderEditor
-        studies={studies}
-        selectedStudy={studyData.selectedStudy || null}
-        selectStudy={studyData.selectStudy}
-        deleteStudy={studyData.removeStudy}
-        addStudyAndChapters={studyData.addStudyAndChapters}
-      />
     </div>
   );
 };

@@ -16,12 +16,6 @@ interface StudyAdderEditorProps extends React.HTMLAttributes<HTMLDivElement> {
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
-const extractStudyName = (url: string) => {
-  const regex = /(?:https?:\/\/(?:www\.)?lichess\.org\/study\/)?([a-zA-Z0-9]+)/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-};
-
 export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   studies,
   selectedStudy,
@@ -46,99 +40,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     setIsModalOpen(false);
   };
 
-  const [studyUrl, setStudyUrl] = useState("");
-  /*
-  // TODO: Don't re-add the same study
-  const addStudy = useCallback(
-    (study: Study) => {
-      setStudies((prevStudies) => [...prevStudies, study]);
-    },
-    [setStudies],
-  );
-  */
-
-  /*
-  const fetchStudyData = useCallback(
-    async (studyUrl: string) => {
-      setIsLoading(true);
-      try {
-        const study: StudyChapterAndLines = await fetchStudy(studyUrl);
-        if (study.chapters.length === 0) {
-          throw new Error("Study has no chapters");
-        }
-
-        addStudyAndChapters(study);
-        //selectStudy(study.study.name);
-        // Default all the chapters to selected
-        //setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
-        setStudyUrl("");
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Failed to get study:", error);
-        setIsLoading(false);
-      }
-    },
-    [addStudyAndChapters],
-  );
-  */
-
-  /*
-
-  // Handle when the user is typing a new URL
-  const handleStudyUrlChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setStudyUrl(e.target.value);
-    },
-    [],
-  );
-
-  // Handle when the user presses enter
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        fetchStudyData(studyUrl).then(closeModal);
-      }
-    },
-    [studyUrl, fetchStudyData],
-  );
-
-  // Handle when the user presses enter
-  const onStudySubmit = useCallback(() => {
-    if (!studyUrl || studyUrl === "") {
-      throw new Error("Study URL is empty");
-    }
-    const studyName = extractStudyName(studyUrl);
-    if (studyName === null) {
-      throw new Error("Please enter a valid Lichess study URL");
-    }
-    fetchStudyData(studyName).then(closeModal);
-  }, [studyUrl, fetchStudyData]);
-
-  const title = selectedStudy == null ? "Add Study" : "Add/Edit Study";
-
-  const handleDelete = useCallback((studyName: string) => {
-    setStudyToDelete(studyName);
-    setShowDialog(true);
-  }, []);
-
-  const onConfirmDeleteYes = useCallback(() => {
-    if (studyToDelete == null) {
-      throw new Error("selectedStudy is null");
-    }
-    // Perform delete action here
-    deleteStudy(studyToDelete);
-    setShowDialog(false);
-    setIsOpen(false);
-    setStudyToDelete(null);
-  }, [studyToDelete, onStudyDelete]);
-
-  const onConfirmDeleteNo = useCallback(() => {
-    setShowDialog(false);
-    setIsOpen(false);
-    setStudyToDelete(null);
-  }, []);
-
-  */
+  const title = selectedStudy == null ? "Add Study" : selectedStudy.name;
 
   return (
     <div className="flex space-x-4">
@@ -146,24 +48,25 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
         className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
         onClick={openModal}
       >
-        {"Foobar"}
+        {title}
       </button>
 
       <Modal
         isOpen={isModalOpen}
         onRequestClose={closeModal}
         contentLabel="Add Study Modal"
-        className="modal"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        className="modal bg-gray-800 mx-auto rounded-lg p-6 max-w-xl w-full"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
       >
-        <div>
-          <StudyAdder addStudyAndChapters={addStudyAndChapters} />
+        <div className="flex flex-col items-center  space-y-4">
           <StudyCardList
             studies={studies}
             selectedStudy={selectedStudy}
+            selectStudy={selectStudy}
             addStudyAndChapters={addStudyAndChapters}
             deleteStudy={deleteStudy}
           />
+          <StudyAdder addStudyAndChapters={addStudyAndChapters} />
         </div>
       </Modal>
     </div>

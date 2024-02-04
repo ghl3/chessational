@@ -1,11 +1,12 @@
 import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
-import React, { useState } from "react";
+import React from "react";
 import StudyCard from "./StudyCard";
 
 interface StudyCardListProps {
   studies: Study[];
   selectedStudy: Study | null;
+  selectStudy: (studyName: string) => void;
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
   deleteStudy: (studyName: string) => void;
 }
@@ -13,30 +14,23 @@ interface StudyCardListProps {
 const StudyCardList: React.FC<StudyCardListProps> = ({
   studies,
   selectedStudy,
+  selectStudy,
   addStudyAndChapters,
   deleteStudy,
 }) => {
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-
-  const handleSelectCard = (studyName: string) => {
-    setSelectedCardId(studyName);
-    console.log("Select card", studyName);
-  };
-
   return (
     <div className="space-y-4">
       {studies.map((study) => (
         <div
           key={study.name}
-          onClick={() => handleSelectCard(study.name)}
-          className={`cursor-pointer transition-opacity duration-300 ease-in-out ${
-            selectedStudy?.name === study.name ? "opacity-100" : "opacity-50"
-          }`}
+          onClick={() => selectStudy(study.name)}
+          className="cursor-pointer transition-opacity duration-300 ease-in-out"
         >
           <StudyCard
             study={study}
             addStudyAndChapters={addStudyAndChapters}
-            deleteStudy={() => deleteStudy(study.name)}
+            deleteStudy={deleteStudy}
+            isSelected={selectedStudy?.name === study.name}
           />
         </div>
       ))}

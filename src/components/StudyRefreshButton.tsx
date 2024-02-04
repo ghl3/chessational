@@ -34,7 +34,7 @@ export const StudyRefreshButton: React.FC<StudyRefreshButtonProps> = ({
 
   return (
     <button
-      className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
+      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:outline-none focus:ring-blue-300"
       onClick={onSubmit}
     >
       Refresh Study
