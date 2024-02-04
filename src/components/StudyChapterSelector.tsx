@@ -3,7 +3,7 @@ import React, { useCallback } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudyAdder } from "./StudyAdder";
 import { StudyAdderEditor } from "./StudyAdderEditor";
-import { StudyRefresher } from "./StudyRefresher";
+import { StudyRefreshButton } from "./StudyRefreshButton";
 import { StudySelector } from "./StudySelector";
 
 interface StudyChapterSelectorProps
@@ -56,10 +56,10 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
 
       <StudyAdderEditor
         studies={studies}
-        selectedStudyName={studyData.selectedStudy?.name || null}
+        selectedStudy={studyData.selectedStudy || null}
         selectStudy={studyData.selectStudy}
-        //removeStudy={studyData.removeStudy}
-        // addStudyAndChapters={studyData.addStudyAndChapters}
+        deleteStudy={studyData.removeStudy}
+        addStudyAndChapters={studyData.addStudyAndChapters}
       />
     </div>
   );

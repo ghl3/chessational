@@ -1,19 +1,19 @@
 "use client";
 
 import { Study } from "@/chess/Study";
+
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
-import { fetchStudy } from "@/utils/StudyFetcher";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "react-modal";
+import { StudyAdder } from "./StudyAdder";
 import StudyCardList from "./StudyCardList";
 
 interface StudyAdderEditorProps extends React.HTMLAttributes<HTMLDivElement> {
-  selectedStudyName: string | null;
+  selectedStudy: Study | null;
   studies: Study[];
-  // removeStudy: (studyName: string) => void;
-  // addStudyAndChapters: (study: StudyChapterAndLines) => void;
-  //  deleteStudy: (studyName: string) => void;
+  deleteStudy: (studyName: string) => void;
   selectStudy: (studyName: string) => void;
+  addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
 const extractStudyName = (url: string) => {
@@ -24,11 +24,10 @@ const extractStudyName = (url: string) => {
 
 export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   studies,
-  selectedStudyName,
+  selectedStudy,
   selectStudy,
-  //  removeStudy,
-  // addStudyAndChapters,
-  // deleteStudy,
+  addStudyAndChapters,
+  deleteStudy,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -157,7 +156,15 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
         className="modal"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       >
-        <StudyCardList studies={studies} selectedStudy={selectedStudyName} />
+        <div>
+          <StudyAdder addStudyAndChapters={addStudyAndChapters} />
+          <StudyCardList
+            studies={studies}
+            selectedStudy={selectedStudy}
+            addStudyAndChapters={addStudyAndChapters}
+            deleteStudy={deleteStudy}
+          />
+        </div>
       </Modal>
     </div>
   );

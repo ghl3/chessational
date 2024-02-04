@@ -1,34 +1,26 @@
+import { Study } from "@/chess/Study";
+import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import React, { useState } from "react";
-import StudyCard from "./StudyCard"; // Ensure this path is correct
-
-interface Study {
-  name: string;
-  // Add any other properties that the Study type should have
-}
+import StudyCard from "./StudyCard";
 
 interface StudyCardListProps {
   studies: Study[];
-  selectedStudy: string | null;
+  selectedStudy: Study | null;
+  addStudyAndChapters: (study: StudyChapterAndLines) => void;
+  deleteStudy: (studyName: string) => void;
 }
 
 const StudyCardList: React.FC<StudyCardListProps> = ({
   studies,
   selectedStudy,
+  addStudyAndChapters,
+  deleteStudy,
 }) => {
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   const handleSelectCard = (studyName: string) => {
-    setSelectedCardId(studyName); // Assuming study names are unique
+    setSelectedCardId(studyName);
     console.log("Select card", studyName);
-  };
-
-  const handleRefresh = (studyName: string) => {
-    console.log("Refresh card", studyName);
-  };
-
-  const handleDelete = (studyName: string) => {
-    console.log("Delete card", studyName);
-    // Optionally, implement logic to remove the study from the list
   };
 
   return (
@@ -38,13 +30,13 @@ const StudyCardList: React.FC<StudyCardListProps> = ({
           key={study.name}
           onClick={() => handleSelectCard(study.name)}
           className={`cursor-pointer transition-opacity duration-300 ease-in-out ${
-            selectedStudy === study.name ? "opacity-100" : "opacity-50"
+            selectedStudy?.name === study.name ? "opacity-100" : "opacity-50"
           }`}
         >
           <StudyCard
-            name={study.name}
-            onRefresh={() => handleRefresh(study.name)}
-            onDelete={() => handleDelete(study.name)}
+            study={study}
+            addStudyAndChapters={addStudyAndChapters}
+            deleteStudy={() => deleteStudy(study.name)}
           />
         </div>
       ))}
