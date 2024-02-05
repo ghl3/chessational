@@ -5,7 +5,6 @@ import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { fetchStudy } from "@/utils/StudyFetcher";
 import React, { useCallback, useEffect, useState } from "react";
 import Modal from "react-modal";
-import { StudyAdder } from "./StudyAdder";
 import StudyCardList from "./StudyCardList";
 import StudyInput from "./StudyInput";
 
@@ -64,11 +63,11 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     async (studyId: string): Promise<StudyChapterAndLines> => {
       setIsLoading(true);
       const studyChapterAndLines = await fetchStudy(studyId);
-      addStudyAndChapters(studyChapterAndLines);
+      //addStudyAndChapters(studyChapterAndLines);
       setIsLoading(false);
       return studyChapterAndLines;
     },
-    [addStudyAndChapters],
+    [],
   );
 
   const getModalContent = () => {

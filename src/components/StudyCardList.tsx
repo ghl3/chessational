@@ -7,7 +7,7 @@ interface StudyCardListProps {
   studies: Study[];
   selectedStudy: Study | null;
   selectStudy: (studyName: string) => void;
-  loadStudy: (studyId: string) => Promise<StudyChapterAndLines>;
+  fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
   deleteStudy: (studyName: string) => void;
 }
@@ -16,7 +16,7 @@ const StudyCardList: React.FC<StudyCardListProps> = ({
   studies,
   selectedStudy,
   selectStudy,
-  loadStudy,
+  fetchStudy,
   addStudyAndChapters,
   deleteStudy,
 }) => {
@@ -30,7 +30,7 @@ const StudyCardList: React.FC<StudyCardListProps> = ({
         >
           <StudyCard
             study={study}
-            loadStudy={loadStudy}
+            fetchStudy={fetchStudy}
             addStudyAndChapters={addStudyAndChapters}
             deleteStudy={deleteStudy}
             isSelected={selectedStudy?.name === study.name}
