@@ -2,35 +2,29 @@
 
 import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
-import { fetchStudy } from "@/utils/StudyFetcher";
 import { useCallback } from "react";
 
 interface StudyRefreshButtonProps extends React.HTMLAttributes<HTMLDivElement> {
   study: Study;
   deleteStudy: (studyName: string) => void;
+  fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
 export const StudyRefreshButton: React.FC<StudyRefreshButtonProps> = ({
   study,
   deleteStudy,
+  fetchStudy,
   addStudyAndChapters,
 }) => {
-  const refreshStudy = useCallback(
-    async (study: Study) => {
-      deleteStudy(study.name);
-      const updatedStudy: StudyChapterAndLines = await fetchStudy(study.url);
-      if (updatedStudy.chapters.length === 0) {
-        throw new Error("Study has no chapters");
-      }
-      addStudyAndChapters(updatedStudy);
-    },
-    [deleteStudy, addStudyAndChapters],
-  );
-
   const onSubmit = useCallback(async () => {
-    refreshStudy(study);
-  }, [refreshStudy, study]);
+    deleteStudy(study.name);
+    const updatedStudy: StudyChapterAndLines = await fetchStudy(study.url);
+    if (updatedStudy.chapters.length === 0) {
+      throw new Error("Study has no chapters");
+    }
+    addStudyAndChapters(updatedStudy);
+  }, [addStudyAndChapters, deleteStudy, fetchStudy, study.name, study.url]);
 
   return (
     <button

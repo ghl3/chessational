@@ -7,12 +7,14 @@ import { StudyRefreshButton } from "./StudyRefreshButton";
 interface StudyCardProps {
   study: Study;
   deleteStudy: (studyName: string) => void;
+  fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
   isSelected?: boolean;
 }
 
 const StudyCard: React.FC<StudyCardProps> = ({
   study,
+  fetchStudy,
   addStudyAndChapters,
   deleteStudy,
   isSelected = false,
@@ -31,6 +33,7 @@ const StudyCard: React.FC<StudyCardProps> = ({
           <StudyRefreshButton
             study={study}
             deleteStudy={deleteStudy}
+            fetchStudy={fetchStudy}
             addStudyAndChapters={addStudyAndChapters}
           />
           <StudyDeleteButton study={study} deleteStudy={deleteStudy} />
