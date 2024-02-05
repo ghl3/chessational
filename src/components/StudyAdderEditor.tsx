@@ -5,6 +5,7 @@ import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { fetchStudy } from "@/utils/StudyFetcher";
 import React, { useCallback, useEffect, useState } from "react";
 import Modal from "react-modal";
+import DeleteConfirmation from "./DeleteConfirmation";
 import StudyCardList from "./StudyCardList";
 import StudyInput from "./StudyInput";
 
@@ -33,8 +34,6 @@ const AddStudyButton = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-//type Mode = "add-study" | "select-study" | "loading";
-
 export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   studies,
   selectedStudy,
@@ -42,14 +41,11 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   addStudyAndChapters,
   deleteStudy,
 }) => {
-  // Modes:
-  // Add Study
-  // Select Study (or add)
-  // Loading
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isStudyInput, setIsStudyInput] = useState(false);
+  const [isDeleteConfirmation, setIsDeleteConfirmation] = useState(false);
+  const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     Modal.setAppElement("#root");
@@ -63,16 +59,36 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     async (studyId: string): Promise<StudyChapterAndLines> => {
       setIsLoading(true);
       const studyChapterAndLines = await fetchStudy(studyId);
-      //addStudyAndChapters(studyChapterAndLines);
       setIsLoading(false);
       return studyChapterAndLines;
     },
     [],
   );
 
+  const showDeleteConfirmation = useCallback((studyName: string) => {
+    setIsDeleteConfirmation(true);
+    setStudyToDelete(studyName);
+  }, []);
+
   const getModalContent = () => {
     if (isLoading) {
       return <LoadingScreen />;
+    } else if (isDeleteConfirmation) {
+      return (
+        <DeleteConfirmation
+          onConfirmDeleteYes={() => {
+            if (studyToDelete === null) {
+              throw new Error("selectedStudy is null");
+            }
+            deleteStudy(studyToDelete);
+            setIsDeleteConfirmation(false);
+            setIsModalOpen(false);
+          }}
+          onConfirmDeleteNo={() => {
+            setIsDeleteConfirmation(false);
+          }}
+        />
+      );
     } else if (isStudyInput || studies.length === 0) {
       return (
         <StudyInput
@@ -97,7 +113,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
             selectStudy={selectStudy}
             fetchStudy={fetchAndSetLoading}
             addStudyAndChapters={addStudyAndChapters}
-            deleteStudy={deleteStudy}
+            deleteStudy={showDeleteConfirmation}
           />
           <AddStudyButton onClick={() => setIsStudyInput(true)} />
         </div>
