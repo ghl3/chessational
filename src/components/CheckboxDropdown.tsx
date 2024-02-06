@@ -9,7 +9,6 @@ interface CheckboxDropdownProps {
   text: string;
   options: Option[];
   selectedOptions: string[];
-  //setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
   selectOption: (optionValue: string) => void;
   deselectOption: (optionValue: string) => void;
   defaultOn?: boolean;
@@ -21,14 +20,13 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   selectedOptions,
   selectOption,
   deselectOption,
-  //setSelectedOptions,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const buttonRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Ensure that the button and dropdown are  sized appropriately
+  // Ensure that the button and dropdown are sized appropriately
   const [buttonWidth, setButtonWidth] = useState(0);
   useEffect(() => {
     if (buttonRef.current) {
@@ -37,7 +35,6 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   }, [buttonRef]);
 
   // Close dropdown when clicking outside
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const isClickOnButton =
@@ -65,34 +62,20 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
   const toggleDropdown = useCallback(() => {
     setIsOpen((isOpen) => !isOpen);
   }, []);
-  /*
-  const toggleOption = (optionValue: string) => {
-    setSelectedOptions((prevSelectedOptions) =>
-      prevSelectedOptions.includes(optionValue)
-        ? prevSelectedOptions.filter((value) => value !== optionValue)
-        : [...prevSelectedOptions, optionValue],
-    );
-  };
-*/
+
   const selectAll = () => {
-    for (const option of options) {
-      selectOption(option.value);
-    }
-    //setSelectedOptions(options.map((option) => option.value));
+    options.forEach((option) => selectOption(option.value));
   };
 
   const clearAll = () => {
-    for (const option of options) {
-      deselectOption(option.value);
-    }
-    //setSelectedOptions([]);
+    options.forEach((option) => deselectOption(option.value));
   };
 
   return (
     <div className="relative">
       <div
         ref={buttonRef}
-        className="border rounded p-2 cursor-pointer flex justify-between items-center whitespace-nowrap"
+        className="border rounded p-2 cursor-pointer flex justify-between items-center whitespace-nowrap hover:bg-gray-700"
         onClick={toggleDropdown}
       >
         <span>{text}</span>
@@ -116,10 +99,14 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
           className="absolute z-10 border border-gray-400 rounded p-2 bg-black w-auto"
         >
           {options.map((option) => (
-            <div key={option.value} className="whitespace-nowrap">
+            <div
+              key={option.value}
+              className="whitespace-nowrap hover:bg-gray-700 p-1 rounded"
+            >
               <input
                 type="checkbox"
                 id={option.value}
+                className="mr-2"
                 checked={selectedOptions.includes(option.value)}
                 onChange={() => {
                   if (selectedOptions.includes(option.value)) {
@@ -129,14 +116,22 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
                   }
                 }}
               />
-              <label htmlFor={option.value}>{option.label}</label>
+              <label htmlFor={option.value} className="cursor-pointer">
+                {option.label}
+              </label>
             </div>
           ))}
           <div className="flex justify-between mt-2">
-            <button className="border rounded p-2" onClick={selectAll}>
+            <button
+              className="border rounded p-2 hover:bg-gray-700"
+              onClick={selectAll}
+            >
               Select All
             </button>
-            <button className="border rounded p-2" onClick={clearAll}>
+            <button
+              className="border rounded p-2 hover:bg-gray-700"
+              onClick={clearAll}
+            >
               Clear All
             </button>
           </div>

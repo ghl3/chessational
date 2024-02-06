@@ -3,7 +3,6 @@ import CheckboxDropdown, { Option } from "./CheckboxDropdown";
 interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
   chapters: string[];
   selectedChapters: string[] | null;
-  //setSelectedChapters: React.Dispatch<React.SetStateAction<string[]>>;
   selectChapter: (chapterName: string) => void;
   deselectChapter: (chapterName: string) => void;
 }
@@ -11,7 +10,6 @@ interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
 export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   chapters,
   selectedChapters,
-  //  setSelectedChapters,
   selectChapter,
   deselectChapter,
 }) => {
