@@ -70,6 +70,11 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     setStudyToDelete(studyName);
   }, []);
 
+  const selectStudyAndCloseModal = (studyName: string) => {
+    selectStudy(studyName);
+    setIsModalOpen(false);
+  };
+
   const getModalContent = () => {
     if (isLoading) {
       return <LoadingScreen />;
@@ -110,7 +115,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
           <StudyCardList
             studies={studies}
             selectedStudy={selectedStudy}
-            selectStudy={selectStudy}
+            selectStudy={selectStudyAndCloseModal}
             fetchStudy={fetchAndSetLoading}
             addStudyAndChapters={addStudyAndChapters}
             deleteStudy={showDeleteConfirmation}
