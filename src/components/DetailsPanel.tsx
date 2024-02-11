@@ -59,10 +59,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     setShowComments((showComments) => !showComments);
   }, []);
 
+  const width = Math.floor(0.75 * height);
+
   return (
     <div
-      className="flex flex-col w-1/3 ml-6 space-y-2 "
-      style={{ height: height ? `${height}px` : "auto" }}
+      className="flex flex-col w-1/3  space-y-2 "
+      style={{
+        height: height ? `${height}px` : "auto",
+        minWidth: `${width}px`,
+      }}
     >
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
         <div className="flex flex-row justify-between text-sm">

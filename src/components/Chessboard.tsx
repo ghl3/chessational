@@ -1,11 +1,11 @@
+import { PieceCount, getPieceCounts } from "@/chess/Fen";
+import useArrowKeys from "@/hooks/UseArrowKeys";
+import { ChessboardState } from "@/hooks/UseChessboardState";
+import { BLACK, DEFAULT_POSITION, WHITE } from "chess.js";
 import React, { HTMLAttributes, useCallback, useState } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import useArrowKeys from "@/hooks/UseArrowKeys";
-import { ChessboardState } from "@/hooks/UseChessboardState";
 import ChessboardButtons from "./ChessboardButtons";
-import { PieceCount, getPieceCounts } from "@/chess/Fen";
-import { WHITE, BLACK, DEFAULT_POSITION } from "chess.js";
 import { MaterialDiff } from "./MaterialDiff";
 
 export interface Arrow {
@@ -85,7 +85,10 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   return (
     <>
-      <div className="flex flex-col items-center space-y-4">
+      <div
+        className="flex flex-col items-center space-y-1"
+        style={{ width: `${chessboardSize}px`, height: "auto" }} // Dynamic size based on state
+      >
         <MaterialDiff
           pieceCount={pieceCount}
           color={chessboardState.orientation == WHITE ? BLACK : WHITE}

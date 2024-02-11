@@ -354,7 +354,7 @@ const Home: React.FC = () => {
         <StudyChapterSelector studyData={studyData} />
 
         <div className="flex flex-row justify-center items-start mb-6 w-screen">
-          <div ref={chessboardRef}>
+          <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
             <Chessboard
               chessboardSize={chessboardSize}
               chessboardState={chessboardState}
@@ -364,16 +364,18 @@ const Home: React.FC = () => {
             />
           </div>
 
-          <DetailsPanel
-            chapter={lineAndChapter?.chapter || undefined}
-            position={position || undefined}
-            gameMoves={chessboardState.getGameMoves()}
-            positionEvaluation={positionEvaluation}
-            moveResult={lineMoveResult}
-            lineStatus={lineStatus}
-            onToggleShowEngine={onToggleShowEngine}
-            height={height || 0}
-          />
+          <div className="flex-1 flex justify-start  ml-3">
+            <DetailsPanel
+              chapter={lineAndChapter?.chapter || undefined}
+              position={position || undefined}
+              gameMoves={chessboardState.getGameMoves()}
+              positionEvaluation={positionEvaluation}
+              moveResult={lineMoveResult}
+              lineStatus={lineStatus}
+              onToggleShowEngine={onToggleShowEngine}
+              height={height || 0}
+            />
+          </div>
         </div>
       </div>
 

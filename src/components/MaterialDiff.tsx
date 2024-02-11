@@ -59,7 +59,7 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
     <>
       <div className="flex items-center space-x-2">
         {Array.from(diffs).map(([piece, num]) => (
-          <span key={piece} className="text-2xl">
+          <span key={piece} className="text-lg">
             {Array.from({ length: Math.abs(num) }).map((_, i) => (
               <span key={i} className="">
                 {pieceToUnicode(piece, color)}
@@ -68,15 +68,15 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
           </span>
         ))}
         {materialDiff > 0 ? (
-          <div className="text-md font-bold ">
+          <div className="text-xs font-bold ">
             {`+${Math.max(materialDiff, 0)}`}
           </div>
         ) : null}
 
         {/* A hack to make sure the div doesn't change size
         when a material difference is created*/}
-        <div className="text-md font-bold opacity-0">
-          <span key="k2" className="text-2xl">
+        <div className="text-xs font-bold opacity-0">
+          <span key="k2" className="text-lg">
             <span key="-1" className="">
               {pieceToUnicode("k", "w")}
             </span>
