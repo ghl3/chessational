@@ -127,7 +127,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   };
 
   return (
-    <div className="flex space-x-4">
+    <div>
       <button
         className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
         onClick={openModal}

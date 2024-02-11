@@ -18,23 +18,29 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
     : undefined;
 
   return (
-    <div className="flex flex-row space-x-4 items-center">
-      <StudyAdderEditor
-        studies={studies}
-        selectedStudy={studyData.selectedStudy || null}
-        selectStudy={studyData.selectStudy}
-        deleteStudy={studyData.removeStudy}
-        addStudyAndChapters={studyData.addStudyAndChapters}
-      />
+    <div className="flex justify-center w-full">
+      <div className="flex flex-row justify-between items-center max-w-2xl mx-auto">
+        <div className="flex-1 px-2">
+          <StudyAdderEditor
+            studies={studies}
+            selectedStudy={studyData.selectedStudy || null}
+            selectStudy={studyData.selectStudy}
+            deleteStudy={studyData.removeStudy}
+            addStudyAndChapters={studyData.addStudyAndChapters}
+          />
+        </div>
 
-      {studies && studies.length > 0 ? (
-        <ChapterSelector
-          chapters={chapterNames || []}
-          selectedChapters={selectedChapterNames || null}
-          selectChapter={studyData.addSelectedChapterName}
-          deselectChapter={studyData.removeSelectedChapterName}
-        />
-      ) : null}
+        {studies && studies.length > 0 && (
+          <div className="flex-1 px-2">
+            <ChapterSelector
+              chapters={chapterNames || []}
+              selectedChapters={selectedChapterNames || null}
+              selectChapter={studyData.addSelectedChapterName}
+              deselectChapter={studyData.removeSelectedChapterName}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
