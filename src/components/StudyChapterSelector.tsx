@@ -25,7 +25,7 @@ export const StudyChapterSelector: React.FC<StudyChapterSelectorProps> = ({
             studies={studies}
             selectedStudy={studyData.selectedStudy || null}
             selectStudy={studyData.selectStudy}
-            deleteStudy={studyData.removeStudy}
+            deleteStudy={studyData.deleteStudy}
             addStudyAndChapters={studyData.addStudyAndChapters}
           />
         </div>

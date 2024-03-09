@@ -1,4 +1,5 @@
 import { Chapter } from "@/chess/Chapter";
+import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { getLinesFromChapters } from "./LineExtractor";
 import { parsePgnStringToChapters } from "./PgnParser";

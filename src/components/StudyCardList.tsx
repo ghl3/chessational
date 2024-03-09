@@ -7,32 +7,30 @@ interface StudyCardListProps {
   studies: Study[];
   selectedStudy: Study | null;
   selectStudy: (studyName: string) => void;
-  fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
-  addStudyAndChapters: (study: StudyChapterAndLines) => void;
   deleteStudy: (studyName: string) => void;
+  refreshStudy: (study: Study) => void;
 }
 
 const StudyCardList: React.FC<StudyCardListProps> = ({
   studies,
   selectedStudy,
   selectStudy,
-  fetchStudy,
-  addStudyAndChapters,
   deleteStudy,
+  refreshStudy,
 }) => {
   return (
     <div className="space-y-4">
       {studies.map((study) => (
         <div
           key={study.name}
-          onClick={() => selectStudy(study.name)}
+          //onClick={() => selectStudy(study.name)}
           className="cursor-pointer transition-opacity duration-300 ease-in-out"
         >
           <StudyCard
             study={study}
-            fetchStudy={fetchStudy}
-            addStudyAndChapters={addStudyAndChapters}
+            selectStudy={selectStudy}
             deleteStudy={deleteStudy}
+            refreshStudy={refreshStudy}
             isSelected={selectedStudy?.name === study.name}
           />
         </div>

@@ -17,7 +17,7 @@ export interface StudyData {
   attempts?: Attempt[]; // Attempts for the selected chapters
 
   addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
-  removeStudy: (studyName: string) => void;
+  deleteStudy: (studyName: string) => void;
   selectStudy: (studyName: string) => void;
   addSelectedChapterName: (chapterName: string) => void;
   removeSelectedChapterName: (chapterName: string) => void;
@@ -109,7 +109,7 @@ export const useStudyData = (): StudyData => {
     db.selectedStudyName.add({ studyName });
   }, []);
 
-  const removeStudy = useCallback(
+  const deleteStudy = useCallback(
     (studyName: string) => {
       db.studies.where("name").equalsIgnoreCase(studyName).delete();
       db.chapters.where("studyName").equalsIgnoreCase(studyName).delete();
@@ -235,7 +235,7 @@ export const useStudyData = (): StudyData => {
     attempts,
 
     addStudyAndChapters,
-    removeStudy,
+    deleteStudy,
     selectStudy,
     addSelectedChapterName,
     removeSelectedChapterName,

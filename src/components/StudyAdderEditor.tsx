@@ -51,8 +51,6 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     Modal.setAppElement("#root");
   }, []);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
   const title = selectedStudy ? selectedStudy.name : "Add Study";
 
   const fetchAndSetLoading = useCallback(
@@ -65,17 +63,35 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     [],
   );
 
+  const refreshStudy = useCallback(
+    async (study: Study): Promise<StudyChapterAndLines> => {
+      setIsLoading(true);
+      deleteStudy(study.name);
+      const updatedStudy: StudyChapterAndLines = await fetchStudy(study.url);
+      if (updatedStudy.chapters.length === 0) {
+        throw new Error("Study has no chapters");
+      }
+      addStudyAndChapters(updatedStudy);
+      setIsLoading(false);
+      return updatedStudy;
+    },
+    [addStudyAndChapters, deleteStudy, setIsLoading],
+  );
+
   const showDeleteConfirmation = useCallback((studyName: string) => {
     setIsDeleteConfirmation(true);
     setStudyToDelete(studyName);
   }, []);
 
-  const selectStudyAndCloseModal = (studyName: string) => {
-    selectStudy(studyName);
-    setIsModalOpen(false);
-  };
+  const selectStudyAndCloseModal = useCallback(
+    (studyName: string) => {
+      selectStudy(studyName);
+      setIsModalOpen(false);
+    },
+    [selectStudy],
+  );
 
-  const getModalContent = () => {
+  const getModalContent = useCallback(() => {
     if (isLoading) {
       return <LoadingScreen />;
     } else if (isDeleteConfirmation) {
@@ -116,28 +132,40 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
             studies={studies}
             selectedStudy={selectedStudy}
             selectStudy={selectStudyAndCloseModal}
-            fetchStudy={fetchAndSetLoading}
-            addStudyAndChapters={addStudyAndChapters}
             deleteStudy={showDeleteConfirmation}
+            refreshStudy={refreshStudy}
           />
           <AddStudyButton onClick={() => setIsStudyInput(true)} />
         </div>
       );
     }
-  };
+  }, [
+    isLoading,
+    isDeleteConfirmation,
+    isStudyInput,
+    studies,
+    studyToDelete,
+    deleteStudy,
+    fetchAndSetLoading,
+    addStudyAndChapters,
+    selectedStudy,
+    selectStudyAndCloseModal,
+    showDeleteConfirmation,
+    refreshStudy,
+  ]);
 
   return (
     <div>
       <button
         className="p-2 rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
-        onClick={openModal}
+        onClick={() => setIsModalOpen(true)}
       >
         {title}
       </button>
 
       <Modal
         isOpen={isModalOpen}
-        onRequestClose={closeModal}
+        onRequestClose={() => setIsModalOpen(false)}
         contentLabel="Study Modal"
         className="modal bg-gray-800 mx-auto rounded-lg p-6 max-w-xl w-full"
         overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
