@@ -1,29 +1,29 @@
-"use client";
-
 import { storeAttemptResult } from "@/chess/Attempt";
 import { Line, getLineStatus } from "@/chess/Line";
 import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
-import Chessboard, { Arrow } from "@/components/Chessboard";
-
-import { LineMoveResult } from "@/components/MoveDescription";
-import { StudyLine } from "@/components/StudyLine";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { useChessboardSize } from "@/hooks/UseChessboardSize";
-import {
-  ChessboardState,
-  useChessboardState,
-} from "@/hooks/UseChessboardState";
+import { ChessboardState } from "@/hooks/UseChessboardState";
 import useEvaluationCache from "@/hooks/UseEvaluationCache";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
-import { PieceSymbol } from "chess.js";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Square } from "react-chessboard/dist/chessboard/types";
-import { db } from "./db";
+import { PieceSymbol, Square } from "chess.js";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { db } from "../app/db";
+import { Arrow } from "./Chessboard";
+import { Controls } from "./Controls";
+import { DetailsPanel } from "./DetailsPanel";
+import { LineMoveResult } from "./MoveDescription";
+import { StudyChapterSelector } from "./StudyChapterSelector";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -33,63 +33,31 @@ if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
 
-const Home: React.FC = () => {
+export interface StudyLineProps {
+  chessboardState: ChessboardState;
+  lineAndChapter: LineAndChapter | null;
+  setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
+  lineIndex: number;
+  setLineIndex: Dispatch<SetStateAction<number>>;
+  height?: number;
+}
+
+export const StudyLine: React.FC<StudyLineProps> = ({
+  chessboardState,
+  lineAndChapter,
+  setLineAndChapter,
+  lineIndex,
+  setLineIndex,
+  height,
+}) => {
   const studyData = useStudyData();
 
-  const [lineAndChapter, setLineAndChapter] = useState<LineAndChapter | null>(
-    null,
-  );
-  // The current position in the line.
-  // The next move to play is line.moves[lineIndex+1]
-  const [lineIndex, setLineIndex] = useState<number>(-1);
+  const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
+  const [solution, setSolution] = useState<Move | null>(null);
+  const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
-
-  const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
-
-  // When not null, the solution to show to the user.
-  const [solution, setSolution] = useState<Move | null>(null);
-
-  const chessboardSize = useChessboardSize();
-  const chessboardState: ChessboardState = useChessboardState();
-
-  const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
-
-  // Set and maintain the size of the board
-  const chessboardRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | null>(null);
-  useEffect(() => {
-    if (chessboardRef.current) {
-      setHeight(chessboardRef.current.clientHeight);
-    }
-  }, [chessboardSize]);
-
-  const [getEvaluation, addEvaluation] = useEvaluationCache();
-
-  useEffect(() => {
-    if (engine) {
-      engine.listener = (evaluation: EvaluatedPosition) => {
-        addEvaluation(evaluation);
-      };
-    }
-  }, [addEvaluation]);
-
-  const [runEngine, setRunEngine] = useState<boolean>(false);
-  const onToggleShowEngine = useCallback((showEngine: boolean) => {
-    setRunEngine(showEngine);
-  }, []);
-
-  // Run the engine when needed
-  const fen = chessboardState.getFen();
-  useEffect(() => {
-    if (engine && runEngine && fen) {
-      engine.cancel();
-      engine.evaluatePosition(fen).then((evaluation) => {
-        addEvaluation(evaluation);
-      });
-    }
-  }, [addEvaluation, fen, runEngine]);
 
   const enterExploreMode = useCallback(() => {
     setMode("EXPLORE");
@@ -120,7 +88,7 @@ const Home: React.FC = () => {
     chessboardState.clearGame();
     setLineAndChapter(null);
     setLineIndex(-1);
-  }, [chessboardState]);
+  }, [chessboardState, setLineAndChapter, setLineIndex]);
 
   const initializeLine = useCallback(
     (lineAndChapter: LineAndChapter) => {
@@ -133,7 +101,7 @@ const Home: React.FC = () => {
 
       // Initialize the first position
       chessboardState.setNextPosition(line.positions[0], true);
-      setLineIndex((lineIndex) => lineIndex + 1);
+      setLineIndex((lineIndex: number) => lineIndex + 1);
 
       // If we are black, we first have to do white's move
       if (line.orientation == "b") {
@@ -142,7 +110,7 @@ const Home: React.FC = () => {
         setLineIndex((lineIndex) => lineIndex + 1);
       }
     },
-    [chessboardState, enterLineMode],
+    [chessboardState, enterLineMode, setLineAndChapter, setLineIndex],
   );
 
   const onNewLine = useCallback(() => {
@@ -204,7 +172,7 @@ const Home: React.FC = () => {
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [attemptResult, chessboardState],
+    [attemptResult, chessboardState, setLineIndex],
   );
 
   const onPieceDrop = useCallback(
@@ -306,6 +274,7 @@ const Home: React.FC = () => {
       lineIndex,
       setLineMoveResult,
       attemptResult,
+      setLineIndex,
       playOpponentNextMoveIfLineContinues,
     ],
   );
@@ -345,36 +314,48 @@ const Home: React.FC = () => {
         ]
       : [];
 
+  const [getEvaluation, addEvaluation] = useEvaluationCache();
+
   const positionEvaluation = position ? getEvaluation(position.fen) : null;
 
-  return (
-    <main className="flex flex-col items-center">
-      <div className="flex flex-col items-center items-start mb-6 max-w-screen-xl space-y-2">
-        <div className="flex flex-row justify-center items-start mb-6 w-screen">
-          <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
-            <Chessboard
-              chessboardSize={chessboardSize}
-              chessboardState={chessboardState}
-              onPieceDrop={onPieceDrop}
-              className="flex-none"
-              arrows={solutionArrows || []}
-            />
-          </div>
+  useEffect(() => {
+    if (engine) {
+      engine.listener = (evaluation: EvaluatedPosition) => {
+        addEvaluation(evaluation);
+      };
+    }
+  }, [addEvaluation]);
 
-          <div className="flex-1 flex justify-start  ml-3">
-            <StudyLine
-              chessboardState={chessboardState}
-              lineAndChapter={lineAndChapter}
-              setLineAndChapter={setLineAndChapter}
-              lineIndex={lineIndex}
-              setLineIndex={setLineIndex}
-              height={height || 0}
-            />
-          </div>
-        </div>
-      </div>
-    </main>
+  const [runEngine, setRunEngine] = useState<boolean>(false);
+  const onToggleShowEngine = useCallback((showEngine: boolean) => {
+    setRunEngine(showEngine);
+  }, []);
+
+  return (
+    <div>
+      <DetailsPanel
+        studyData={studyData}
+        chapter={lineAndChapter?.chapter || undefined}
+        position={position || undefined}
+        gameMoves={chessboardState.getGameMoves()}
+        positionEvaluation={positionEvaluation}
+        moveResult={lineMoveResult}
+        lineStatus={lineStatus}
+        onToggleShowEngine={onToggleShowEngine}
+        height={height || 0}
+      />
+
+      {studyData.selectedStudy != null ? (
+        <Controls
+          mode={mode}
+          lineStatus={lineStatus}
+          onNewLine={onNewLine}
+          onRestartLine={onRestartLine}
+          toggleShowSolution={toggleShowSolution}
+          enterExploreMode={enterExploreMode}
+          enterLineMode={enterLineMode}
+        />
+      ) : null}
+    </div>
   );
 };
-
-export default Home;
