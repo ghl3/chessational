@@ -225,6 +225,10 @@ export const useStudyData = (): StudyData => {
     return attempts;
   }, [selectedStudyName, selectedChapterNames]);
 
+  // Function: Get Next Line
+
+  // Function: IsCorrectMove
+
   return {
     studies,
     selectedStudyName,

@@ -1,7 +1,9 @@
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
+import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
+import { Position } from "@/chess/Position";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
-import { BLACK, DEFAULT_POSITION, WHITE } from "chess.js";
+import { BLACK, DEFAULT_POSITION, PieceSymbol, WHITE } from "chess.js";
 import React, { HTMLAttributes, useCallback, useState } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
 import { Square } from "react-chessboard/dist/chessboard/types";
@@ -14,18 +16,23 @@ export interface Arrow {
   color?: string;
 }
 
+export type MoveValidator = (
+  newPosition: Position,
+  sourceSquare: Square,
+  targetSquare: Square,
+  promoteToPiece?: PieceSymbol,
+) => boolean;
+
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardSize: number;
   chessboardState: ChessboardState;
-  onPieceDrop: (source: Square, target: Square, piece: string) => boolean;
-  arrows?: Arrow[];
+  onValidPieceDrop: MoveValidator | null;
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
   chessboardSize,
   chessboardState,
-  onPieceDrop,
-  arrows,
+  onValidPieceDrop,
 }) => {
   const handleFlipBoard = useCallback(() => {
     chessboardState.setOrientation((prevOrientation) =>
@@ -78,10 +85,55 @@ const Chessboard: React.FC<ChessboardProps> = ({
   const pieceCount: PieceCount = getPieceCounts(fen);
 
   const convertedArrows =
-    arrows &&
-    arrows.map((arrow) => {
+    chessboardState.arrows &&
+    chessboardState.arrows.map((arrow) => {
       return [arrow.from, arrow.to, arrow?.color];
     });
+
+  const onPieceDrop = useCallback(
+    (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
+      const originalPiece: PieceSymbol | null =
+        chessboardState.getPieceAtSquare(sourceSquare);
+      if (originalPiece == null) {
+        throw new Error("originalPiece is null");
+      }
+
+      const promoteToPiece = getPromoteToPiece(
+        sourceSquare,
+        targetSquare,
+        originalPiece,
+        convertToPieceSymbol(piece),
+      );
+
+      const [move, newPosition]: [Move | null, Position | null] =
+        chessboardState.createMoveOrNull(
+          sourceSquare,
+          targetSquare,
+          promoteToPiece,
+        ) || [null, null];
+
+      if (move == null || newPosition == null) {
+        return false;
+      }
+
+      // If we've gotten here, then the move is valid
+      const shouldExecuteMove = onValidPieceDrop
+        ? onValidPieceDrop(
+            newPosition,
+            sourceSquare,
+            targetSquare,
+            promoteToPiece,
+          )
+        : true;
+
+      // TODO: We should move the logic to update the state here:
+      if (shouldExecuteMove) {
+        chessboardState.setNextPosition(newPosition, true);
+      }
+      return shouldExecuteMove;
+    },
+    [chessboardState, onValidPieceDrop],
+  );
 
   return (
     <>

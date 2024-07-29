@@ -1,6 +1,7 @@
 import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
 import { Position, createPosition } from "@/chess/Position";
+import { Arrow } from "@/components/Chessboard";
 import { Chess, Color, Move as MoveResult, PieceSymbol, WHITE } from "chess.js";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
@@ -10,6 +11,7 @@ import { Square } from "react-chessboard/dist/chessboard/types";
 export interface ChessboardState {
   positions: Position[];
   orientation: Color;
+  arrows: Arrow[];
 
   getPosition: () => Position | null;
   getGameMoves: () => Move[];
@@ -118,6 +120,7 @@ export const useChessboardState = (): ChessboardState => {
   const [orientation, setOrientation] = useState<Color>(WHITE);
   const [gameState, dispatch] = useReducer(gameReducer, initialState);
   const { positions, currentPositionIndex } = gameState;
+  const [arrows, setArrows] = useState<Arrow[]>([]);
 
   // Create a game reference and ensure it's up to date
   let gameObject = useRef<Chess>(new Chess());
@@ -201,6 +204,7 @@ export const useChessboardState = (): ChessboardState => {
   return {
     positions,
     orientation,
+    arrows,
 
     getPosition,
     getGameMoves,

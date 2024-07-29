@@ -6,16 +6,13 @@ import { Database } from "@/components/Database";
 import { EngineEvaluation } from "@/components/EngineEvaluation";
 import { LineMoveResult, MoveDescription } from "@/components/MoveDescription";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-import { StudyData } from "@/hooks/UseStudyData";
 import { useCallback, useState } from "react";
 import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
 import { PositionDescription } from "./PositionDescription";
-import { StudyChapterSelector } from "./StudyChapterSelector";
 import { SwitchButton } from "./SwitchButton";
 
 export interface DetailsPanelProps {
-  studyData: StudyData;
   chapter?: Chapter;
   position?: Position;
   gameMoves: Move[];
@@ -29,7 +26,6 @@ export interface DetailsPanelProps {
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
-  studyData,
   chapter,
   position,
   gameMoves,
@@ -74,7 +70,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       }}
     >
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
-        <StudyChapterSelector studyData={studyData} />
         <div className="flex flex-row justify-between text-sm">
           <SwitchButton
             onChange={toggleShowEngine}

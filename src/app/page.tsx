@@ -1,40 +1,25 @@
 "use client";
 
-import { storeAttemptResult } from "@/chess/Attempt";
-import { Line, getLineStatus } from "@/chess/Line";
-import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
-import Chessboard, { Arrow } from "@/components/Chessboard";
+import Chessboard, { MoveValidator } from "@/components/Chessboard";
+import { Explore } from "@/components/Explore";
 
-import { LineMoveResult } from "@/components/MoveDescription";
 import { StudyLine } from "@/components/StudyLine";
-import { Engine } from "@/engine/Engine";
-import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
-import useEvaluationCache from "@/hooks/UseEvaluationCache";
-import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { useStudyData } from "@/hooks/UseStudyData";
-import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol } from "chess.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
-import { db } from "./db";
-
-const OPPONENT_MOVE_DELAY = 250;
-
-// Only run the engine on the client.
-let engine: Engine | null = null;
-if (typeof window !== "undefined") {
-  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
-}
 
 const Home: React.FC = () => {
-  const studyData = useStudyData();
+  // What state do we need at the top?
+  // The current line (and setter)
+  // The current line index (and setter)
+  // The onPieceDrop logic
 
   const [lineAndChapter, setLineAndChapter] = useState<LineAndChapter | null>(
     null,
@@ -43,18 +28,18 @@ const Home: React.FC = () => {
   // The next move to play is line.moves[lineIndex+1]
   const [lineIndex, setLineIndex] = useState<number>(-1);
 
-  const [lineMoveResult, setLineMoveResult] =
-    useStateWithTimeout<LineMoveResult | null>(null, 2000);
+  // const [lineMoveResult, setLineMoveResult] =
+  //   useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
-  const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
+  //const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
   // When not null, the solution to show to the user.
-  const [solution, setSolution] = useState<Move | null>(null);
+  //const [solution, setSolution] = useState<Move | null>(null);
 
   const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
-  const [mode, setMode] = useState<"LINE" | "EXPLORE">("LINE");
+  const [mode, setMode] = useState<"STUDY" | "EXPLORE" | "SEARCH">("EXPLORE");
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -65,123 +50,10 @@ const Home: React.FC = () => {
     }
   }, [chessboardSize]);
 
-  const [getEvaluation, addEvaluation] = useEvaluationCache();
+  const [onValidPieceDrop, setOnValidPieceDrop] =
+    useState<MoveValidator | null>(null);
 
-  useEffect(() => {
-    if (engine) {
-      engine.listener = (evaluation: EvaluatedPosition) => {
-        addEvaluation(evaluation);
-      };
-    }
-  }, [addEvaluation]);
-
-  const [runEngine, setRunEngine] = useState<boolean>(false);
-  const onToggleShowEngine = useCallback((showEngine: boolean) => {
-    setRunEngine(showEngine);
-  }, []);
-
-  // Run the engine when needed
-  const fen = chessboardState.getFen();
-  useEffect(() => {
-    if (engine && runEngine && fen) {
-      engine.cancel();
-      engine.evaluatePosition(fen).then((evaluation) => {
-        addEvaluation(evaluation);
-      });
-    }
-  }, [addEvaluation, fen, runEngine]);
-
-  const enterExploreMode = useCallback(() => {
-    setMode("EXPLORE");
-    setLineMoveResult(null);
-    setSolution(null);
-  }, [setLineMoveResult]);
-
-  const enterLineMode = useCallback(() => {
-    if (mode == "EXPLORE") {
-      chessboardState.clearGame();
-
-      // Recreate the original line
-      if (lineAndChapter != null) {
-        for (const position of lineAndChapter.line.positions.slice(
-          0,
-          lineIndex + 1,
-        )) {
-          chessboardState.setNextPosition(position, true);
-        }
-      }
-    }
-    setMode("LINE");
-    setSolution(null);
-  }, [lineAndChapter, lineIndex, mode, chessboardState]);
-
-  const clearLine = useCallback(() => {
-    // Reset the game
-    chessboardState.clearGame();
-    setLineAndChapter(null);
-    setLineIndex(-1);
-  }, [chessboardState]);
-
-  const initializeLine = useCallback(
-    (lineAndChapter: LineAndChapter) => {
-      const { line } = lineAndChapter;
-
-      enterLineMode();
-
-      setLineAndChapter(lineAndChapter);
-      chessboardState.setOrientation(line.orientation);
-
-      // Initialize the first position
-      chessboardState.setNextPosition(line.positions[0], true);
-      setLineIndex((lineIndex) => lineIndex + 1);
-
-      // If we are black, we first have to do white's move
-      if (line.orientation == "b") {
-        const firstPosition: Position = line.positions[1];
-        chessboardState.setNextPosition(firstPosition, false);
-        setLineIndex((lineIndex) => lineIndex + 1);
-      }
-    },
-    [chessboardState, enterLineMode],
-  );
-
-  const onNewLine = useCallback(() => {
-    clearLine();
-    setAttemptResult(null);
-
-    if (studyData.lines == null) {
-      throw new Error("studyData.lines is null");
-    }
-
-    const line = pickLine(
-      studyData.lines,
-      "SPACED_REPITITION",
-      studyData.attempts,
-    );
-    const chapter = studyData.chapters?.find(
-      (chapter) => chapter.name == line.chapterName,
-    );
-    if (chapter == null) {
-      throw new Error("chapter is null");
-    }
-
-    initializeLine({ line, chapter });
-  }, [
-    clearLine,
-    initializeLine,
-    studyData.attempts,
-    studyData.chapters,
-    studyData.lines,
-  ]);
-
-  const onRestartLine = useCallback(() => {
-    if (lineAndChapter == null) {
-      throw new Error("line is null");
-    }
-    clearLine();
-    initializeLine(lineAndChapter);
-  }, [lineAndChapter, clearLine, initializeLine]);
-
+  /*
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: Line, lineIndex: number) => {
       const endOfLine = lineIndex == line.positions.length - 1;
@@ -207,32 +79,15 @@ const Home: React.FC = () => {
     [attemptResult, chessboardState],
   );
 
-  const onPieceDrop = useCallback(
-    (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
-      const originalPiece: PieceSymbol | null =
-        chessboardState.getPieceAtSquare(sourceSquare);
-      if (originalPiece == null) {
-        throw new Error("originalPiece is null");
-      }
+  // Define two functions
 
-      const promoteToPiece = getPromoteToPiece(
-        sourceSquare,
-        targetSquare,
-        originalPiece,
-        convertToPieceSymbol(piece),
-      );
-
-      const [move, newPosition]: [Move | null, Position | null] =
-        chessboardState.createMoveOrNull(
-          sourceSquare,
-          targetSquare,
-          promoteToPiece,
-        ) || [null, null];
-
-      if (move == null || newPosition == null) {
-        return false;
-      }
-
+  const onValidPieceDrop = useCallback(
+    (
+      newPosition: Position,
+      sourceSquare: Square,
+      targetSquare: Square,
+      promoteToPiece?: PieceSymbol,
+    ): boolean => {
       if (mode == "EXPLORE") {
         // In explore mode, we just make the move
         chessboardState.setNextPosition(newPosition, true);
@@ -300,40 +155,18 @@ const Home: React.FC = () => {
       return false;
     },
     [
-      chessboardState,
       mode,
       lineAndChapter,
       lineIndex,
+      chessboardState,
       setLineMoveResult,
       attemptResult,
       playOpponentNextMoveIfLineContinues,
     ],
   );
+  */
 
-  const toggleShowSolution = useCallback(() => {
-    if (lineAndChapter == null || lineIndex == -1) {
-      throw new Error("line is null");
-    }
-
-    if (solution) {
-      setSolution(null);
-    } else {
-      const lineSolution =
-        lineAndChapter.line.positions[lineIndex + 1].lastMove;
-      if (lineSolution == null) {
-        throw new Error("solution is null");
-      }
-      setSolution(lineSolution);
-    }
-  }, [lineAndChapter, lineIndex, solution]);
-
-  const position = chessboardState.getPosition();
-
-  const lineStatus =
-    mode == "LINE" && lineAndChapter
-      ? getLineStatus(lineAndChapter.line, lineIndex)
-      : undefined;
-
+  /*
   const solutionArrows: Arrow[] =
     solution != null
       ? [
@@ -344,8 +177,9 @@ const Home: React.FC = () => {
           },
         ]
       : [];
+      */
 
-  const positionEvaluation = position ? getEvaluation(position.fen) : null;
+  // TODO: Need to leverage a hook to expose onPieceDrop and the current line.
 
   return (
     <main className="flex flex-col items-center">
@@ -355,21 +189,35 @@ const Home: React.FC = () => {
             <Chessboard
               chessboardSize={chessboardSize}
               chessboardState={chessboardState}
-              onPieceDrop={onPieceDrop}
+              onValidPieceDrop={onValidPieceDrop}
               className="flex-none"
-              arrows={solutionArrows || []}
             />
           </div>
 
           <div className="flex-1 flex justify-start  ml-3">
-            <StudyLine
-              chessboardState={chessboardState}
-              lineAndChapter={lineAndChapter}
-              setLineAndChapter={setLineAndChapter}
-              lineIndex={lineIndex}
-              setLineIndex={setLineIndex}
-              height={height || 0}
-            />
+            {mode === "STUDY" && (
+              <StudyLine
+                chessboardState={chessboardState}
+                setOnValidPieceDrop={setOnValidPieceDrop}
+                lineAndChapter={lineAndChapter}
+                setLineAndChapter={setLineAndChapter}
+                lineIndex={lineIndex}
+                setLineIndex={setLineIndex}
+                height={height || 0}
+              />
+            )}
+            {mode === "EXPLORE" && (
+              <Explore
+                chessboardState={chessboardState}
+                setOnValidPieceDrop={setOnValidPieceDrop}
+                lineAndChapter={lineAndChapter}
+                setLineAndChapter={setLineAndChapter}
+                lineIndex={lineIndex}
+                setLineIndex={setLineIndex}
+                height={height || 0}
+              />
+            )}
+            {mode === "SEARCH" && <div>Search</div>}
           </div>
         </div>
       </div>
