@@ -13,6 +13,7 @@ import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
 import React, {
   Dispatch,
+  MutableRefObject,
   SetStateAction,
   useCallback,
   useEffect,
@@ -35,7 +36,7 @@ if (typeof window !== "undefined") {
 
 export interface StudyLineProps {
   chessboardState: ChessboardState;
-  setOnValidPieceDrop: Dispatch<MoveValidator | null>;
+  onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
   lineAndChapter: LineAndChapter | null;
   setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
   lineIndex: number;
@@ -45,7 +46,7 @@ export interface StudyLineProps {
 
 export const StudyLine: React.FC<StudyLineProps> = ({
   chessboardState,
-  setOnValidPieceDrop,
+  onValidPieceDropRef,
   lineAndChapter,
   setLineAndChapter,
   lineIndex,
@@ -55,13 +56,14 @@ export const StudyLine: React.FC<StudyLineProps> = ({
   const studyData = useStudyData();
 
   // TODO: Remove this mode
-  const [mode, setMode] = useState<"LINE" | "EXPLORE">("EXPLORE");
+  //const [mode, setMode] = useState<"LINE" | "EXPLORE">("EXPLORE");
   const [solution, setSolution] = useState<Move | null>(null);
   const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
+  /*
   const enterExploreMode = useCallback(() => {
     setMode("EXPLORE");
     setLineMoveResult(null);
@@ -85,7 +87,7 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     setMode("LINE");
     setSolution(null);
   }, [lineAndChapter, lineIndex, mode, chessboardState]);
-
+*/
   const clearLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
@@ -97,7 +99,7 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     (lineAndChapter: LineAndChapter) => {
       const { line } = lineAndChapter;
 
-      enterLineMode();
+      //enterLineMode();
 
       setLineAndChapter(lineAndChapter);
       chessboardState.setOrientation(line.orientation);
@@ -113,7 +115,7 @@ export const StudyLine: React.FC<StudyLineProps> = ({
         setLineIndex((lineIndex) => lineIndex + 1);
       }
     },
-    [chessboardState, enterLineMode, setLineAndChapter, setLineIndex],
+    [chessboardState, setLineAndChapter, setLineIndex],
   );
 
   const onNewLine = useCallback(() => {
@@ -178,22 +180,16 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     [attemptResult, chessboardState, setLineIndex],
   );
 
-  const onValidPieceDrop = useCallback(
-    (
+  useEffect(() => {
+    const onValidPieceDrop = (
       newPosition: Position,
       sourceSquare: Square,
       targetSquare: Square,
       promoteToPiece?: PieceSymbol,
     ): boolean => {
-      if (mode == "EXPLORE") {
-        // In explore mode, we just make the move
-        chessboardState.setNextPosition(newPosition, true);
-        return true;
-      }
-
       // Otherwise, we're in line mode.
       if (lineAndChapter == null) {
-        // window.alert('Please click "New Line" to start a new line.');
+        window.alert('Please click "New Line" to start a new line.');
         return false;
       }
 
@@ -250,20 +246,19 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       }
       setSolution(null);
       return false;
-    },
-    [
-      mode,
-      lineAndChapter,
-      lineIndex,
-      chessboardState,
-      setLineMoveResult,
-      attemptResult,
-      setLineIndex,
-      playOpponentNextMoveIfLineContinues,
-    ],
-  );
+    };
 
-  setOnValidPieceDrop(onValidPieceDrop);
+    onValidPieceDropRef.current = onValidPieceDrop;
+  }, [
+    onValidPieceDropRef,
+    lineAndChapter,
+    lineIndex,
+    chessboardState,
+    setLineMoveResult,
+    attemptResult,
+    setLineIndex,
+    playOpponentNextMoveIfLineContinues,
+  ]);
 
   /*
   const onPieceDrop = useCallback(
@@ -389,10 +384,9 @@ export const StudyLine: React.FC<StudyLineProps> = ({
 
   const position = chessboardState.getPosition();
 
-  const lineStatus =
-    mode == "LINE" && lineAndChapter
-      ? getLineStatus(lineAndChapter.line, lineIndex)
-      : undefined;
+  const lineStatus = lineAndChapter
+    ? getLineStatus(lineAndChapter.line, lineIndex)
+    : undefined;
 
   const solutionArrows: Arrow[] =
     solution != null
@@ -422,10 +416,6 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     setRunEngine(showEngine);
   }, []);
 
-  //if (lineAndChapter == null) {
-  //  onNewLine();
-  //}
-
   return (
     <div>
       <StudyChapterSelector studyData={studyData} />
@@ -443,13 +433,13 @@ export const StudyLine: React.FC<StudyLineProps> = ({
 
       {studyData.selectedStudy != null ? (
         <Controls
-          mode={mode}
+          // mode={mode}
           lineStatus={lineStatus}
           onNewLine={onNewLine}
           onRestartLine={onRestartLine}
           toggleShowSolution={toggleShowSolution}
-          enterExploreMode={enterExploreMode}
-          enterLineMode={enterLineMode}
+          // enterExploreMode={enterExploreMode}
+          //  enterLineMode={enterLineMode}
         />
       ) : null}
     </div>

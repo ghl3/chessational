@@ -8,6 +8,7 @@ import { useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol, Square } from "chess.js";
 import React, {
   Dispatch,
+  MutableRefObject,
   SetStateAction,
   useCallback,
   useEffect,
@@ -27,7 +28,7 @@ if (typeof window !== "undefined") {
 
 export interface ExploreProps {
   chessboardState: ChessboardState;
-  setOnValidPieceDrop: Dispatch<MoveValidator | null>;
+  onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
   lineAndChapter: LineAndChapter | null;
   setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
   lineIndex: number;
@@ -37,7 +38,7 @@ export interface ExploreProps {
 
 export const Explore: React.FC<ExploreProps> = ({
   chessboardState,
-  setOnValidPieceDrop,
+  onValidPieceDropRef,
   lineAndChapter,
   setLineAndChapter,
   lineIndex,

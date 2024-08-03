@@ -3,23 +3,23 @@ import { ControlButton } from "@/components/ControlButton";
 import React from "react";
 
 type ControlProps = {
-  mode: "LINE" | "EXPLORE";
+  //mode: "LINE" | "EXPLORE";
   lineStatus?: LineStatus;
   toggleShowSolution: () => void;
   onNewLine: () => void;
   onRestartLine: () => void;
-  enterExploreMode: () => void;
-  enterLineMode: () => void;
+  //enterExploreMode: () => void;
+  //enterLineMode: () => void;
 };
 
 export const Controls: React.FC<ControlProps> = ({
-  mode,
+  //  mode,
   lineStatus,
   onNewLine,
   onRestartLine,
   toggleShowSolution,
-  enterExploreMode,
-  enterLineMode,
+  // enterExploreMode,
+  //enterLineMode,
 }) => {
   const hasActiveLine = lineStatus != undefined;
 
@@ -46,12 +46,6 @@ export const Controls: React.FC<ControlProps> = ({
           disabled={lineIsComplete}
         />
       ) : null}
-
-      <ControlButton
-        onClick={mode === "LINE" ? enterExploreMode : enterLineMode}
-        label={mode === "LINE" ? "Enter Explore Mode" : "Return to Line"}
-        size={"large"}
-      />
     </div>
   );
 

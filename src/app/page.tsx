@@ -12,6 +12,7 @@ import {
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import { PieceSymbol } from "chess.js";
+import { on } from "events";
 import { useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
@@ -39,7 +40,7 @@ const Home: React.FC = () => {
   const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
-  const [mode, setMode] = useState<"STUDY" | "EXPLORE" | "SEARCH">("EXPLORE");
+  const [mode, setMode] = useState<"STUDY" | "EXPLORE" | "SEARCH">("STUDY");
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -50,8 +51,10 @@ const Home: React.FC = () => {
     }
   }, [chessboardSize]);
 
-  const [onValidPieceDrop, setOnValidPieceDrop] =
-    useState<MoveValidator | null>(null);
+  // Set onValidPieceDrop based on the mode
+  //const onValidPieceDrop: MoveValidator | null =
+
+  const onValidPieceDropRef = useRef<MoveValidator | null>(null);
 
   /*
   const playOpponentNextMoveIfLineContinues = useCallback(
@@ -181,6 +184,23 @@ const Home: React.FC = () => {
 
   // TODO: Need to leverage a hook to expose onPieceDrop and the current line.
 
+  const onValidPieceDrop = (
+    newPosition: Position,
+    sourceSquare: Square,
+    targetSquare: Square,
+    promoteToPiece?: PieceSymbol,
+  ): boolean => {
+    if (onValidPieceDropRef.current == null) {
+      throw new Error("onValidPieceDropRef.current is null");
+    }
+    return onValidPieceDropRef.current(
+      newPosition,
+      sourceSquare,
+      targetSquare,
+      promoteToPiece,
+    );
+  };
+
   return (
     <main className="flex flex-col items-center">
       <div className="flex flex-col items-center items-start mb-6 max-w-screen-xl space-y-2">
@@ -198,7 +218,7 @@ const Home: React.FC = () => {
             {mode === "STUDY" && (
               <StudyLine
                 chessboardState={chessboardState}
-                setOnValidPieceDrop={setOnValidPieceDrop}
+                onValidPieceDropRef={onValidPieceDropRef}
                 lineAndChapter={lineAndChapter}
                 setLineAndChapter={setLineAndChapter}
                 lineIndex={lineIndex}
@@ -209,7 +229,7 @@ const Home: React.FC = () => {
             {mode === "EXPLORE" && (
               <Explore
                 chessboardState={chessboardState}
-                setOnValidPieceDrop={setOnValidPieceDrop}
+                onValidPieceDropRef={onValidPieceDropRef}
                 lineAndChapter={lineAndChapter}
                 setLineAndChapter={setLineAndChapter}
                 lineIndex={lineIndex}
