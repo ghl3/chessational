@@ -105,6 +105,7 @@ const Home: React.FC = () => {
         setMode={setMode}
         chessboardState={chessboardState}
         onValidPieceDropRef={onValidPieceDropRef}
+        studyData={studyData}
         currentLineData={currentLineData}
         reviewState={reviewState}
         //lineAndChapter={lineAndChapter}

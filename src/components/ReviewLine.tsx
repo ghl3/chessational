@@ -10,7 +10,7 @@ import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import useEvaluationCache from "@/hooks/UseEvaluationCache";
 import { ReviewState } from "@/hooks/UseReviewState";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
-import { useStudyData } from "@/hooks/UseStudyData";
+import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
 import React, {
@@ -28,12 +28,6 @@ import { StudyChapterSelector } from "./StudyChapterSelector";
 
 const OPPONENT_MOVE_DELAY = 250;
 
-// Only run the engine on the client.
-let engine: Engine | null = null;
-if (typeof window !== "undefined") {
-  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
-}
-
 export interface ReviewLineProps {
   chessboardState: ChessboardState;
   onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
@@ -41,6 +35,7 @@ export interface ReviewLineProps {
   //setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
   //lineIndex: number;
   //setLineIndex: Dispatch<SetStateAction<number>>;
+  studyData: StudyData;
   currentLineData: CurrentLineData;
   reviewState: ReviewState;
   height?: number;
@@ -49,6 +44,7 @@ export interface ReviewLineProps {
 export const ReviewLine: React.FC<ReviewLineProps> = ({
   chessboardState,
   onValidPieceDropRef,
+  studyData,
   currentLineData,
   reviewState,
   //lineAndChapter,
@@ -57,13 +53,13 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
   //setLineIndex,
   height,
 }) => {
-  const studyData = useStudyData();
+  //const studyData = useStudyData();
 
-  const [solution, setSolution] = useState<Move | null>(null);
-  const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
+  //const [solution, setSolution] = useState<Move | null>(null);
+  //const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
-  const [lineMoveResult, setLineMoveResult] =
-    useStateWithTimeout<LineMoveResult | null>(null, 2000);
+  //const [lineMoveResult, setLineMoveResult] =
+  //  useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
   const clearLine = useCallback(() => {
     // Reset the game
@@ -95,7 +91,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
   const onNewLine = useCallback(() => {
     clearLine();
-    setAttemptResult(null);
+    reviewState.setAttemptResult(null);
 
     if (studyData.lines == null) {
       throw new Error("studyData.lines is null");
@@ -117,6 +113,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
   }, [
     clearLine,
     initializeLine,
+    reviewState,
     studyData.attempts,
     studyData.chapters,
     studyData.lines,
@@ -138,8 +135,8 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
       if (endOfLine) {
         // If we got to the end of the line without any attempt failures,
         // we mark the attempt as complete
-        if (attemptResult == null) {
-          setAttemptResult(true);
+        if (reviewState.attemptResult == null) {
+          reviewState.setAttemptResult(true);
           storeAttemptResult(line, true, db.attempts);
         }
       } else {
@@ -152,7 +149,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [attemptResult, chessboardState, currentLineData],
+    [chessboardState, currentLineData, reviewState],
   );
 
   useEffect(() => {
@@ -177,7 +174,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
           currentLineData.lineIndex
         ] != chessboardState.getPosition()
       ) {
-        setLineMoveResult(null);
+        reviewState.setLineMoveResult(null);
         return false;
       }
 
@@ -208,8 +205,8 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
         // Since the move was correct, we move to the next position in the line
         currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
-        setLineMoveResult("CORRECT");
-        setSolution(null);
+        reviewState.setLineMoveResult("CORRECT");
+        reviewState.setSolution(null);
 
         // We play the opponent's next move if the line continues.
         playOpponentNextMoveIfLineContinues(
@@ -222,16 +219,16 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
       }
 
       // If we got here, the move is not correct
-      setLineMoveResult("INCORRECT");
-      if (attemptResult == null) {
-        setAttemptResult(false);
+      reviewState.setLineMoveResult("INCORRECT");
+      if (reviewState.attemptResult == null) {
+        reviewState.setAttemptResult(false);
         storeAttemptResult(
           currentLineData.lineAndChapter.line,
           false,
           db.attempts,
         );
       }
-      setSolution(null);
+      reviewState.setSolution(null);
       return false;
     };
 
@@ -242,10 +239,9 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
   }, [
     onValidPieceDropRef,
     chessboardState,
-    setLineMoveResult,
-    attemptResult,
     playOpponentNextMoveIfLineContinues,
     currentLineData,
+    reviewState,
   ]);
 
   const toggleShowSolution = useCallback(() => {
@@ -256,8 +252,8 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
       throw new Error("line is null");
     }
 
-    if (solution) {
-      setSolution(null);
+    if (reviewState.solution) {
+      reviewState.setSolution(null);
     } else {
       const lineSolution =
         currentLineData.lineAndChapter.line.positions[
@@ -266,9 +262,9 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
       if (lineSolution == null) {
         throw new Error("solution is null");
       }
-      setSolution(lineSolution);
+      reviewState.setSolution(lineSolution);
     }
-  }, [currentLineData.lineAndChapter, currentLineData.lineIndex, solution]);
+  }, [currentLineData.lineAndChapter, currentLineData.lineIndex, reviewState]);
 
   const position = chessboardState.getPosition();
 
@@ -280,31 +276,28 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     : undefined;
 
   const solutionArrows: Arrow[] =
-    solution != null
+    reviewState.solution != null
       ? [
           {
-            from: solution.from,
-            to: solution.to,
+            from: reviewState.solution.from,
+            to: reviewState.solution.to,
             color: "rgb(0, 100, 0)",
           },
         ]
       : [];
 
-  const [getEvaluation, addEvaluation] = useEvaluationCache();
+  //const [getEvaluation, addEvaluation] = useEvaluationCache();
 
-  const positionEvaluation = position ? getEvaluation(position.fen) : null;
+  // TODO: Pass in the engine evaluation and use it
+  //const positionEvaluation = position ? getEvaluation(position.fen) : null;
+  const positionEvaluation: EvaluatedPosition | null = null;
 
-  useEffect(() => {
-    if (engine) {
-      engine.listener = (evaluation: EvaluatedPosition) => {
-        addEvaluation(evaluation);
-      };
-    }
-  }, [addEvaluation]);
-
-  const [runEngine, setRunEngine] = useState<boolean>(false);
+  //const [runEngine, setRunEngine] = useState<boolean>(false);
+  //const onToggleShowEngine = useCallback((showEngine: boolean) => {
+  //  setRunEngine(showEngine);
+  //}, []);
   const onToggleShowEngine = useCallback((showEngine: boolean) => {
-    setRunEngine(showEngine);
+    console.log("showEngine", showEngine);
   }, []);
 
   return (
@@ -316,7 +309,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
         position={position || undefined}
         gameMoves={chessboardState.getGameMoves()}
         positionEvaluation={positionEvaluation}
-        moveResult={lineMoveResult}
+        moveResult={reviewState.lineMoveResult}
         lineStatus={lineStatus}
         onToggleShowEngine={onToggleShowEngine}
         height={height || 0}

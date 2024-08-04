@@ -2,11 +2,13 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import { ReviewState } from "@/hooks/UseReviewState";
+import { StudyData } from "@/hooks/UseStudyData";
 import Link from "next/link";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { MoveValidator } from "./Chessboard";
 import { Explore } from "./Explore";
 import { ReviewLine } from "./ReviewLine";
+import StatsPage from "./Stats";
 
 export type Mode = "REVIEW" | "EXPLORE" | "SEARCH" | "STATS";
 
@@ -34,8 +36,6 @@ const NavBar: React.FC<{
   mode: Mode;
   setMode: Dispatch<SetStateAction<Mode>>;
 }> = ({ mode, setMode }) => {
-  //const pathname = usePathname();
-
   return (
     <nav className="bg-gray-800 text-white p-4">
       <ul className="flex justify-center space-x-4">
@@ -73,9 +73,9 @@ export interface InteractiveAreaProps {
   setMode: Dispatch<SetStateAction<Mode>>;
   chessboardState: ChessboardState;
   onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
+  studyData: StudyData;
   currentLineData: CurrentLineData;
   reviewState: ReviewState;
-
   height?: number;
 }
 
@@ -84,9 +84,9 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
   setMode,
   chessboardState,
   onValidPieceDropRef,
+  studyData,
   currentLineData,
   reviewState,
-
   height,
 }) => {
   return (
@@ -95,6 +95,7 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
       {mode === "REVIEW" && (
         <ReviewLine
           chessboardState={chessboardState}
+          studyData={studyData}
           onValidPieceDropRef={onValidPieceDropRef}
           currentLineData={currentLineData}
           reviewState={reviewState}
@@ -110,7 +111,7 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
         />
       )}
       {mode === "SEARCH" && <div>Search</div>}
-      {mode === "STATS" && <div>Stats</div>}
+      {mode === "STATS" && <StatsPage />}
     </div>
   );
 };

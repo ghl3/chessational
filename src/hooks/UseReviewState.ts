@@ -6,7 +6,6 @@ import useStateWithTimeout from "./UseStateWithTimeout";
 export interface ReviewState {
   solution: Move | null;
   setSolution: Dispatch<SetStateAction<Move | null>>;
-
   attemptResult: boolean | null;
   setAttemptResult: Dispatch<SetStateAction<boolean | null>>;
   lineMoveResult: LineMoveResult | null;
