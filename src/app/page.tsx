@@ -3,9 +3,6 @@
 import { Position } from "@/chess/Position";
 import Chessboard, { MoveValidator } from "@/components/Chessboard";
 import { InteractiveArea, Mode } from "@/components/InteractiveArea";
-import { Engine } from "@/engine/Engine";
-import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
-
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
@@ -13,7 +10,7 @@ import {
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import { useCurrentLineData } from "@/hooks/UseCurrentLineData";
-import useEvaluationCache from "@/hooks/UseEvaluationCache";
+import useEngine from "@/hooks/UseEvaluationCache";
 import { useReviewState } from "@/hooks/UseReviewState";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol } from "chess.js";
@@ -21,10 +18,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
 // Only run the engine on the client.
-let engine: Engine | null = null;
-if (typeof window !== "undefined") {
-  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
-}
+//let engine: Engine | null = null;
+//if (typeof window !== "undefined") {
+//  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
+///}
 
 const Home: React.FC = () => {
   // What state do we need at the top?
@@ -50,8 +47,8 @@ const Home: React.FC = () => {
   const reviewState = useReviewState();
 
   // TODO: Refactor to 'useEngineData' hook
-  const [getEvaluation, addEvaluation] = useEvaluationCache();
-
+  const engineData = useEngine();
+  /*
   useEffect(() => {
     if (engine) {
       engine.listener = (evaluation: EvaluatedPosition) => {
@@ -61,6 +58,7 @@ const Home: React.FC = () => {
   }, [addEvaluation]);
 
   const [runEngine, setRunEngine] = useState<boolean>(false);
+  */
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
