@@ -12,6 +12,7 @@ export interface ChessboardState {
   positions: Position[];
   orientation: Color;
   arrows: Arrow[];
+  setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
 
   getPosition: () => Position | null;
   getGameMoves: () => Move[];
@@ -205,6 +206,7 @@ export const useChessboardState = (): ChessboardState => {
     positions,
     orientation,
     arrows,
+    setArrows,
 
     getPosition,
     getGameMoves,
