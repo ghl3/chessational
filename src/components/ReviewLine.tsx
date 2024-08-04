@@ -6,15 +6,15 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { ChessboardState } from "@/hooks/UseChessboardState";
+import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import useEvaluationCache from "@/hooks/UseEvaluationCache";
+import { ReviewState } from "@/hooks/UseReviewState";
 import useStateWithTimeout from "@/hooks/UseStateWithTimeout";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
 import React, {
-  Dispatch,
   MutableRefObject,
-  SetStateAction,
   useCallback,
   useEffect,
   useState,
@@ -34,23 +34,27 @@ if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
 
-export interface StudyLineProps {
+export interface ReviewLineProps {
   chessboardState: ChessboardState;
   onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
-  lineAndChapter: LineAndChapter | null;
-  setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
-  lineIndex: number;
-  setLineIndex: Dispatch<SetStateAction<number>>;
+  //lineAndChapter: LineAndChapter | null;
+  //setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
+  //lineIndex: number;
+  //setLineIndex: Dispatch<SetStateAction<number>>;
+  currentLineData: CurrentLineData;
+  reviewState: ReviewState;
   height?: number;
 }
 
-export const StudyLine: React.FC<StudyLineProps> = ({
+export const ReviewLine: React.FC<ReviewLineProps> = ({
   chessboardState,
   onValidPieceDropRef,
-  lineAndChapter,
-  setLineAndChapter,
-  lineIndex,
-  setLineIndex,
+  currentLineData,
+  reviewState,
+  //lineAndChapter,
+  //setLineAndChapter,
+  //lineIndex,
+  //setLineIndex,
   height,
 }) => {
   const studyData = useStudyData();
@@ -64,29 +68,29 @@ export const StudyLine: React.FC<StudyLineProps> = ({
   const clearLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
-    setLineAndChapter(null);
-    setLineIndex(-1);
-  }, [chessboardState, setLineAndChapter, setLineIndex]);
+    currentLineData.setLineAndChapter(null);
+    currentLineData.setLineIndex(-1);
+  }, [chessboardState, currentLineData]);
 
   const initializeLine = useCallback(
     (lineAndChapter: LineAndChapter) => {
       const { line } = lineAndChapter;
 
-      setLineAndChapter(lineAndChapter);
+      currentLineData.setLineAndChapter(lineAndChapter);
       chessboardState.setOrientation(line.orientation);
 
       // Initialize the first position
       chessboardState.setNextPosition(line.positions[0], true);
-      setLineIndex((lineIndex: number) => lineIndex + 1);
+      currentLineData.setLineIndex((lineIndex: number) => lineIndex + 1);
 
       // If we are black, we first have to do white's move
       if (line.orientation == "b") {
         const firstPosition: Position = line.positions[1];
         chessboardState.setNextPosition(firstPosition, false);
-        setLineIndex((lineIndex) => lineIndex + 1);
+        currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
       }
     },
-    [chessboardState, setLineAndChapter, setLineIndex],
+    [chessboardState, currentLineData],
   );
 
   const onNewLine = useCallback(() => {
@@ -119,12 +123,12 @@ export const StudyLine: React.FC<StudyLineProps> = ({
   ]);
 
   const onRestartLine = useCallback(() => {
-    if (lineAndChapter == null) {
+    if (currentLineData.lineAndChapter == null) {
       throw new Error("line is null");
     }
     clearLine();
-    initializeLine(lineAndChapter);
-  }, [lineAndChapter, clearLine, initializeLine]);
+    initializeLine(currentLineData.lineAndChapter);
+  }, [clearLine, currentLineData.lineAndChapter, initializeLine]);
 
   const playOpponentNextMoveIfLineContinues = useCallback(
     (line: Line, lineIndex: number) => {
@@ -144,11 +148,11 @@ export const StudyLine: React.FC<StudyLineProps> = ({
         setTimeout(async () => {
           const nextPosition = line.positions[lineIndex + 1];
           chessboardState.setNextPosition(nextPosition, false);
-          setLineIndex((lineIndex) => lineIndex + 1);
+          currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
         }, OPPONENT_MOVE_DELAY);
       }
     },
-    [attemptResult, chessboardState, setLineIndex],
+    [attemptResult, chessboardState, currentLineData],
   );
 
   useEffect(() => {
@@ -159,7 +163,7 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       promoteToPiece?: PieceSymbol,
     ): boolean => {
       // Otherwise, we're in line mode.
-      if (lineAndChapter == null) {
+      if (currentLineData.lineAndChapter == null) {
         window.alert('Please click "New Line" to start a new line.');
         return false;
       }
@@ -169,8 +173,9 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       // the left/right arrows to move around the line and then tries to move
       // when not in the latest position in the line.
       if (
-        lineAndChapter.line.positions[lineIndex] !=
-        chessboardState.getPosition()
+        currentLineData.lineAndChapter.line.positions[
+          currentLineData.lineIndex
+        ] != chessboardState.getPosition()
       ) {
         setLineMoveResult(null);
         return false;
@@ -178,7 +183,9 @@ export const StudyLine: React.FC<StudyLineProps> = ({
 
       // Check whether the attempted move is the next move in the line.
       const nextMoveInLine: Move | null =
-        lineAndChapter.line.positions[lineIndex + 1].lastMove;
+        currentLineData.lineAndChapter.line.positions[
+          currentLineData.lineIndex + 1
+        ].lastMove;
       if (nextMoveInLine == null) {
         throw new Error("nextMoveInLine is null");
       }
@@ -193,17 +200,22 @@ export const StudyLine: React.FC<StudyLineProps> = ({
         // Note that we use line.positions[lineIndex + 1] because
         // we want to make sure to keep the comments.
         chessboardState.setNextPosition(
-          lineAndChapter.line.positions[lineIndex + 1],
+          currentLineData.lineAndChapter.line.positions[
+            currentLineData.lineIndex + 1
+          ],
           false,
         );
 
         // Since the move was correct, we move to the next position in the line
-        setLineIndex((lineIndex) => lineIndex + 1);
+        currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
         setLineMoveResult("CORRECT");
         setSolution(null);
 
         // We play the opponent's next move if the line continues.
-        playOpponentNextMoveIfLineContinues(lineAndChapter.line, lineIndex + 1);
+        playOpponentNextMoveIfLineContinues(
+          currentLineData.lineAndChapter.line,
+          currentLineData.lineIndex + 1,
+        );
 
         // Return true to accept the move
         return true;
@@ -213,7 +225,11 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       setLineMoveResult("INCORRECT");
       if (attemptResult == null) {
         setAttemptResult(false);
-        storeAttemptResult(lineAndChapter.line, false, db.attempts);
+        storeAttemptResult(
+          currentLineData.lineAndChapter.line,
+          false,
+          db.attempts,
+        );
       }
       setSolution(null);
       return false;
@@ -225,17 +241,18 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     };
   }, [
     onValidPieceDropRef,
-    lineAndChapter,
-    lineIndex,
     chessboardState,
     setLineMoveResult,
     attemptResult,
-    setLineIndex,
     playOpponentNextMoveIfLineContinues,
+    currentLineData,
   ]);
 
   const toggleShowSolution = useCallback(() => {
-    if (lineAndChapter == null || lineIndex == -1) {
+    if (
+      currentLineData.lineAndChapter == null ||
+      currentLineData.lineIndex == -1
+    ) {
       throw new Error("line is null");
     }
 
@@ -243,18 +260,23 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       setSolution(null);
     } else {
       const lineSolution =
-        lineAndChapter.line.positions[lineIndex + 1].lastMove;
+        currentLineData.lineAndChapter.line.positions[
+          currentLineData.lineIndex + 1
+        ].lastMove;
       if (lineSolution == null) {
         throw new Error("solution is null");
       }
       setSolution(lineSolution);
     }
-  }, [lineAndChapter, lineIndex, solution]);
+  }, [currentLineData.lineAndChapter, currentLineData.lineIndex, solution]);
 
   const position = chessboardState.getPosition();
 
-  const lineStatus = lineAndChapter
-    ? getLineStatus(lineAndChapter.line, lineIndex)
+  const lineStatus = currentLineData.lineAndChapter
+    ? getLineStatus(
+        currentLineData.lineAndChapter.line,
+        currentLineData.lineIndex,
+      )
     : undefined;
 
   const solutionArrows: Arrow[] =
@@ -290,7 +312,7 @@ export const StudyLine: React.FC<StudyLineProps> = ({
       <StudyChapterSelector studyData={studyData} />
 
       <DetailsPanel
-        chapter={lineAndChapter?.chapter || undefined}
+        chapter={currentLineData.lineAndChapter?.chapter || undefined}
         position={position || undefined}
         gameMoves={chessboardState.getGameMoves()}
         positionEvaluation={positionEvaluation}

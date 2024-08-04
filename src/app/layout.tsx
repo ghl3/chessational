@@ -1,4 +1,3 @@
-import NavBar from "@/components/NavBar";
 import Title from "@/components/Title";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -22,7 +21,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     <body className={inter.className} id="root">
       <div className="charcoal-bg text-white min-h-screen">
         <Title />
-        <NavBar />
+
         {children}
       </div>
       <Analytics />
