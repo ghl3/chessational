@@ -1,11 +1,9 @@
-import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import Link from "next/link";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
-import { MoveValidator } from "./Chessboard";
+import { Dispatch, SetStateAction } from "react";
 import { Explore } from "./Explore";
 import { ReviewLine } from "./ReviewLine";
 import StatsPage from "./Stats";
@@ -72,7 +70,6 @@ export interface InteractiveAreaProps {
   mode: Mode;
   setMode: Dispatch<SetStateAction<Mode>>;
   chessboardState: ChessboardState;
-  onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
   studyData: StudyData;
   currentLineData: CurrentLineData;
   reviewState: ReviewState;
@@ -83,7 +80,6 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
   mode,
   setMode,
   chessboardState,
-  onValidPieceDropRef,
   studyData,
   currentLineData,
   reviewState,
@@ -96,7 +92,6 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
         <ReviewLine
           chessboardState={chessboardState}
           studyData={studyData}
-          onValidPieceDropRef={onValidPieceDropRef}
           currentLineData={currentLineData}
           reviewState={reviewState}
           height={height || 0}
@@ -105,7 +100,6 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
       {mode === "EXPLORE" && (
         <Explore
           chessboardState={chessboardState}
-          onValidPieceDropRef={onValidPieceDropRef}
           height={height || 0}
           currentLineData={currentLineData}
         />

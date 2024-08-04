@@ -6,6 +6,7 @@ import { InteractiveArea, Mode } from "@/components/InteractiveArea";
 import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 
+import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
   ChessboardState,
@@ -16,7 +17,7 @@ import useEvaluationCache from "@/hooks/UseEvaluationCache";
 import { useReviewState } from "@/hooks/UseReviewState";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol } from "chess.js";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
 // Only run the engine on the client.
@@ -70,23 +71,42 @@ const Home: React.FC = () => {
     }
   }, [chessboardSize]);
 
-  const onValidPieceDropRef = useRef<MoveValidator | null>(null);
+  const moveMatchesCorrectMove = useCallback(
+    (
+      newPosition: Position,
+      sourceSquare: Square,
+      targetSquare: Square,
+      promoteToPiece?: PieceSymbol,
+    ): boolean => {
+      return onReviewValidPieceDrop(
+        chessboardState,
+        currentLineData,
+        reviewState,
+        newPosition,
+        sourceSquare,
+        targetSquare,
+        promoteToPiece,
+      );
+    },
+    [chessboardState, currentLineData, reviewState],
+  );
 
-  const onValidPieceDrop = (
+  const onValidPieceDrop: MoveValidator = (
     newPosition: Position,
     sourceSquare: Square,
     targetSquare: Square,
     promoteToPiece?: PieceSymbol,
   ): boolean => {
-    if (onValidPieceDropRef.current == null) {
-      throw new Error("onValidPieceDropRef.current is null");
+    if (mode === "REVIEW") {
+      return moveMatchesCorrectMove(
+        newPosition,
+        sourceSquare,
+        targetSquare,
+        promoteToPiece,
+      );
     }
-    return onValidPieceDropRef.current(
-      newPosition,
-      sourceSquare,
-      targetSquare,
-      promoteToPiece,
-    );
+
+    return true;
   };
 
   return (
@@ -104,14 +124,9 @@ const Home: React.FC = () => {
         mode={mode}
         setMode={setMode}
         chessboardState={chessboardState}
-        onValidPieceDropRef={onValidPieceDropRef}
         studyData={studyData}
         currentLineData={currentLineData}
         reviewState={reviewState}
-        //lineAndChapter={lineAndChapter}
-        //setLineAndChapter={setLineAndChapter}
-        //lineIndex={lineIndex}
-        //setLineIndex={setLineIndex}
         height={height || 0}
       />
     </main>

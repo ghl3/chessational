@@ -3,23 +3,17 @@ import { ControlButton } from "@/components/ControlButton";
 import React from "react";
 
 type ControlProps = {
-  //mode: "LINE" | "EXPLORE";
   lineStatus?: LineStatus;
   toggleShowSolution: () => void;
   onNewLine: () => void;
   onRestartLine: () => void;
-  //enterExploreMode: () => void;
-  //enterLineMode: () => void;
 };
 
 export const Controls: React.FC<ControlProps> = ({
-  //  mode,
   lineStatus,
   onNewLine,
   onRestartLine,
   toggleShowSolution,
-  // enterExploreMode,
-  //enterLineMode,
 }) => {
   const hasActiveLine = lineStatus != undefined;
 
