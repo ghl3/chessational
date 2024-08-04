@@ -18,8 +18,8 @@ export interface DetailsPanelProps {
   position?: Position;
   gameMoves: Move[];
   engineData: EngineData;
-  moveResult: LineMoveResult | null;
-  lineStatus: LineStatus | undefined;
+  //moveResult: LineMoveResult | null;
+  //lineStatus: LineStatus | undefined;
   height: number;
 }
 
@@ -28,8 +28,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   position,
   gameMoves,
   engineData,
-  moveResult,
-  lineStatus,
+  //moveResult,
+  //lineStatus,
   height,
 }) => {
   const comments = position?.comments || [];
@@ -116,12 +116,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <Database showDatabase={showDatabase} position={position} />
 
         <CommentArea comments={comments} showComments={showComments} />
-
-        <MoveDescription
-          position={position}
-          status={lineStatus}
-          result={moveResult || undefined}
-        />
 
         {/* Spacer div will grow to fill space*/}
         <div className="flex-grow"></div>

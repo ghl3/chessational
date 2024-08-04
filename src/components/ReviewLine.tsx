@@ -3,10 +3,8 @@ import { Line, getLineStatus } from "@/chess/Line";
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
-import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { CurrentLineData } from "@/hooks/UseCurrentLineData";
-import { EngineData } from "@/hooks/UseEvaluationCache";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
@@ -15,8 +13,7 @@ import React, { useCallback } from "react";
 import { db } from "../app/db";
 import { Arrow } from "./Chessboard";
 import { Controls } from "./Controls";
-import { DetailsPanel } from "./DetailsPanel";
-import { StudyChapterSelector } from "./StudyChapterSelector";
+import { MoveDescription } from "./MoveDescription";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -131,18 +128,14 @@ export interface ReviewLineProps {
   chessboardState: ChessboardState;
   studyData: StudyData;
   currentLineData: CurrentLineData;
-  engineData: EngineData;
   reviewState: ReviewState;
-  height?: number;
 }
 
 export const ReviewLine: React.FC<ReviewLineProps> = ({
   chessboardState,
   studyData,
   currentLineData,
-  engineData,
   reviewState,
-  height,
 }) => {
   const clearLine = useCallback(() => {
     // Reset the game
@@ -232,15 +225,6 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     }
   }, [currentLineData.lineAndChapter, currentLineData.lineIndex, reviewState]);
 
-  const position = chessboardState.getPosition();
-
-  const lineStatus = currentLineData.lineAndChapter
-    ? getLineStatus(
-        currentLineData.lineAndChapter.line,
-        currentLineData.lineIndex,
-      )
-    : undefined;
-
   const solutionArrows: Arrow[] =
     reviewState.solution != null
       ? [
@@ -254,27 +238,12 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
   return (
     <div>
-      <StudyChapterSelector studyData={studyData} />
-
-      <DetailsPanel
-        chapter={currentLineData.lineAndChapter?.chapter || undefined}
-        position={position || undefined}
-        gameMoves={chessboardState.getGameMoves()}
-        engineData={engineData}
-        //positionEvaluation={positionEvaluation}
-        moveResult={reviewState.lineMoveResult}
-        lineStatus={lineStatus}
-        height={height || 0}
+      <Controls
+        lineStatus={currentLineData.lineStatus}
+        onNewLine={onNewLine}
+        onRestartLine={onRestartLine}
+        toggleShowSolution={toggleShowSolution}
       />
-
-      {studyData.selectedStudy != null ? (
-        <Controls
-          lineStatus={lineStatus}
-          onNewLine={onNewLine}
-          onRestartLine={onRestartLine}
-          toggleShowSolution={toggleShowSolution}
-        />
-      ) : null}
     </div>
   );
 };
