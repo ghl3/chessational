@@ -17,7 +17,7 @@ export interface ReviewOrExploreLineProps {
   currentLineData: CurrentLineData;
   engineData: EngineData;
   reviewState: ReviewState;
-  height?: number;
+  height: number;
 }
 
 export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
@@ -31,15 +31,23 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
 }) => {
   const position = chessboardState.getPosition();
 
+  const width = Math.floor(0.5 * height);
+
   return (
-    <div>
+    <div
+      style={{
+        height: height ? `${height}px` : "auto",
+        minWidth: `${width}px`,
+      }}
+    >
       <StudyChapterSelector studyData={studyData} />
 
-      {position && (
-        <MoveDescription
-          position={position}
-          status={currentLineData.lineStatus}
-          result={reviewState.lineMoveResult || undefined}
+      {mode === "REVIEW" && studyData.selectedStudy != null && (
+        <ReviewLine
+          chessboardState={chessboardState}
+          studyData={studyData}
+          currentLineData={currentLineData}
+          reviewState={reviewState}
         />
       )}
 
@@ -48,17 +56,7 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
         position={position || undefined}
         gameMoves={chessboardState.getGameMoves()}
         engineData={engineData}
-        height={height || 0}
       />
-
-      {mode === "REVIEW" && studyData.selectedStudy != null ? (
-        <ReviewLine
-          chessboardState={chessboardState}
-          studyData={studyData}
-          currentLineData={currentLineData}
-          reviewState={reviewState}
-        />
-      ) : null}
     </div>
   );
 };

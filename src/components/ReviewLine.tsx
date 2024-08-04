@@ -11,6 +11,7 @@ import { PieceSymbol, Square } from "chess.js";
 import React, { useCallback, useMemo } from "react";
 import { db } from "../app/db";
 import { Controls } from "./Controls";
+import { MoveDescription } from "./MoveDescription";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -109,7 +110,7 @@ export const onValidPieceDrop = (
     reviewState.setAttemptResult(false);
     storeAttemptResult(currentLineData.lineAndChapter.line, false, db.attempts);
   }
-  //reviewState.setSolution(null);
+
   return false;
 };
 
@@ -249,14 +250,25 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     reviewState,
   ]);
 
+  const position = chessboardState.getPosition();
+
   return (
     <div>
-      <Controls
-        lineStatus={currentLineData.lineStatus}
-        onNewLine={onNewLine}
-        onRestartLine={onRestartLine}
-        toggleShowSolution={toggleShowSolution}
-      />
+      {studyData.selectedStudy != null && (
+        <Controls
+          lineStatus={currentLineData.lineStatus}
+          onNewLine={onNewLine}
+          onRestartLine={onRestartLine}
+          toggleShowSolution={toggleShowSolution}
+        />
+      )}
+      {position && (
+        <MoveDescription
+          position={position}
+          status={currentLineData.lineStatus}
+          result={reviewState.lineMoveResult || undefined}
+        />
+      )}
     </div>
   );
 };
