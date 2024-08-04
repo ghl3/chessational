@@ -1,5 +1,4 @@
 import { Position } from "@/chess/Position";
-import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { EvaluationUtil } from "@/engine/Evaluation";
 import { EngineData } from "@/hooks/UseEngineData";
 import { useEffect, useMemo } from "react";
@@ -18,32 +17,28 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
 }) => {
   // Kick off evaluation of the current position
 
+  const positionEvaluation = position
+    ? engineData.getEvaluation(position.fen)
+    : null;
+
+  // Trigger evaluating the current position
   useEffect(() => {
     if (
       engineData.runEngine &&
       position &&
       position.fen &&
-      !engineData.hasEvaluation(position.fen) &&
+      positionEvaluation == null &&
       engineData.engine
     ) {
       console.log("Evaluating Position: ", position.fen);
+      engineData.engine.cancel();
       engineData.engine
         .evaluatePosition(position.fen)
         .then((evaluatedPosition) => {
           console.log("Evaluated position: ", position.fen);
         });
     }
-  }, [
-    position,
-    engineData.runEngine,
-    engineData.engine,
-    engineData.getEvaluation,
-    engineData,
-  ]);
-
-  const positionEvaluation = position
-    ? engineData.getEvaluation(position.fen)
-    : null;
+  }, [engineData.engine, engineData.runEngine, position, positionEvaluation]);
 
   const bestMoves = useMemo(() => {
     if (!positionEvaluation) {

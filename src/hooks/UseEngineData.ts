@@ -18,19 +18,12 @@ const useEngine = (): EngineData => {
 
   const [runEngine, setRunEngine] = useState<boolean>(false);
 
-  const [evaluatedMoves, setEvaluatedMoves] = useState<Set<Fen>>(new Set());
-
   const [moveEvals, setMoveEvals] = useState<Map<Fen, EvaluatedPosition>>(
     new Map(),
   );
 
   const addEvaluation = useCallback(
     (evaluatedPosition: EvaluatedPosition): void => {
-      setEvaluatedMoves((prevEvaluatedMoves) => {
-        const newEvaluatedMoves = new Set(prevEvaluatedMoves);
-        newEvaluatedMoves.add(evaluatedPosition.fen);
-        return newEvaluatedMoves;
-      });
       setMoveEvals((prevMoveEvals) => {
         const newMoveEvals = new Map(prevMoveEvals);
         newMoveEvals.set(evaluatedPosition.fen, evaluatedPosition);
@@ -59,9 +52,9 @@ const useEngine = (): EngineData => {
 
   const hasEvaluation = useCallback(
     (fen: Fen) => {
-      return evaluatedMoves.has(fen);
+      return moveEvals.has(fen);
     },
-    [evaluatedMoves],
+    [moveEvals],
   );
 
   // TODO: Pass in the engine evaluation and use it
