@@ -15,39 +15,11 @@ import { Controls } from "./Controls";
 
 const OPPONENT_MOVE_DELAY = 250;
 
-const playOpponentNextMoveIfLineContinues = (
-  reviewState: ReviewState,
-  chessboardState: ChessboardState,
-  currentLineData: CurrentLineData,
-  line: Line,
-  lineIndex: number,
-) => {
-  const endOfLine = lineIndex == line.positions.length - 1;
-
-  // If this is the end of the line, we're done.
-  if (endOfLine) {
-    // If we got to the end of the line without any attempt failures,
-    // we mark the attempt as complete
-    if (reviewState.attemptResult == null) {
-      reviewState.setAttemptResult(true);
-      storeAttemptResult(line, true, db.attempts);
-    }
-  } else {
-    // Otherwise, pick the opponent's next move in the line
-    // Do this in a delay to simulate a game.
-    setTimeout(async () => {
-      const nextPosition = line.positions[lineIndex + 1];
-      chessboardState.setNextPosition(nextPosition, false);
-      currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
-    }, OPPONENT_MOVE_DELAY);
-  }
-};
-
 export const onValidPieceDrop = (
   chessboardState: ChessboardState,
   currentLineData: CurrentLineData,
   reviewState: ReviewState,
-  _newPosition: Position,
+  newPosition: Position,
   sourceSquare: Square,
   targetSquare: Square,
   promoteToPiece?: PieceSymbol,
@@ -57,22 +29,21 @@ export const onValidPieceDrop = (
     return false;
   }
 
+  const line = currentLineData.lineAndChapter.line;
+  const lineIndex = currentLineData.lineIndex;
+  //const nextPosition = line.positions[lineIndex + 1];
+
   // If the current board position is not the next position in the line,
   // we don't accept the move.  This can happen if the user uses
   // the left/right arrows to move around the line and then tries to move
   // when not in the latest position in the line.
-  if (
-    currentLineData.lineAndChapter.line.positions[currentLineData.lineIndex] !=
-    chessboardState.getPosition()
-  ) {
+  if (line.positions[lineIndex] != chessboardState.getPosition()) {
     reviewState.setLineMoveResult(null);
     return false;
   }
 
   // Check whether the attempted move is the next move in the line.
-  const nextMoveInLine: Move | null =
-    currentLineData.lineAndChapter.line.positions[currentLineData.lineIndex + 1]
-      .lastMove;
+  const nextMoveInLine: Move | null = line.positions[lineIndex + 1].lastMove;
   if (nextMoveInLine == null) {
     throw new Error("nextMoveInLine is null");
   }
@@ -86,27 +57,43 @@ export const onValidPieceDrop = (
     // and we update the current line and the board state.
     // Note that we use line.positions[lineIndex + 1] because
     // we want to make sure to keep the comments.
-    chessboardState.setNextPosition(
-      currentLineData.lineAndChapter.line.positions[
-        currentLineData.lineIndex + 1
-      ],
-      false,
-    );
+    chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
 
     // Since the move was correct, we move to the next position in the line
-    currentLineData.setLineIndex((lineIndex) => lineIndex + 1);
+    currentLineData.setLineIndex(lineIndex + 1);
     reviewState.setLineMoveResult("CORRECT");
     reviewState.setShowSolution(false);
     chessboardState.setArrows([]);
 
-    // We play the opponent's next move if the line continues.
-    playOpponentNextMoveIfLineContinues(
-      reviewState,
-      chessboardState,
-      currentLineData,
-      currentLineData.lineAndChapter.line,
-      currentLineData.lineIndex + 1,
-    );
+    const nextLineIndex = lineIndex + 1;
+
+    // If this is the end of the line, we're done.
+    // Otherwise, we play the opponent's next move and advance
+    // to that position.
+    const endOfLine = nextLineIndex == line.positions.length - 1;
+
+    // If this is the end of the line, we're done.
+    if (endOfLine) {
+      // If we got to the end of the line without any attempt failures,
+      // we mark the attempt as complete.
+      // We check the attemptResult to avoid storing multiple attempts per line.
+      if (reviewState.attemptResult == null) {
+        reviewState.setAttemptResult(true);
+        storeAttemptResult(
+          currentLineData.lineAndChapter.line,
+          true,
+          db.attempts,
+        );
+      }
+    } else {
+      // Otherwise, pick the opponent's next move in the line
+      // Do this in a delay to simulate a game.
+      setTimeout(async () => {
+        const nextPosition = line.positions[nextLineIndex + 1];
+        chessboardState.setNextPosition(nextPosition, false);
+        currentLineData.setLineIndex(nextLineIndex + 1);
+      }, OPPONENT_MOVE_DELAY);
+    }
 
     // Return true to accept the move
     return true;
@@ -203,6 +190,14 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
   const arrows = useMemo(() => {
     if (currentLineData?.lineAndChapter?.line?.positions == null) {
+      return [];
+    }
+
+    // If we're at the end othe line, we don't show arrows.
+    if (
+      currentLineData.lineIndex >=
+      currentLineData.lineAndChapter.line.positions.length - 1
+    ) {
       return [];
     }
 
