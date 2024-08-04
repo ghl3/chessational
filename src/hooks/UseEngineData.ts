@@ -3,22 +3,22 @@ import { Engine } from "@/engine/Engine";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { useCallback, useEffect, useState } from "react";
 
-// Only run the engine on the client.
-let engine: Engine | null = null;
-if (typeof window !== "undefined") {
-  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
-}
-
 export interface EngineData {
   engine: Engine | null;
+  setEngine: (engine: Engine) => void;
   runEngine: boolean;
   setRunEngine: React.Dispatch<React.SetStateAction<boolean>>;
   getEvaluation: (fen: Fen) => EvaluatedPosition | null;
   addEvaluation: (evaluatedPosition: EvaluatedPosition) => void;
+  hasEvaluation: (fen: Fen) => boolean;
 }
 
 const useEngine = (): EngineData => {
+  const [engine, setEngine] = useState<Engine | null>(null);
+
   const [runEngine, setRunEngine] = useState<boolean>(false);
+
+  const [evaluatedMoves, setEvaluatedMoves] = useState<Set<Fen>>(new Set());
 
   const [moveEvals, setMoveEvals] = useState<Map<Fen, EvaluatedPosition>>(
     new Map(),
@@ -26,6 +26,11 @@ const useEngine = (): EngineData => {
 
   const addEvaluation = useCallback(
     (evaluatedPosition: EvaluatedPosition): void => {
+      setEvaluatedMoves((prevEvaluatedMoves) => {
+        const newEvaluatedMoves = new Set(prevEvaluatedMoves);
+        newEvaluatedMoves.add(evaluatedPosition.fen);
+        return newEvaluatedMoves;
+      });
       setMoveEvals((prevMoveEvals) => {
         const newMoveEvals = new Map(prevMoveEvals);
         newMoveEvals.set(evaluatedPosition.fen, evaluatedPosition);
@@ -42,20 +47,35 @@ const useEngine = (): EngineData => {
     [moveEvals],
   );
 
-  useEffect(() => {
-    if (engine && runEngine) {
+  const setEngineAndBeginListening = useCallback(
+    (engine: Engine) => {
+      setEngine(engine);
       engine.listener = (evaluation: EvaluatedPosition) => {
         addEvaluation(evaluation);
       };
-    }
-  }, [runEngine, addEvaluation]);
+    },
+    [addEvaluation],
+  );
+
+  const hasEvaluation = useCallback(
+    (fen: Fen) => {
+      return evaluatedMoves.has(fen);
+    },
+    [evaluatedMoves],
+  );
+
+  // TODO: Pass in the engine evaluation and use it
+  //const positionEvaluation = position ? getEvaluation(position.fen) : null;
+  //const positionEvaluation: EvaluatedPosition | null = null;
 
   return {
     engine: engine,
+    setEngine: setEngineAndBeginListening,
     runEngine: runEngine,
     setRunEngine: setRunEngine,
     getEvaluation: getEvaluation,
     addEvaluation: addEvaluation,
+    hasEvaluation: hasEvaluation,
   };
 };
 

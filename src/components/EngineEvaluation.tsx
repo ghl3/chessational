@@ -1,19 +1,50 @@
+import { Position } from "@/chess/Position";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { EvaluationUtil } from "@/engine/Evaluation";
-import { useMemo } from "react";
+import { EngineData } from "@/hooks/UseEngineData";
+import { useEffect, useMemo } from "react";
 import Table from "./Table";
 
 const MAX_NUM_MOVES_SHOWN = 3;
 
 interface EngineEvaluationProps extends React.HTMLAttributes<HTMLDivElement> {
-  showEngine: boolean;
-  positionEvaluation?: EvaluatedPosition;
+  position: Position;
+  engineData: EngineData;
 }
 
 export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
-  showEngine,
-  positionEvaluation,
+  position,
+  engineData,
 }) => {
+  // Kick off evaluation of the current position
+
+  useEffect(() => {
+    if (
+      engineData.runEngine &&
+      position &&
+      position.fen &&
+      !engineData.hasEvaluation(position.fen) &&
+      engineData.engine
+    ) {
+      console.log("Evaluating Position: ", position.fen);
+      engineData.engine
+        .evaluatePosition(position.fen)
+        .then((evaluatedPosition) => {
+          console.log("Evaluated position: ", position.fen);
+        });
+    }
+  }, [
+    position,
+    engineData.runEngine,
+    engineData.engine,
+    engineData.getEvaluation,
+    engineData,
+  ]);
+
+  const positionEvaluation = position
+    ? engineData.getEvaluation(position.fen)
+    : null;
+
   const bestMoves = useMemo(() => {
     if (!positionEvaluation) {
       return [];
@@ -33,12 +64,7 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
       .slice(0, MAX_NUM_MOVES_SHOWN);
   }, [positionEvaluation]);
 
-  if (!showEngine) {
-    return null;
-  } else if (
-    !positionEvaluation ||
-    positionEvaluation.best_moves.length === 0
-  ) {
+  if (!positionEvaluation || positionEvaluation.best_moves.length === 0) {
     return (
       <Table
         title={

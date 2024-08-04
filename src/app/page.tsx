@@ -4,13 +4,14 @@ import { Position } from "@/chess/Position";
 import Chessboard, { MoveValidator } from "@/components/Chessboard";
 import { InteractiveArea, Mode } from "@/components/InteractiveArea";
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
+import { Engine } from "@/engine/Engine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
 import { useCurrentLineData } from "@/hooks/UseCurrentLineData";
-import useEngine from "@/hooks/UseEvaluationCache";
+import useEngine from "@/hooks/UseEngineData";
 import { useReviewState } from "@/hooks/UseReviewState";
 import { useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol } from "chess.js";
@@ -18,25 +19,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
 // Only run the engine on the client.
-//let engine: Engine | null = null;
-//if (typeof window !== "undefined") {
-//  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
-///}
+let engine: Engine | null = null;
+if (typeof window !== "undefined") {
+  engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
+}
 
 const Home: React.FC = () => {
-  // What state do we need at the top?
-  // The current line (and setter)
-  // The current line index (and setter)
-  // The onPieceDrop logic
-
-  // The currently selected line
-  //const [lineAndChapter, setLineAndChapter] = useState<LineAndChapter | null>(
-  //  null,
-  //);
-  // The current position in the line.
-  // The next move to play is line.moves[lineIndex+1]
-  //const [lineIndex, setLineIndex] = useState<number>(-1);
-
   const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
@@ -46,19 +34,12 @@ const Home: React.FC = () => {
   const currentLineData = useCurrentLineData();
   const reviewState = useReviewState();
 
-  // TODO: Refactor to 'useEngineData' hook
   const engineData = useEngine();
-  /*
   useEffect(() => {
     if (engine) {
-      engine.listener = (evaluation: EvaluatedPosition) => {
-        addEvaluation(evaluation);
-      };
+      engineData.setEngine(engine);
     }
-  }, [addEvaluation]);
-
-  const [runEngine, setRunEngine] = useState<boolean>(false);
-  */
+  }, [engineData]);
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -124,6 +105,7 @@ const Home: React.FC = () => {
         chessboardState={chessboardState}
         studyData={studyData}
         currentLineData={currentLineData}
+        engineData={engineData}
         reviewState={reviewState}
         height={height || 0}
       />

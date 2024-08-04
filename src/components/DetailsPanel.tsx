@@ -6,6 +6,7 @@ import { Database } from "@/components/Database";
 import { EngineEvaluation } from "@/components/EngineEvaluation";
 import { LineMoveResult, MoveDescription } from "@/components/MoveDescription";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
+import { EngineData } from "@/hooks/UseEngineData";
 import { useCallback, useState } from "react";
 import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
@@ -16,12 +17,9 @@ export interface DetailsPanelProps {
   chapter?: Chapter;
   position?: Position;
   gameMoves: Move[];
-  positionEvaluation: EvaluatedPosition | null;
+  engineData: EngineData;
   moveResult: LineMoveResult | null;
   lineStatus: LineStatus | undefined;
-
-  onToggleShowEngine: (showEngine: boolean) => void;
-
   height: number;
 }
 
@@ -29,10 +27,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   chapter,
   position,
   gameMoves,
-  positionEvaluation,
+  engineData,
   moveResult,
   lineStatus,
-  onToggleShowEngine,
   height,
 }) => {
   const comments = position?.comments || [];
@@ -48,8 +45,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const toggleShowEngine = useCallback(() => {
     setShowEngine((showEngine) => !showEngine);
-    onToggleShowEngine(!showEngine);
-  }, [showEngine, onToggleShowEngine]);
+    engineData.setRunEngine((runEngine) => !runEngine);
+  }, [engineData]);
 
   const toggleDatabase = useCallback(() => {
     setShowDatabase((showDatabase) => !showDatabase);
@@ -107,10 +104,14 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           position={position}
         />
 
-        <EngineEvaluation
-          showEngine={showEngine}
-          positionEvaluation={positionEvaluation || undefined}
-        />
+        {showEngine && position && (
+          <EngineEvaluation
+            position={position}
+            engineData={engineData}
+            //showEngine={showEngine}
+            //positionEvaluation={positionEvaluation || undefined}
+          />
+        )}
 
         <Database showDatabase={showDatabase} position={position} />
 

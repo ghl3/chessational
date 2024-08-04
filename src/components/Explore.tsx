@@ -6,7 +6,6 @@ import { StudyChapterSelector } from "./StudyChapterSelector";
 
 export interface ExploreProps {
   chessboardState: ChessboardState;
-  //onValidPieceDropRef: MutableRefObject<MoveValidator | null>;
   currentLineData: CurrentLineData;
   height?: number;
 }

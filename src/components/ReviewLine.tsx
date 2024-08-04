@@ -6,6 +6,7 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { EvaluatedPosition } from "@/engine/EvaluatedPosition";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { CurrentLineData } from "@/hooks/UseCurrentLineData";
+import { EngineData } from "@/hooks/UseEvaluationCache";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
@@ -130,6 +131,7 @@ export interface ReviewLineProps {
   chessboardState: ChessboardState;
   studyData: StudyData;
   currentLineData: CurrentLineData;
+  engineData: EngineData;
   reviewState: ReviewState;
   height?: number;
 }
@@ -138,8 +140,8 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
   chessboardState,
   studyData,
   currentLineData,
+  engineData,
   reviewState,
-
   height,
 }) => {
   const clearLine = useCallback(() => {
@@ -250,14 +252,6 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
         ]
       : [];
 
-  // TODO: Pass in the engine evaluation and use it
-  //const positionEvaluation = position ? getEvaluation(position.fen) : null;
-  const positionEvaluation: EvaluatedPosition | null = null;
-
-  const onToggleShowEngine = useCallback((showEngine: boolean) => {
-    console.log("showEngine", showEngine);
-  }, []);
-
   return (
     <div>
       <StudyChapterSelector studyData={studyData} />
@@ -266,10 +260,10 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
         chapter={currentLineData.lineAndChapter?.chapter || undefined}
         position={position || undefined}
         gameMoves={chessboardState.getGameMoves()}
-        positionEvaluation={positionEvaluation}
+        engineData={engineData}
+        //positionEvaluation={positionEvaluation}
         moveResult={reviewState.lineMoveResult}
         lineStatus={lineStatus}
-        onToggleShowEngine={onToggleShowEngine}
         height={height || 0}
       />
 

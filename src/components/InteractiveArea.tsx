@@ -1,5 +1,6 @@
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { CurrentLineData } from "@/hooks/UseCurrentLineData";
+import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import Link from "next/link";
@@ -72,6 +73,7 @@ export interface InteractiveAreaProps {
   chessboardState: ChessboardState;
   studyData: StudyData;
   currentLineData: CurrentLineData;
+  engineData: EngineData;
   reviewState: ReviewState;
   height?: number;
 }
@@ -82,6 +84,7 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
   chessboardState,
   studyData,
   currentLineData,
+  engineData,
   reviewState,
   height,
 }) => {
@@ -93,6 +96,7 @@ export const InteractiveArea: React.FC<InteractiveAreaProps> = ({
           chessboardState={chessboardState}
           studyData={studyData}
           currentLineData={currentLineData}
+          engineData={engineData}
           reviewState={reviewState}
           height={height || 0}
         />
