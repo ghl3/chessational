@@ -55,39 +55,12 @@ export const StudyLine: React.FC<StudyLineProps> = ({
 }) => {
   const studyData = useStudyData();
 
-  // TODO: Remove this mode
-  //const [mode, setMode] = useState<"LINE" | "EXPLORE">("EXPLORE");
   const [solution, setSolution] = useState<Move | null>(null);
   const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
-  /*
-  const enterExploreMode = useCallback(() => {
-    setMode("EXPLORE");
-    setLineMoveResult(null);
-    setSolution(null);
-  }, [setLineMoveResult]);
-
-  const enterLineMode = useCallback(() => {
-    if (mode == "EXPLORE") {
-      chessboardState.clearGame();
-
-      // Recreate the original line
-      if (lineAndChapter != null) {
-        for (const position of lineAndChapter.line.positions.slice(
-          0,
-          lineIndex + 1,
-        )) {
-          chessboardState.setNextPosition(position, true);
-        }
-      }
-    }
-    setMode("LINE");
-    setSolution(null);
-  }, [lineAndChapter, lineIndex, mode, chessboardState]);
-*/
   const clearLine = useCallback(() => {
     // Reset the game
     chessboardState.clearGame();
@@ -98,8 +71,6 @@ export const StudyLine: React.FC<StudyLineProps> = ({
   const initializeLine = useCallback(
     (lineAndChapter: LineAndChapter) => {
       const { line } = lineAndChapter;
-
-      //enterLineMode();
 
       setLineAndChapter(lineAndChapter);
       chessboardState.setOrientation(line.orientation);
@@ -249,6 +220,9 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     };
 
     onValidPieceDropRef.current = onValidPieceDrop;
+    return () => {
+      onValidPieceDropRef.current = null;
+    };
   }, [
     onValidPieceDropRef,
     lineAndChapter,
@@ -260,111 +234,6 @@ export const StudyLine: React.FC<StudyLineProps> = ({
     playOpponentNextMoveIfLineContinues,
   ]);
 
-  /*
-  const onPieceDrop = useCallback(
-    (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
-      const originalPiece: PieceSymbol | null =
-        chessboardState.getPieceAtSquare(sourceSquare);
-      if (originalPiece == null) {
-        throw new Error("originalPiece is null");
-      }
-
-      const promoteToPiece = getPromoteToPiece(
-        sourceSquare,
-        targetSquare,
-        originalPiece,
-        convertToPieceSymbol(piece),
-      );
-
-      const [move, newPosition]: [Move | null, Position | null] =
-        chessboardState.createMoveOrNull(
-          sourceSquare,
-          targetSquare,
-          promoteToPiece,
-        ) || [null, null];
-
-      if (move == null || newPosition == null) {
-        return false;
-      }
-
-      if (mode == "EXPLORE") {
-        // In explore mode, we just make the move
-        chessboardState.setNextPosition(newPosition, true);
-        return true;
-      }
-
-      // Otherwise, we're in line mode.
-      if (lineAndChapter == null) {
-        window.alert('Please click "New Line" to start a new line.');
-        return false;
-      }
-
-      // If the current board position is not the next position in the line,
-      // we don't accept the move.  This can happen if the user uses
-      // the left/right arrows to move around the line and then tries to move
-      // when not in the latest position in the line.
-      if (
-        lineAndChapter.line.positions[lineIndex] !=
-        chessboardState.getPosition()
-      ) {
-        setLineMoveResult(null);
-        return false;
-      }
-
-      // Check whether the attempted move is the next move in the line.
-      const nextMoveInLine: Move | null =
-        lineAndChapter.line.positions[lineIndex + 1].lastMove;
-      if (nextMoveInLine == null) {
-        throw new Error("nextMoveInLine is null");
-      }
-
-      if (
-        nextMoveInLine.from === sourceSquare &&
-        nextMoveInLine.to === targetSquare &&
-        (promoteToPiece || null) == (nextMoveInLine.promotion || null)
-      ) {
-        // If it matches a child node, it's an acceptable move
-        // and we update the current line and the board state.
-        // Note that we use line.positions[lineIndex + 1] because
-        // we want to make sure to keep the comments.
-        chessboardState.setNextPosition(
-          lineAndChapter.line.positions[lineIndex + 1],
-          false,
-        );
-
-        // Since the move was correct, we move to the next position in the line
-        setLineIndex((lineIndex) => lineIndex + 1);
-        setLineMoveResult("CORRECT");
-        setSolution(null);
-
-        // We play the opponent's next move if the line continues.
-        playOpponentNextMoveIfLineContinues(lineAndChapter.line, lineIndex + 1);
-
-        // Return true to accept the move
-        return true;
-      }
-
-      // If we got here, the move is not correct
-      setLineMoveResult("INCORRECT");
-      if (attemptResult == null) {
-        setAttemptResult(false);
-        storeAttemptResult(lineAndChapter.line, false, db.attempts);
-      }
-      setSolution(null);
-      return false;
-    },
-    [
-      chessboardState,
-      mode,
-      lineAndChapter,
-      lineIndex,
-      setLineMoveResult,
-      attemptResult,
-      setLineIndex,
-      playOpponentNextMoveIfLineContinues,
-    ],
-  );
-*/
   const toggleShowSolution = useCallback(() => {
     if (lineAndChapter == null || lineIndex == -1) {
       throw new Error("line is null");
@@ -433,13 +302,10 @@ export const StudyLine: React.FC<StudyLineProps> = ({
 
       {studyData.selectedStudy != null ? (
         <Controls
-          // mode={mode}
           lineStatus={lineStatus}
           onNewLine={onNewLine}
           onRestartLine={onRestartLine}
           toggleShowSolution={toggleShowSolution}
-          // enterExploreMode={enterExploreMode}
-          //  enterLineMode={enterLineMode}
         />
       ) : null}
     </div>
