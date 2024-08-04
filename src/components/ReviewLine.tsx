@@ -1,5 +1,4 @@
 import { storeAttemptResult } from "@/chess/Attempt";
-import { Line } from "@/chess/Line";
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
@@ -31,7 +30,6 @@ export const onValidPieceDrop = (
 
   const line = currentLineData.lineAndChapter.line;
   const lineIndex = currentLineData.lineIndex;
-  //const nextPosition = line.positions[lineIndex + 1];
 
   // If the current board position is not the next position in the line,
   // we don't accept the move.  This can happen if the user uses
@@ -58,6 +56,12 @@ export const onValidPieceDrop = (
     // Note that we use line.positions[lineIndex + 1] because
     // we want to make sure to keep the comments.
     chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
+
+    // As a sanity check, make sure the next position in the line matches
+    // the expected next position from the move
+    if (newPosition.fen != line.positions[lineIndex + 1].fen) {
+      throw new Error("newPosition does not match the expected next position");
+    }
 
     // Since the move was correct, we move to the next position in the line
     currentLineData.setLineIndex(lineIndex + 1);
