@@ -140,12 +140,9 @@ const StatsPage = () => {
   }, [stats]);
 
   return (
-    <main>
-      <div className="flex flex-col items-center">
-        <StudyChapterSelector studyData={studyData} />
-      </div>
+    <div>
       <SuperTable columns={columns} data={data} />
-    </main>
+    </div>
   );
 };
 

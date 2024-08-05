@@ -5,10 +5,8 @@ import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import React from "react";
 import { DetailsPanel } from "./DetailsPanel";
-import { MoveDescription } from "./MoveDescription";
 import { Mode } from "./NavBar";
 import { ReviewLine } from "./ReviewLine";
-import { StudyChapterSelector } from "./StudyChapterSelector";
 
 export interface ReviewOrExploreLineProps {
   mode: Mode;

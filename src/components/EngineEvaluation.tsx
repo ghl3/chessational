@@ -15,8 +15,6 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
   position,
   engineData,
 }) => {
-  // Kick off evaluation of the current position
-
   const positionEvaluation = position
     ? engineData.getEvaluation(position.fen)
     : null;

@@ -21,7 +21,6 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     <body className={inter.className} id="root">
       <div className="charcoal-bg text-white min-h-screen">
         <Title />
-
         {children}
       </div>
       <Analytics />
