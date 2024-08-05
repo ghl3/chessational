@@ -12,6 +12,7 @@ import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
+
 import {
   CurrentLineData,
   useCurrentLineData,
@@ -39,7 +40,7 @@ if (typeof window !== "undefined") {
 
 export interface RightPanelProps {
   mode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
+  //setMode: Dispatch<SetStateAction<Mode>>;
   chessboardState: ChessboardState;
   studyData: StudyData;
   currentLineData: CurrentLineData;

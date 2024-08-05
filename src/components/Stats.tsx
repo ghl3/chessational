@@ -2,7 +2,6 @@
 
 import { db } from "@/app/db";
 import { Attempt } from "@/chess/Attempt";
-import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import SuperTable from "@/components/SuperTable";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { getStats } from "@/utils/LineStats";

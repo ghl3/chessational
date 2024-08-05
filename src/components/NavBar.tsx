@@ -1,6 +1,5 @@
 import { StudyData } from "@/hooks/UseStudyData";
 import Link from "next/link";
-import { Dispatch, SetStateAction } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudyAdderEditor } from "./StudyAdderEditor";
 
@@ -15,6 +14,7 @@ const NavEntry: React.FC<{
   return (
     <li className={active ? "border-b-2 border-blue-500" : ""}>
       <Link
+        scroll={false}
         href={`/${mode.toLowerCase()}`}
         //onClick={() => setCurrentMode(mode)}
         className="hover:text-blue-300 transition duration-300"
@@ -27,9 +27,8 @@ const NavEntry: React.FC<{
 
 export const NavBar: React.FC<{
   mode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
   studyData: StudyData;
-}> = ({ mode, setMode, studyData }) => {
+}> = ({ mode, studyData }) => {
   const { studies, selectedChapterNames } = studyData;
 
   const chapterNames = studyData.chapters
