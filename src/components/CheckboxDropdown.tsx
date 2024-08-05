@@ -75,7 +75,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     <div className="relative">
       <div
         ref={buttonRef}
-        className="border rounded p-2 cursor-pointer flex justify-between items-center whitespace-nowrap hover:bg-gray-700"
+        className="border rounded cursor-pointer flex justify-between items-center whitespace-nowrap hover:bg-gray-700"
         onClick={toggleDropdown}
       >
         <span>{text}</span>

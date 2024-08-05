@@ -40,8 +40,6 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
         minWidth: `${width}px`,
       }}
     >
-      <StudyChapterSelector studyData={studyData} />
-
       {mode === "REVIEW" && studyData.selectedStudy != null && (
         <ReviewLine
           chessboardState={chessboardState}
