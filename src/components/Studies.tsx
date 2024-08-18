@@ -2,19 +2,15 @@
 
 import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { StudyData } from "@/hooks/UseStudyData";
 import { fetchStudy } from "@/utils/StudyFetcher";
-import React, { useCallback, useEffect, useState } from "react";
-import Modal from "react-modal";
+import React, { useCallback, useState } from "react";
 import DeleteConfirmation from "./DeleteConfirmation";
 import StudyCardList from "./StudyCardList";
 import StudyInput from "./StudyInput";
 
-interface StudyAdderEditorProps {
-  selectedStudy: Study | null;
-  studies: Study[];
-  deleteStudy: (studyName: string) => void;
-  selectStudy: (studyName: string) => void;
-  addStudyAndChapters: (study: StudyChapterAndLines) => void;
+interface StudiesProps {
+  studyData: StudyData;
 }
 
 const LoadingScreen: React.FC = () => (
@@ -34,22 +30,24 @@ const AddStudyButton = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
-  studies,
-  selectedStudy,
-  selectStudy,
-  addStudyAndChapters,
-  deleteStudy,
-}) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
+  const {
+    studies,
+    selectedStudy,
+    selectStudy,
+    addStudyAndChapters,
+    deleteStudy,
+  } = studyData;
+
+  //const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isStudyInput, setIsStudyInput] = useState(false);
   const [isDeleteConfirmation, setIsDeleteConfirmation] = useState(false);
   const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    Modal.setAppElement("#root");
-  }, []);
+  //useEffect(() => {
+  //  Modal.setAppElement("#root");
+  //}, []);
 
   const title = selectedStudy ? selectedStudy.name : "Add Study";
 
@@ -86,7 +84,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
   const selectStudyAndCloseModal = useCallback(
     (studyName: string) => {
       selectStudy(studyName);
-      setIsModalOpen(false);
+      //setIsModalOpen(false);
     },
     [selectStudy],
   );
@@ -103,7 +101,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
             }
             deleteStudy(studyToDelete);
             setIsDeleteConfirmation(false);
-            setIsModalOpen(false);
+            //setIsModalOpen(false);
           }}
           onConfirmDeleteNo={() => {
             setIsDeleteConfirmation(false);
@@ -117,7 +115,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
           addStudyAndChapters={addStudyAndChapters}
           onClose={() => {
             setIsStudyInput(false);
-            setIsModalOpen(false);
+            //setIsModalOpen(false);
           }}
           onFetchError={() => {
             setIsStudyInput(false);
@@ -130,7 +128,7 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
         <div className="flex flex-col items-center space-y-4">
           <StudyCardList
             studies={studies}
-            selectedStudy={selectedStudy}
+            selectedStudy={selectedStudy || null}
             selectStudy={selectStudyAndCloseModal}
             deleteStudy={showDeleteConfirmation}
             refreshStudy={refreshStudy}
@@ -154,24 +152,5 @@ export const StudyAdderEditor: React.FC<StudyAdderEditorProps> = ({
     refreshStudy,
   ]);
 
-  return (
-    <div>
-      <button
-        className="rounded bg-blue-500 hover:bg-blue-700 text-white whitespace-nowrap"
-        onClick={() => setIsModalOpen(true)}
-      >
-        {title}
-      </button>
-
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        contentLabel="Study Modal"
-        className="modal bg-gray-800 mx-auto rounded-lg p-6 max-w-xl w-full"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center"
-      >
-        {getModalContent()}
-      </Modal>
-    </div>
-  );
+  return <div>{getModalContent()}</div>;
 };

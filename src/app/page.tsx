@@ -6,6 +6,7 @@ import { Mode, NavBar } from "@/components/NavBar";
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
 import StatsPage from "@/components/Stats";
+import { Studies } from "@/components/Studies";
 import { Engine } from "@/engine/Engine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
@@ -61,6 +62,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={mode} setMode={setMode} studyData={studyData} />
+      {mode === "STUDIES" && <Studies studyData={studyData} />}
       {(mode === "REVIEW" || mode == "EXPLORE") && (
         <ReviewOrExploreLine
           mode={mode}

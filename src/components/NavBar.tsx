@@ -1,9 +1,10 @@
+import { Study } from "@/chess/Study";
 import { StudyData } from "@/hooks/UseStudyData";
 import { Dispatch, SetStateAction } from "react";
 import { ChapterSelector } from "./ChapterSelector";
-import { StudyAdderEditor } from "./StudyAdderEditor";
+import { StudySelector } from "./StudySelector";
 
-export type Mode = "REVIEW" | "EXPLORE" | "SEARCH" | "STATS";
+export type Mode = "REVIEW" | "EXPLORE" | "SEARCH" | "STATS" | "STUDIES";
 
 const NavEntry: React.FC<{
   name: string;
@@ -40,6 +41,12 @@ export const NavBar: React.FC<{
       <nav className="flex flex-row bg-gray-800 text-white p-4 space-x-4">
         <ul className="flex justify-center space-x-4">
           <NavEntry
+            name="Studies"
+            mode="STUDIES"
+            currentMode={mode}
+            setMode={setMode}
+          />
+          <NavEntry
             name="Review"
             mode="REVIEW"
             currentMode={mode}
@@ -64,21 +71,21 @@ export const NavBar: React.FC<{
             setMode={setMode}
           />
         </ul>
-        <StudyAdderEditor
-          studies={studyData.studies}
-          selectedStudy={studyData.selectedStudy || null}
-          selectStudy={studyData.selectStudy}
-          deleteStudy={studyData.deleteStudy}
-          addStudyAndChapters={studyData.addStudyAndChapters}
-        />
 
         {studies && studies.length > 0 && (
-          <ChapterSelector
-            chapters={chapterNames || []}
-            selectedChapters={selectedChapterNames || null}
-            selectChapter={studyData.addSelectedChapterName}
-            deselectChapter={studyData.removeSelectedChapterName}
-          />
+          <>
+            <StudySelector
+              studies={studyData.studies}
+              selectedStudy={studyData.selectedStudy || null}
+              selectStudy={studyData.selectStudy}
+            />
+            <ChapterSelector
+              chapters={chapterNames || []}
+              selectedChapters={selectedChapterNames || null}
+              selectChapter={studyData.addSelectedChapterName}
+              deselectChapter={studyData.removeSelectedChapterName}
+            />
+          </>
         )}
       </nav>
     </div>
