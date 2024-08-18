@@ -21,7 +21,6 @@ import useEngine, { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState, useReviewState } from "@/hooks/UseReviewState";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol } from "chess.js";
-import { notFound, usePathname, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -83,30 +82,20 @@ interface HomeProps {
   params: { slug: string };
 }
 
-const parseModeFromSlug = (slug: string): Mode | null => {
-  if (slug === "review") {
+const getDefaultMode = (studyData: StudyData): Mode => {
+  if (
+    studyData.selectedChapterNames &&
+    studyData.selectedChapterNames.length > 0
+  ) {
     return "REVIEW";
-  } else if (slug === "explore") {
-    return "EXPLORE";
-  } else if (slug === "search") {
-    return "SEARCH";
-  } else if (slug === "stats") {
-    return "STATS";
   }
 
-  return null;
+  return "EXPLORE";
 };
 
 const Home: React.FC<HomeProps> = ({ params }) => {
-  //const pathName = usePathname();
-  //const router = useRouter();
-
-  const [mode, setMode] = useState<Mode>("REVIEW");
-
   const chessboardSize = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
-
-  //const [mode, setMode] = useState<Mode>("REVIEW");
 
   const studyData = useStudyData();
   const currentLineData = useCurrentLineData();
@@ -118,6 +107,8 @@ const Home: React.FC<HomeProps> = ({ params }) => {
       engineData.setEngine(engine);
     }
   }, [engineData]);
+
+  const [mode, setMode] = useState<Mode>(getDefaultMode(studyData));
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -187,7 +178,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           <RightPanel
             mode={mode}
             setMode={setMode}
-            //setMode={setMode}
             chessboardState={chessboardState}
             studyData={studyData}
             currentLineData={currentLineData}

@@ -1,5 +1,4 @@
 import { StudyData } from "@/hooks/UseStudyData";
-import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudyAdderEditor } from "./StudyAdderEditor";
@@ -17,8 +16,6 @@ const NavEntry: React.FC<{
     <li className={active ? "border-b-2 border-blue-500" : ""}>
       <button
         key={name}
-        //scroll={false}
-        //href={`/${mode.toLowerCase()}`}
         onClick={() => setMode(mode)}
         className="hover:text-blue-300 transition duration-300"
       >
