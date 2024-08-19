@@ -11,8 +11,6 @@ import React, {
 import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
-  //const tokens: Token[] = tokenizeQuery(query);
-
   const positions = line.positions.flatMap((position) => {
     return position.lastMove ? [position.lastMove.san] : [];
   });

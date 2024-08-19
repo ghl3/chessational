@@ -1,4 +1,4 @@
-import { PartialToken, Token, tokenizeQuery } from "./Tokenizer";
+import { Token, tokenizeQuery } from "./Tokenizer";
 
 describe("Chess Move Tokenizer", () => {
   describe("tokenizeQuery", () => {

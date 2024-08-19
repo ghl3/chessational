@@ -20,11 +20,8 @@ const parseToToken = (tokenString: string): Token => {
 };
 
 export const tokenizeQuery = (query: string): Token[] => {
-  return (
-    query
-      //.toLowerCase()
-      .split(/\s+/)
-      .filter((token) => token.length > 0)
-      .map(parseToToken)
-  );
+  return query
+    .split(/\s+/)
+    .filter((token) => token.length > 0)
+    .map(parseToToken);
 };
