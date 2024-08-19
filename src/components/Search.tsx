@@ -1,4 +1,5 @@
 import { Line } from "@/chess/Line";
+import { Token, tokenizeQuery } from "@/utils/Tokenizer";
 import React, {
   Dispatch,
   SetStateAction,
@@ -9,30 +10,41 @@ import React, {
 } from "react";
 import SuperTable from "./SuperTable";
 
-const matchesQuery = (line: Line, query: string): boolean => {
-  const normalizedQuery = query.toLowerCase();
-  return line.positions.some(
-    (position) =>
-      position.lastMove?.san.toLowerCase().includes(normalizedQuery),
-  );
+const matchesQuery = (line: Line, tokens: Token[]): boolean => {
+  //const tokens: Token[] = tokenizeQuery(query);
+
+  const positions = line.positions.flatMap((position) => {
+    return position.lastMove ? [position.lastMove.san] : [];
+  });
+
+  // Check if all the tokens are present in the line
+  return tokens
+    .filter((token) => token.type == "move")
+    .every((token) => {
+      return positions.some((position) => position.includes(token.token));
+    });
 };
 
-const makeSuggestions = (lines: Line[], query: string): string[] => {
+const makeSuggestions = (lines: Line[], tokens: Token[]): string[] => {
   const moves = new Set<string>();
-  const normalizedQuery = query.toLowerCase();
+
+  const partialToken = tokens.find((token) => token.type === "partial");
+  if (partialToken == undefined) {
+    return [];
+  }
 
   for (let line of lines) {
     for (let position of line.positions) {
       if (
         position.lastMove &&
-        position.lastMove.san.toLowerCase().startsWith(normalizedQuery)
+        position.lastMove.san.startsWith(partialToken.token)
       ) {
         moves.add(position.lastMove.san);
       }
     }
   }
 
-  return Array.from(moves).slice(0, 10); // Limit to 10 suggestions
+  return Array.from(moves).slice(0, 10);
 };
 
 interface SuggestionsProps {
@@ -56,19 +68,44 @@ const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, onSelect }) => {
   );
 };
 
+const mergeSuggestionWithQuery = (
+  query: string,
+  suggestion: string,
+): string => {
+  const tokens = tokenizeQuery(query);
+  const partialToken = tokens.find((token) => token.type === "partial");
+  if (partialToken == undefined) {
+    return query;
+  }
+
+  const newQuery = tokens
+    .filter((token) => token.type === "move")
+    .map((token) => token.token)
+    .join(" ");
+
+  return newQuery + " " + suggestion;
+};
+
 interface SearchBarProps {
   lines: Line[];
+  filteredLines: Line[];
   setFilteredLines: Dispatch<SetStateAction<Line[]>>;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ lines, setFilteredLines }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  lines,
+  filteredLines,
+  setFilteredLines,
+}) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const tokens = useMemo(() => tokenizeQuery(query), [query]);
+
   useEffect(() => {
     const filtered =
-      query === "" ? lines : lines.filter((line) => matchesQuery(line, query));
+      query === "" ? lines : lines.filter((line) => matchesQuery(line, tokens));
     setFilteredLines(filtered);
   }, [query, lines, setFilteredLines]);
 
@@ -78,12 +115,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ lines, setFilteredLines }) => {
   };
 
   const suggestions = useMemo(
-    () => makeSuggestions(lines, query),
+    () => makeSuggestions(filteredLines, tokens),
     [lines, query],
   );
 
   const handleSuggestionSelect = (suggestion: string) => {
-    setQuery(suggestion);
+    setQuery((query) => mergeSuggestionWithQuery(query, suggestion));
+
+    //setQuery(suggestion);
     setIsOpen(false);
   };
 
@@ -170,7 +209,11 @@ const Search: React.FC<SearchProps> = ({ lines }) => {
 
   return (
     <>
-      <SearchBar lines={lines} setFilteredLines={setFilteredLines} />
+      <SearchBar
+        lines={lines}
+        filteredLines={filteredLines}
+        setFilteredLines={setFilteredLines}
+      />
       <SelectedLines lines={filteredLines} />
     </>
   );

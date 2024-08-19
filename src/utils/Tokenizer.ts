@@ -1,17 +1,12 @@
 export interface Token {
   token: string;
-  type: "move";
-}
-
-export interface PartialToken {
-  token: string;
-  type: "partial";
+  type: "move" | "partial";
 }
 
 const movePattern =
   /^([NBRQK])?([a-h])?([1-8])?x?([a-h][1-8])(=[NBRQK])?[+#]?$/;
 
-const parseToToken = (tokenString: string): Token | PartialToken => {
+const parseToToken = (tokenString: string): Token => {
   console.log("tokenString: ", tokenString);
   if (
     movePattern.test(tokenString) ||
@@ -24,7 +19,7 @@ const parseToToken = (tokenString: string): Token | PartialToken => {
   }
 };
 
-export const tokenizeQuery = (query: string): (Token | PartialToken)[] => {
+export const tokenizeQuery = (query: string): Token[] => {
   return (
     query
       //.toLowerCase()
