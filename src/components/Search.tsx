@@ -3,9 +3,11 @@ import React, {
   Dispatch,
   SetStateAction,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
+import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, query: string): boolean => {
   const normalizedQuery = query.toLowerCase();
@@ -57,23 +59,42 @@ const SearchBar: React.FC<SearchBarProps> = ({ lines, setFilteredLines }) => {
   );
 };
 
-const SelectableLine: React.FC<Line> = (line: Line) => {
-  const handleSelectLine = (line: Line) => {
-    console.log("Selected line:", line);
-  };
+interface SelectedLinesProps {
+  lines: Line[];
+}
 
-  const lineString = line.positions
-    .map((position) => position.lastMove?.san)
-    .join(" ");
+const SelectedLines: React.FC<SelectedLinesProps> = ({ lines }) => {
+  const columns = useMemo(
+    () => [
+      {
+        // first group - TV Show
+        Header: "Lines",
+        // First group columns
+        columns: [
+          {
+            Header: "Study",
+            id: "study",
+            accessor: "studyName",
+          },
+          {
+            Header: "Chater",
+            id: "chapter",
+            accessor: "chapterName",
+          },
+          {
+            Header: "Line",
+            id: "lineId",
+            accessor: "lineId",
+          },
+        ],
+      },
+    ],
+    [],
+  );
 
   return (
-    <div key={line.lineId} className="p-2">
-      <button
-        onClick={() => handleSelectLine(line)}
-        className="w-full text-left hover:bg-blue-100"
-      >
-        {lineString}
-      </button>
+    <div>
+      <SuperTable columns={columns} data={lines} />
     </div>
   );
 };
@@ -90,13 +111,10 @@ const Search: React.FC<SearchProps> = ({ lines }) => {
   }
 
   return (
-    <div className="p-4 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-        Chess Opening Explorer
-      </h1>
+    <>
       <SearchBar lines={lines} setFilteredLines={setFilteredLines} />
-      {filteredLines.map((line, index) => SelectableLine(line))}
-    </div>
+      <SelectedLines lines={filteredLines} />
+    </>
   );
 };
 

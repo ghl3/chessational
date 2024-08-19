@@ -2,7 +2,7 @@
 
 import { Attempt } from "@/chess/Attempt";
 import SuperTable from "@/components/SuperTable";
-import { getStats } from "@/utils/LineStats";
+import { getStats, LineStats } from "@/utils/LineStats";
 import { useMemo } from "react";
 import { Row } from "react-table";
 
@@ -48,7 +48,7 @@ interface StatsPageProps {
 }
 
 const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
-  const stats = useMemo(() => {
+  const stats: Map<string, LineStats> = useMemo(() => {
     return getStats(attempts || []);
   }, [attempts]);
 
