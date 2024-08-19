@@ -92,9 +92,13 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({ lines }) => {
     [],
   );
 
+  const onRowClick = (line: Line) => {
+    console.log(line);
+  };
+
   return (
     <div>
-      <SuperTable columns={columns} data={lines} />
+      <SuperTable columns={columns} data={lines} onRowClick={onRowClick} />
     </div>
   );
 };

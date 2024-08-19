@@ -4,11 +4,13 @@ import { Column, Row, useSortBy, useTable } from "react-table";
 type SuperTableProps<T extends object> = {
   columns: Column<T>[];
   data: T[];
+  onRowClick?: (row: T) => void;
 };
 
 const SuperTable = <T extends object>({
   columns,
   data,
+  onRowClick,
 }: SuperTableProps<T>) => {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     useTable(
@@ -53,6 +55,7 @@ const SuperTable = <T extends object>({
               {...row.getRowProps()}
               key={`row-tr-${trIdx}`}
               className="hover:bg-gray-700"
+              onClick={() => onRowClick && onRowClick(row.original)}
             >
               {row.cells.map((cell: any, tdIdx: number) => (
                 <td
