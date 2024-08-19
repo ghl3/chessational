@@ -1,11 +1,8 @@
 "use client";
 
-import { db } from "@/app/db";
 import { Attempt } from "@/chess/Attempt";
 import SuperTable from "@/components/SuperTable";
-import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { getStats } from "@/utils/LineStats";
-import { useLiveQuery } from "dexie-react-hooks";
 import { useMemo } from "react";
 import { Row } from "react-table";
 
@@ -46,28 +43,14 @@ const dateSortType = <T extends object>(
   return 0;
 };
 
-const StatsPage = () => {
-  const studyData: StudyData = useStudyData();
+interface StatsPageProps {
+  attempts: Attempt[];
+}
 
-  const attempts: Attempt[] | undefined = useLiveQuery(async () => {
-    return await db.attempts.toArray();
-  }, []);
-
+const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
   const stats = useMemo(() => {
-    const studyChapterSet = new Set<string>();
-    for (const selectedChapter of studyData.selectedChapterNames || []) {
-      studyChapterSet.add(selectedChapter);
-    }
-
-    const selectedAttempts = attempts?.filter((attempt) => {
-      return (
-        attempt.studyName === studyData.selectedStudyName &&
-        studyChapterSet.has(attempt.chapterName)
-      );
-    });
-
-    return getStats(selectedAttempts || []);
-  }, [attempts, studyData.selectedStudyName, studyData.selectedChapterNames]);
+    return getStats(attempts || []);
+  }, [attempts]);
 
   const columns = useMemo(
     () => [

@@ -83,7 +83,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
       {mode === "SEARCH" && <Search lines={studyData.lines || []} />}
-      {mode === "STATS" && <StatsPage />}
+      {mode === "STATS" && <StatsPage attempts={studyData.attempts || []} />}
     </div>
   );
 };
