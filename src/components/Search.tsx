@@ -11,10 +11,49 @@ import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, query: string): boolean => {
   const normalizedQuery = query.toLowerCase();
-  const positions = line.positions.map(
-    (position) => position.lastMove?.san.toLowerCase(),
+  return line.positions.some(
+    (position) =>
+      position.lastMove?.san.toLowerCase().includes(normalizedQuery),
   );
-  return positions.includes(normalizedQuery);
+};
+
+const makeSuggestions = (lines: Line[], query: string): string[] => {
+  const moves = new Set<string>();
+  const normalizedQuery = query.toLowerCase();
+
+  for (let line of lines) {
+    for (let position of line.positions) {
+      if (
+        position.lastMove &&
+        position.lastMove.san.toLowerCase().startsWith(normalizedQuery)
+      ) {
+        moves.add(position.lastMove.san);
+      }
+    }
+  }
+
+  return Array.from(moves).slice(0, 10); // Limit to 10 suggestions
+};
+
+interface SuggestionsProps {
+  suggestions: string[];
+  onSelect: (suggestion: string) => void;
+}
+
+const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, onSelect }) => {
+  return (
+    <ul className="absolute z-10 w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+      {suggestions.map((suggestion) => (
+        <li
+          key={suggestion}
+          className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-100"
+          onClick={() => onSelect(suggestion)}
+        >
+          {suggestion}
+        </li>
+      ))}
+    </ul>
+  );
 };
 
 interface SearchBarProps {
@@ -26,21 +65,26 @@ const SearchBar: React.FC<SearchBarProps> = ({ lines, setFilteredLines }) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
-    if (query === "") {
-      setFilteredLines(lines);
-    } else {
-      const filtered = lines.filter((line) => {
-        return matchesQuery(line, query);
-      });
-      setFilteredLines(filtered);
-    }
+    const filtered =
+      query === "" ? lines : lines.filter((line) => matchesQuery(line, query));
+    setFilteredLines(filtered);
   }, [query, lines, setFilteredLines]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
+    setIsOpen(true);
+  };
+
+  const suggestions = useMemo(
+    () => makeSuggestions(lines, query),
+    [lines, query],
+  );
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    setQuery(suggestion);
+    setIsOpen(false);
   };
 
   return (
@@ -55,6 +99,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ lines, setFilteredLines }) => {
         className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
         placeholder="Search chess lines..."
       />
+      {isOpen && suggestions.length > 0 && (
+        <Suggestions
+          suggestions={suggestions}
+          onSelect={handleSuggestionSelect}
+        />
+      )}
     </div>
   );
 };
@@ -108,10 +158,14 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ lines }) => {
-  const [filteredLines, setFilteredLines] = useState<Line[]>([]);
+  const [filteredLines, setFilteredLines] = useState<Line[]>(lines);
 
   if (lines.length === 0) {
-    return <div>Select a chapter first</div>;
+    return (
+      <div className="text-gray-800 dark:text-gray-200">
+        Select a chapter first
+      </div>
+    );
   }
 
   return (
