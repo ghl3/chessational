@@ -8,12 +8,12 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback } from "react";
 
 export interface StudyData {
-  studies: Study[];
-  selectedStudyName?: string;
-  selectedStudy?: Study;
-  chapters?: Chapter[];
-  selectedChapterNames?: string[];
-  lines?: Line[];
+  studies: Study[]; // All studies
+  selectedStudyName?: string; // The name of the selected study
+  selectedStudy?: Study; // The selected study
+  chapters?: Chapter[]; // All chapters from the selected study
+  selectedChapterNames?: string[]; // The names of the selected chapters
+  lines?: Line[]; // All lines from the selected chapters
   attempts?: Attempt[]; // Attempts for the selected chapters
 
   addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
@@ -84,7 +84,7 @@ export const useStudyData = (): StudyData => {
   }, [selectedStudyName]);
 
   // All lines from the current study and
-  // the selected chapters
+  // the selected chapters.
   const lines: Line[] | undefined = useLiveQuery(async () => {
     if (selectedStudyName == null) {
       return undefined;

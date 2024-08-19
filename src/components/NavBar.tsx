@@ -1,4 +1,3 @@
-import { Study } from "@/chess/Study";
 import { StudyData } from "@/hooks/UseStudyData";
 import { Dispatch, SetStateAction } from "react";
 import { ChapterSelector } from "./ChapterSelector";

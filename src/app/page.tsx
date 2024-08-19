@@ -5,6 +5,7 @@ import Chessboard, { MoveValidator } from "@/components/Chessboard";
 import { Mode, NavBar } from "@/components/NavBar";
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
+import Search from "@/components/Search";
 import StatsPage from "@/components/Stats";
 import { Studies } from "@/components/Studies";
 import { Engine } from "@/engine/Engine";
@@ -59,6 +60,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   reviewState,
   height,
 }) => {
+  const selectedChapters =
+    studyData.chapters?.filter(
+      (chapter) => studyData.selectedChapterNames?.includes(chapter.name),
+    ) || [];
+
+  studyData.lines;
+
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={mode} setMode={setMode} studyData={studyData} />
@@ -74,7 +82,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           height={height || 0}
         />
       )}
-      {mode === "SEARCH" && <div>Search</div>}
+      {mode === "SEARCH" && <Search lines={studyData.lines || []} />}
       {mode === "STATS" && <StatsPage />}
     </div>
   );
