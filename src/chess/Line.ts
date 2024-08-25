@@ -16,18 +16,15 @@ export const createLineId = (moves: Position[]): string => {
     .join(" ");
 };
 
-export type LineStatus =
-  | "SELECT_MOVE_FOR_WHITE"
-  | "SELECT_MOVE_FOR_BLACK"
-  | "LINE_COMPLETE";
+export type LineStatus = "WHITE_TO_MOVE" | "BLACK_TO_MOVE" | "LINE_COMPLETE";
 
 export const getLineStatus = (line: Line, index: number): LineStatus => {
   if (index === line.positions.length - 1) {
     return "LINE_COMPLETE";
   } else if (index % 2 === 0) {
-    return "SELECT_MOVE_FOR_WHITE";
+    return "WHITE_TO_MOVE";
   } else {
-    return "SELECT_MOVE_FOR_BLACK";
+    return "BLACK_TO_MOVE";
   }
 };
 

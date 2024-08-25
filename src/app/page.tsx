@@ -14,11 +14,6 @@ import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
-
-import {
-  CurrentLineData,
-  useCurrentLineData,
-} from "@/hooks/UseCurrentLineData";
 import useEngine, { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState, useReviewState } from "@/hooks/UseReviewState";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
@@ -44,7 +39,7 @@ export interface RightPanelProps {
   setMode: Dispatch<SetStateAction<Mode>>;
   chessboardState: ChessboardState;
   studyData: StudyData;
-  currentLineData: CurrentLineData;
+  //currentLineData: CurrentLineData;
   engineData: EngineData;
   reviewState: ReviewState;
   height?: number;
@@ -55,7 +50,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   setMode,
   chessboardState,
   studyData,
-  currentLineData,
+  //currentLineData,
   engineData,
   reviewState,
   height,
@@ -76,7 +71,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           mode={mode}
           chessboardState={chessboardState}
           studyData={studyData}
-          currentLineData={currentLineData}
+          //currentLineData={currentLineData}
           engineData={engineData}
           reviewState={reviewState}
           height={height || 0}
@@ -86,7 +81,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         <Search
           lines={studyData.lines || []}
           chapters={studyData.chapters || []}
-          currentLineData={currentLineData}
+          chessboardState={chessboardState}
+          //currentLineData={currentLineData}
         />
       )}
       {mode === "STATS" && <StatsPage attempts={studyData.attempts || []} />}
@@ -114,7 +110,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const studyData = useStudyData();
-  const currentLineData = useCurrentLineData();
+  //const currentLineData = useCurrentLineData(chessboardState);
   const reviewState = useReviewState();
 
   const engineData = useEngine();
@@ -144,7 +140,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     ): boolean => {
       return onReviewValidPieceDrop(
         chessboardState,
-        currentLineData,
+        //currentLineData,
         reviewState,
         newPosition,
         sourceSquare,
@@ -152,7 +148,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
         promoteToPiece,
       );
     },
-    [chessboardState, currentLineData, reviewState],
+    [chessboardState, reviewState],
   );
 
   const onValidPieceDrop: MoveValidator = (
@@ -196,7 +192,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
             setMode={setMode}
             chessboardState={chessboardState}
             studyData={studyData}
-            currentLineData={currentLineData}
+            //currentLineData={currentLineData}
             engineData={engineData}
             reviewState={reviewState}
             height={height || 0}

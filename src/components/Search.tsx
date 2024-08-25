@@ -1,7 +1,7 @@
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
-import { CurrentLineData } from "@/hooks/UseCurrentLineData";
+import { ChessboardState } from "@/hooks/UseChessboardState";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
 import React, {
   Dispatch,
@@ -159,12 +159,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 interface SelectedLinesProps {
   lineAndChapters: LineAndChapter[];
-  currentLineData: CurrentLineData;
+  chessboardState: ChessboardState;
 }
 
 const SelectedLines: React.FC<SelectedLinesProps> = ({
   lineAndChapters,
-  currentLineData,
+  chessboardState,
 }) => {
   const columns = useMemo(
     () => [
@@ -195,7 +195,11 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
   );
 
   const onRowClick = (lineAndChapter: LineAndChapter) => {
-    currentLineData.setLineAndChapter(lineAndChapter); //  setCurrentLine(line);
+    console.log("Setting Line and Chapter", lineAndChapter);
+    //currentLineData.setLineAndChapter(lineAndChapter);
+    // Use the chessboardState to fill the board with the
+    // positions of the lineAndChapter
+    chessboardState.clearAndSetPositions(lineAndChapter.line.positions, 0);
   };
 
   return (
@@ -212,13 +216,14 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
 interface SearchProps {
   lines: Line[];
   chapters: Chapter[];
-  currentLineData: CurrentLineData;
+  //currentLineData: CurrentLineData;
+  chessboardState: ChessboardState;
 }
 
 const Search: React.FC<SearchProps> = ({
   lines,
   chapters,
-  currentLineData,
+  chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
     return lines.map((line) => {
@@ -255,7 +260,7 @@ const Search: React.FC<SearchProps> = ({
       />
       <SelectedLines
         lineAndChapters={filteredLines}
-        currentLineData={currentLineData}
+        chessboardState={chessboardState}
       />
     </>
   );

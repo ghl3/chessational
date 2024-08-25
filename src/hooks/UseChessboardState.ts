@@ -30,6 +30,7 @@ export interface ChessboardState {
   setPositionFromIndex: (moveIndex: number) => void;
   setNextPosition: (position: Position, overwrite: boolean) => void;
   setOrientation: React.Dispatch<React.SetStateAction<Color>>;
+  clearAndSetPositions: (newPositions: Position[], newIndex: number) => void;
 }
 
 interface GameState {
@@ -202,6 +203,21 @@ export const useChessboardState = (): ChessboardState => {
       });
   }, [gameState]);
 
+  const clearAndSetPositions = useCallback(
+    (newPositions: Position[], newIndex: number) => {
+      dispatch({ type: "CLEAR_HISTORY" });
+      for (let position of newPositions) {
+        dispatch({
+          type: "ADD_NEXT_POSITION",
+          position: position,
+          overwriteHistory: false,
+        });
+      }
+      dispatch({ type: "SET_POSITION_FROM_INDEX", moveIndex: newIndex });
+    },
+    [dispatch],
+  );
+
   return {
     positions,
     orientation,
@@ -232,5 +248,6 @@ export const useChessboardState = (): ChessboardState => {
     },
 
     setOrientation,
+    clearAndSetPositions,
   };
 };

@@ -1,5 +1,4 @@
 import { ChessboardState } from "@/hooks/UseChessboardState";
-import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
@@ -12,7 +11,7 @@ export interface ReviewOrExploreLineProps {
   mode: Mode;
   chessboardState: ChessboardState;
   studyData: StudyData;
-  currentLineData: CurrentLineData;
+  //currentLineData: CurrentLineData;
   engineData: EngineData;
   reviewState: ReviewState;
   height: number;
@@ -22,7 +21,7 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
   mode,
   chessboardState,
   studyData,
-  currentLineData,
+  //currentLineData,
   engineData,
   reviewState,
   height,
@@ -42,13 +41,13 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
         <ReviewLine
           chessboardState={chessboardState}
           studyData={studyData}
-          currentLineData={currentLineData}
+          //currentLineData={currentLineData}
           reviewState={reviewState}
         />
       )}
 
       <DetailsPanel
-        chapter={currentLineData.lineAndChapter?.chapter || undefined}
+        chapter={reviewState.lineAndChapter?.chapter || undefined}
         position={position || undefined}
         gameMoves={chessboardState.getGameMoves()}
         engineData={engineData}
