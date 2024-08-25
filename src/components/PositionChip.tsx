@@ -66,6 +66,7 @@ export const makePositionChips = (
   return lineAndChapter.line.positions.slice(1).map((position, index) => {
     const onClick = (e: React.MouseEvent) => {
       e.stopPropagation();
+      chessboardState.setOrientation(lineAndChapter.chapter.orientation);
       chessboardState.clearAndSetPositions(
         lineAndChapter.line.positions,
         index + 1, // Add one because we skipped the first position

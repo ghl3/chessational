@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import PositionChip, { makePositionChips } from "./PositionChip";
+import { makePositionChips } from "./PositionChip";
 import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
@@ -210,9 +210,10 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
         line: makePositionChips(lineAndChapter, chessboardState),
       };
     });
-  }, [chessboardState.clearAndSetPositions, lineAndChapters]);
+  }, [lineAndChapters]);
 
   const onRowClick = (result: SearchResultRow) => {
+    chessboardState.setOrientation(result.lineAndChapter.chapter.orientation);
     chessboardState.clearAndSetPositions(
       result.lineAndChapter.line.positions,
       0,
