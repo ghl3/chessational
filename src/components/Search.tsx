@@ -1,8 +1,12 @@
+import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
+import { LineAndChapter } from "@/chess/StudyChapterAndLines";
+import { CurrentLineData } from "@/hooks/UseCurrentLineData";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
 import React, {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -23,7 +27,10 @@ const matchesQuery = (line: Line, tokens: Token[]): boolean => {
     });
 };
 
-const makeSuggestions = (lines: Line[], tokens: Token[]): string[] => {
+const makeSuggestions = (
+  lines: LineAndChapter[],
+  tokens: Token[],
+): string[] => {
   const moves = new Set<string>();
 
   const partialToken = tokens.find((token) => token.type === "partial");
@@ -32,7 +39,7 @@ const makeSuggestions = (lines: Line[], tokens: Token[]): string[] => {
   }
 
   for (let line of lines) {
-    for (let position of line.positions) {
+    for (let position of line.line.positions) {
       if (
         position.lastMove &&
         position.lastMove.san.startsWith(partialToken.token)
@@ -68,9 +75,10 @@ const Suggestions: React.FC<SuggestionsProps> = ({ suggestions, onSelect }) => {
 
 const mergeSuggestionWithQuery = (
   query: string,
+  tokens: Token[],
   suggestion: string,
 ): string => {
-  const tokens = tokenizeQuery(query);
+  //const tokens = tokenizeQuery(query);
   const partialToken = tokens.find((token) => token.type === "partial");
   if (partialToken == undefined) {
     return query;
@@ -85,9 +93,9 @@ const mergeSuggestionWithQuery = (
 };
 
 interface SearchBarProps {
-  lines: Line[];
-  filteredLines: Line[];
-  setFilteredLines: Dispatch<SetStateAction<Line[]>>;
+  lines: LineAndChapter[];
+  filteredLines: LineAndChapter[];
+  setFilteredLines: Dispatch<SetStateAction<LineAndChapter[]>>;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -103,7 +111,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   useEffect(() => {
     const filtered =
-      query === "" ? lines : lines.filter((line) => matchesQuery(line, tokens));
+      query === ""
+        ? lines
+        : lines.filter((line) => matchesQuery(line.line, tokens));
     setFilteredLines(filtered);
   }, [query, lines, setFilteredLines]);
 
@@ -117,12 +127,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
     [lines, query],
   );
 
-  const handleSuggestionSelect = (suggestion: string) => {
-    setQuery((query) => mergeSuggestionWithQuery(query, suggestion));
-
-    //setQuery(suggestion);
-    setIsOpen(false);
-  };
+  const handleSuggestionSelect = useCallback(
+    (suggestion: string) => {
+      setQuery((query) => mergeSuggestionWithQuery(query, tokens, suggestion));
+      setIsOpen(false);
+    },
+    [query, tokens, setQuery, setIsOpen],
+  );
 
   return (
     <div className="relative w-64">
@@ -147,10 +158,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
 };
 
 interface SelectedLinesProps {
-  lines: Line[];
+  lineAndChapters: LineAndChapter[];
+  currentLineData: CurrentLineData;
 }
 
-const SelectedLines: React.FC<SelectedLinesProps> = ({ lines }) => {
+const SelectedLines: React.FC<SelectedLinesProps> = ({
+  lineAndChapters,
+  currentLineData,
+}) => {
   const columns = useMemo(
     () => [
       {
@@ -161,17 +176,17 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({ lines }) => {
           {
             Header: "Study",
             id: "study",
-            accessor: "studyName",
+            accessor: "line.studyName",
           },
           {
             Header: "Chater",
             id: "chapter",
-            accessor: "chapterName",
+            accessor: "line.chapterName",
           },
           {
             Header: "Line",
             id: "lineId",
-            accessor: "lineId",
+            accessor: "line.lineId",
           },
         ],
       },
@@ -179,23 +194,49 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({ lines }) => {
     [],
   );
 
-  const onRowClick = (line: Line) => {
-    console.log(line);
+  const onRowClick = (lineAndChapter: LineAndChapter) => {
+    currentLineData.setLineAndChapter(lineAndChapter); //  setCurrentLine(line);
   };
 
   return (
     <div>
-      <SuperTable columns={columns} data={lines} onRowClick={onRowClick} />
+      <SuperTable
+        columns={columns}
+        data={lineAndChapters}
+        onRowClick={onRowClick}
+      />
     </div>
   );
 };
 
 interface SearchProps {
   lines: Line[];
+  chapters: Chapter[];
+  currentLineData: CurrentLineData;
 }
 
-const Search: React.FC<SearchProps> = ({ lines }) => {
-  const [filteredLines, setFilteredLines] = useState<Line[]>(lines);
+const Search: React.FC<SearchProps> = ({
+  lines,
+  chapters,
+  currentLineData,
+}) => {
+  const lineAndChapters = useMemo(() => {
+    return lines.map((line) => {
+      const chapter = chapters.find(
+        (chapter) => chapter.name === line.chapterName,
+      );
+      if (chapter == undefined) {
+        throw new Error(`Chapter ${line.chapterName} not found`);
+      }
+      return {
+        line: line,
+        chapter: chapter,
+      };
+    });
+  }, [lines, chapters]);
+
+  const [filteredLines, setFilteredLines] =
+    useState<LineAndChapter[]>(lineAndChapters);
 
   if (lines.length === 0) {
     return (
@@ -208,11 +249,14 @@ const Search: React.FC<SearchProps> = ({ lines }) => {
   return (
     <>
       <SearchBar
-        lines={lines}
+        lines={lineAndChapters}
         filteredLines={filteredLines}
         setFilteredLines={setFilteredLines}
       />
-      <SelectedLines lines={filteredLines} />
+      <SelectedLines
+        lineAndChapters={filteredLines}
+        currentLineData={currentLineData}
+      />
     </>
   );
 };

@@ -82,7 +82,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           height={height || 0}
         />
       )}
-      {mode === "SEARCH" && <Search lines={studyData.lines || []} />}
+      {mode === "SEARCH" && (
+        <Search
+          lines={studyData.lines || []}
+          chapters={studyData.chapters || []}
+          currentLineData={currentLineData}
+        />
+      )}
       {mode === "STATS" && <StatsPage attempts={studyData.attempts || []} />}
     </div>
   );
@@ -167,8 +173,8 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     return true;
   };
 
-  console.log("Parmas: ", params.slug);
-  console.log("State: ", chessboardState.getFen());
+  //console.log("Parmas: ", params.slug);
+  //console.log("State: ", chessboardState.getFen());
 
   return (
     <main className="flex flex-row justify-center w-screen">
