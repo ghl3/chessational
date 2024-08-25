@@ -1,4 +1,4 @@
-import React, { HTMLAttributes } from "react";
+import React, { HTMLAttributes, useMemo } from "react";
 
 import { PieceCount } from "@/chess/Fen";
 import { BLACK, Color, PieceSymbol, WHITE } from "chess.js";
@@ -35,25 +35,29 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
   pieceCount,
   color,
 }) => {
-  const diffs: Map<PieceSymbol, number> = new Map();
-  const primary = color === WHITE ? pieceCount.white : pieceCount.black;
-  const opposite = color === WHITE ? pieceCount.black : pieceCount.white;
+  const { diffs, materialDiff } = useMemo(() => {
+    const diffMap: Map<PieceSymbol, number> = new Map();
+    const primary = color === WHITE ? pieceCount.white : pieceCount.black;
+    const opposite = color === WHITE ? pieceCount.black : pieceCount.white;
 
-  // Calculate material difference
-  let materialDiff = 0;
-  primary.forEach((count, piece) => {
-    materialDiff += materialValue[piece] * count;
-  });
-  opposite.forEach((count, piece) => {
-    materialDiff -= materialValue[piece] * count;
-  });
+    // Calculate material difference
+    let materialDiff = 0;
+    primary.forEach((count, piece) => {
+      materialDiff += materialValue[piece] * count;
+    });
+    opposite.forEach((count, piece) => {
+      materialDiff -= materialValue[piece] * count;
+    });
 
-  primary.forEach((count, piece) => {
-    const diff = count - (opposite.get(piece) || 0);
-    if (diff > 0) {
-      diffs.set(piece, diff);
-    }
-  });
+    primary.forEach((count, piece) => {
+      const diff = count - (opposite.get(piece) || 0);
+      if (diff > 0) {
+        diffMap.set(piece, diff);
+      }
+    });
+
+    return { diffs: diffMap, materialDiff };
+  }, [pieceCount, color]);
 
   return (
     <>

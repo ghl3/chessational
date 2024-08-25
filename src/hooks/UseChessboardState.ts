@@ -203,8 +203,14 @@ export const useChessboardState = (): ChessboardState => {
       });
   }, [gameState]);
 
+  const clearAndSetPositions = (newPositions: Position[], newIndex: number) => {
+    console.log("FOOBAR");
+  };
+  /*
   const clearAndSetPositions = useCallback(
     (newPositions: Position[], newIndex: number) => {
+
+
       dispatch({ type: "CLEAR_HISTORY" });
       for (let position of newPositions) {
         dispatch({
@@ -217,7 +223,7 @@ export const useChessboardState = (): ChessboardState => {
     },
     [dispatch],
   );
-
+*/
   return {
     positions,
     orientation,

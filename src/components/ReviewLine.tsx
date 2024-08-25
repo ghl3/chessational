@@ -15,7 +15,6 @@ const OPPONENT_MOVE_DELAY = 250;
 
 export const onValidPieceDrop = (
   chessboardState: ChessboardState,
-  //currentLineData: CurrentLineData,
   reviewState: ReviewState,
   newPosition: Position,
   sourceSquare: Square,
@@ -111,19 +110,16 @@ export const onValidPieceDrop = (
 export interface ReviewLineProps {
   chessboardState: ChessboardState;
   studyData: StudyData;
-  //currentLineData: CurrentLineData;
   reviewState: ReviewState;
 }
 
 export const ReviewLine: React.FC<ReviewLineProps> = ({
   chessboardState,
   studyData,
-  //currentLineData,
   reviewState,
 }) => {
   const onNewLine = useCallback(() => {
     reviewState.clearLine(chessboardState);
-    //reviewState.setAttemptResult(null);
 
     if (studyData.lines == null) {
       throw new Error("studyData.lines is null");
@@ -143,8 +139,8 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
     reviewState.initializeLine({ line, chapter }, chessboardState);
   }, [
-    //currentLineData,
-    reviewState,
+    reviewState.initializeLine,
+    reviewState.clearLine,
     studyData.attempts,
     studyData.chapters,
     studyData.lines,
@@ -156,7 +152,11 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     }
     reviewState.clearLine(chessboardState);
     reviewState.initializeLine(reviewState.lineAndChapter, chessboardState);
-  }, [reviewState]);
+  }, [
+    reviewState.clearLine,
+    reviewState.initializeLine,
+    reviewState.lineAndChapter,
+  ]);
 
   const arrows = useMemo(() => {
     if (reviewState?.lineAndChapter?.line?.positions == null) {
@@ -208,7 +208,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     chessboardState,
     reviewState.lineAndChapter,
     reviewState.lineIndex,
-    reviewState,
+    reviewState.showSolution,
   ]);
 
   const position = chessboardState.getPosition();

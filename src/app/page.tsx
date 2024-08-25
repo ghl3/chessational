@@ -39,7 +39,6 @@ export interface RightPanelProps {
   setMode: Dispatch<SetStateAction<Mode>>;
   chessboardState: ChessboardState;
   studyData: StudyData;
-  //currentLineData: CurrentLineData;
   engineData: EngineData;
   reviewState: ReviewState;
   height?: number;
@@ -50,18 +49,10 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   setMode,
   chessboardState,
   studyData,
-  //currentLineData,
   engineData,
   reviewState,
   height,
 }) => {
-  const selectedChapters =
-    studyData.chapters?.filter(
-      (chapter) => studyData.selectedChapterNames?.includes(chapter.name),
-    ) || [];
-
-  studyData.lines;
-
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={mode} setMode={setMode} studyData={studyData} />
@@ -71,7 +62,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           mode={mode}
           chessboardState={chessboardState}
           studyData={studyData}
-          //currentLineData={currentLineData}
           engineData={engineData}
           reviewState={reviewState}
           height={height || 0}
@@ -82,7 +72,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           lines={studyData.lines || []}
           chapters={studyData.chapters || []}
           chessboardState={chessboardState}
-          //currentLineData={currentLineData}
         />
       )}
       {mode === "STATS" && <StatsPage attempts={studyData.attempts || []} />}
@@ -110,7 +99,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   const chessboardState: ChessboardState = useChessboardState();
 
   const studyData = useStudyData();
-  //const currentLineData = useCurrentLineData(chessboardState);
   const reviewState = useReviewState();
 
   const engineData = useEngine();
@@ -140,7 +128,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     ): boolean => {
       return onReviewValidPieceDrop(
         chessboardState,
-        //currentLineData,
         reviewState,
         newPosition,
         sourceSquare,
@@ -169,9 +156,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     return true;
   };
 
-  //console.log("Parmas: ", params.slug);
-  //console.log("State: ", chessboardState.getFen());
-
   return (
     <main className="flex flex-row justify-center w-screen">
       <div className="w-1/2">
@@ -192,7 +176,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
             setMode={setMode}
             chessboardState={chessboardState}
             studyData={studyData}
-            //currentLineData={currentLineData}
             engineData={engineData}
             reviewState={reviewState}
             height={height || 0}

@@ -1,6 +1,6 @@
 import { LineStatus } from "@/chess/Line";
 import { Position } from "@/chess/Position";
-import React from "react";
+import React, { useMemo } from "react";
 
 export type LineMoveResult = "CORRECT" | "INCORRECT";
 
@@ -12,9 +12,9 @@ export interface MoveDescriptionProps {
 
 const getLineStatusText = (status: LineStatus | null): string => {
   switch (status) {
-    case "SELECT_MOVE_FOR_WHITE":
+    case "WHITE_TO_MOVE":
       return "Select a move for White";
-    case "SELECT_MOVE_FOR_BLACK":
+    case "BLACK_TO_MOVE":
       return "Select a move for Black";
     case "LINE_COMPLETE":
       return "This is the end of the line";
@@ -50,16 +50,28 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
   status,
   result,
 }) => {
+  const lineStatusText = useMemo(
+    () => getLineStatusText(status || null),
+    [status],
+  );
+
+  const moveResultText = useMemo(
+    () => getMoveResultText(result || null),
+    [result],
+  );
+
+  const moveResultColor = useMemo(
+    () => getMoveResultColor(result || null),
+    [result],
+  );
+
   return (
     <div className="flex flex-col space-y-2 p-4">
       <p className="text-gray-400" style={{ minHeight: "1.5em" }}>
-        {getLineStatusText(status || null)}
+        {lineStatusText}
       </p>
-      <p
-        className={getMoveResultColor(result || null)}
-        style={{ minHeight: "1.5em" }}
-      >
-        {getMoveResultText(result || null)}
+      <p className={moveResultColor} style={{ minHeight: "1.5em" }}>
+        {moveResultText}
       </p>
     </div>
   );

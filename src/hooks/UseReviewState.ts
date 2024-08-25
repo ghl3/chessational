@@ -60,11 +60,9 @@ export const useReviewState = (): ReviewState => {
 
   const setLineAndChapterWithDefaults = (
     lineAndChapter: LineAndChapter | null,
-    chessboardState: ChessboardState,
   ) => {
     setCurrentLineAndChapter(lineAndChapter);
     setCurrentLineIndex(-1);
-    //chessboardState.set
   };
 
   const clearLine = useCallback(
@@ -77,7 +75,13 @@ export const useReviewState = (): ReviewState => {
       setShowSolution(false);
       setLineMoveResult(null);
     },
-    [setCurrentLineAndChapter, setCurrentLineIndex],
+    [
+      setCurrentLineAndChapter,
+      setCurrentLineIndex,
+      setAttemptResult,
+      setShowSolution,
+      setLineMoveResult,
+    ],
   );
 
   const initializeLine = useCallback(
