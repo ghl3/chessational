@@ -195,10 +195,6 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
   );
 
   const onRowClick = (lineAndChapter: LineAndChapter) => {
-    console.log("Setting Line and Chapter", lineAndChapter);
-    //currentLineData.setLineAndChapter(lineAndChapter);
-    // Use the chessboardState to fill the board with the
-    // positions of the lineAndChapter
     chessboardState.clearAndSetPositions(lineAndChapter.line.positions, 0);
   };
 
