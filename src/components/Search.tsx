@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import PositionChip from "./PositionChip";
+import PositionChip, { makePositionChips } from "./PositionChip";
 import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
@@ -203,27 +203,11 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
 
   const data: SearchResultRow[] = useMemo(() => {
     return lineAndChapters.map((lineAndChapter) => {
-      const positionChips: React.JSX.Element[] = lineAndChapter.line.positions
-        .slice(1)
-        .map((position, index) => {
-          const onClick = (e: React.MouseEvent) => {
-            e.stopPropagation();
-            console.log("Clicked", lineAndChapter.line.lineId, index);
-            chessboardState.clearAndSetPositions(
-              lineAndChapter.line.positions,
-              index + 1, // Add one because we skipped the first position
-            );
-          };
-          const key = `${lineAndChapter.line.lineId}-${index}`;
-          return (
-            <PositionChip position={position} onClick={onClick} key={key} />
-          );
-        });
       return {
         lineAndChapter: lineAndChapter,
         studyName: lineAndChapter.line.studyName,
         chapterName: lineAndChapter.line.chapterName,
-        line: positionChips,
+        line: makePositionChips(lineAndChapter, chessboardState),
       };
     });
   }, [chessboardState.clearAndSetPositions, lineAndChapters]);
