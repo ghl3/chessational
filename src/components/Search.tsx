@@ -12,6 +12,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import PositionChip from "./PositionChip";
 import SuperTable from "./SuperTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
@@ -78,7 +79,6 @@ const mergeSuggestionWithQuery = (
   tokens: Token[],
   suggestion: string,
 ): string => {
-  //const tokens = tokenizeQuery(query);
   const partialToken = tokens.find((token) => token.type === "partial");
   if (partialToken == undefined) {
     return query;
@@ -162,6 +162,13 @@ interface SelectedLinesProps {
   chessboardState: ChessboardState;
 }
 
+interface SearchResultRow {
+  lineAndChapter: LineAndChapter;
+  studyName: string;
+  chapterName: string;
+  line: React.JSX.Element[];
+}
+
 const SelectedLines: React.FC<SelectedLinesProps> = ({
   lineAndChapters,
   chessboardState,
@@ -176,17 +183,17 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
           {
             Header: "Study",
             id: "study",
-            accessor: "line.studyName",
+            accessor: "studyName",
           },
           {
             Header: "Chater",
             id: "chapter",
-            accessor: "line.chapterName",
+            accessor: "chapterName",
           },
           {
             Header: "Line",
             id: "lineId",
-            accessor: "line.lineId",
+            accessor: "line",
           },
         ],
       },
@@ -194,17 +201,43 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
     [],
   );
 
-  const onRowClick = (lineAndChapter: LineAndChapter) => {
-    chessboardState.clearAndSetPositions(lineAndChapter.line.positions, 0);
+  const data: SearchResultRow[] = useMemo(() => {
+    return lineAndChapters.map((lineAndChapter) => {
+      const positionChips: React.JSX.Element[] = lineAndChapter.line.positions
+        .slice(1)
+        .map((position, index) => {
+          const onClick = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            console.log("Clicked", lineAndChapter.line.lineId, index);
+            chessboardState.clearAndSetPositions(
+              lineAndChapter.line.positions,
+              index + 1, // Add one because we skipped the first position
+            );
+          };
+          const key = `${lineAndChapter.line.lineId}-${index}`;
+          return (
+            <PositionChip position={position} onClick={onClick} key={key} />
+          );
+        });
+      return {
+        lineAndChapter: lineAndChapter,
+        studyName: lineAndChapter.line.studyName,
+        chapterName: lineAndChapter.line.chapterName,
+        line: positionChips,
+      };
+    });
+  }, [chessboardState.clearAndSetPositions, lineAndChapters]);
+
+  const onRowClick = (result: SearchResultRow) => {
+    chessboardState.clearAndSetPositions(
+      result.lineAndChapter.line.positions,
+      0,
+    );
   };
 
   return (
     <div>
-      <SuperTable
-        columns={columns}
-        data={lineAndChapters}
-        onRowClick={onRowClick}
-      />
+      <SuperTable columns={columns} data={data} onRowClick={onRowClick} />
     </div>
   );
 };
@@ -212,7 +245,6 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
 interface SearchProps {
   lines: Line[];
   chapters: Chapter[];
-  //currentLineData: CurrentLineData;
   chessboardState: ChessboardState;
 }
 

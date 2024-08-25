@@ -206,7 +206,7 @@ export const useChessboardState = (): ChessboardState => {
   const clearAndSetPositions = useCallback(
     (newPositions: Position[], newIndex: number) => {
       dispatch({ type: "CLEAR_HISTORY" });
-      for (let position of newPositions) {
+      for (const position of newPositions) {
         dispatch({
           type: "ADD_NEXT_POSITION",
           position: position,
