@@ -1,8 +1,12 @@
+import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
+import { getStats, LineStats } from "@/utils/LineStats";
+import { dateSortType, numericSortType } from "@/utils/Sorting";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
+import { get } from "http";
 import React, {
   Dispatch,
   SetStateAction,
@@ -176,9 +180,7 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
   const columns = useMemo(
     () => [
       {
-        // first group - TV Show
         Header: "Lines",
-        // First group columns
         columns: [
           {
             Header: "Study",

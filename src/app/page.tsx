@@ -74,7 +74,16 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           chessboardState={chessboardState}
         />
       )}
-      {mode === "STATS" && <StatsPage attempts={studyData.attempts || []} />}
+      {mode === "STATS" && (
+        <StatsPage
+          lines={studyData.lines || []}
+          chapters={studyData.chapters || []}
+          //      lineAndChapters={studyData.lineAndChapters || []}
+
+          attempts={studyData.attempts || []}
+          chessboardState={chessboardState}
+        />
+      )}
     </div>
   );
 };
@@ -158,7 +167,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
   return (
     <main className="flex flex-row justify-center w-screen">
-      <div className="w-1/2">
+      <div className="w-2/5">
         <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
           <Chessboard
             chessboardSize={chessboardSize}
@@ -169,7 +178,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
         </div>
       </div>
 
-      <div className="w-1/2">
+      <div className="w-3/5">
         <div className="ml-3">
           <RightPanel
             mode={mode}

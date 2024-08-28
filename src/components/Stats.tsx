@@ -1,53 +1,46 @@
 "use client";
 
 import { Attempt } from "@/chess/Attempt";
+import { Chapter } from "@/chess/Chapter";
+import { Line } from "@/chess/Line";
+import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import SuperTable from "@/components/SuperTable";
+import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
+import { dateSortType, numericSortType } from "@/utils/Sorting";
 import { useMemo } from "react";
 import { Row } from "react-table";
-
-const numericSortType = <T extends object>(
-  rowA: Row<T>,
-  rowB: Row<T>,
-  columnId: string,
-  desc?: boolean,
-): number => {
-  const valueA = rowA.values[columnId];
-  const valueB = rowB.values[columnId];
-
-  // Convert to numbers if they are not already
-  const numA = typeof valueA === "number" ? valueA : parseFloat(valueA);
-  const numB = typeof valueB === "number" ? valueB : parseFloat(valueB);
-
-  // Handle NaN and undefined values
-  if (isNaN(numA)) return 1;
-  if (isNaN(numB)) return -1;
-
-  // Sorting
-  return numA > numB ? 1 : -1;
-};
-
-const dateSortType = <T extends object>(
-  rowA: Row<T>,
-  rowB: Row<T>,
-  columnId: string,
-): number => {
-  const valueA = rowA.values[columnId];
-  const valueB = rowB.values[columnId];
-
-  const dateA = new Date(valueA);
-  const dateB = new Date(valueB);
-
-  if (dateA > dateB) return 1;
-  if (dateA < dateB) return -1;
-  return 0;
-};
+import { makePositionChips } from "./PositionChip";
 
 interface StatsPageProps {
+  //lineAndChapters: LineAndChapter[];
+  lines: Line[];
+  chapters: Chapter[];
   attempts: Attempt[];
+  chessboardState: ChessboardState;
 }
 
-const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
+const StatsPage: React.FC<StatsPageProps> = ({
+  lines,
+  chapters,
+  attempts,
+  chessboardState,
+}) => {
+  const lineAndChapters = useMemo(() => {
+    return lines.map((line) => {
+      const chapter = chapters.find(
+        (chapter) => chapter.name === line.chapterName,
+      );
+      if (chapter == undefined) {
+        throw new Error(`Chapter ${line.chapterName} not found`);
+      }
+      return {
+        line: line,
+        chapter: chapter,
+      };
+    });
+  }, [lines, chapters]);
+
   const stats: Map<string, LineStats> = useMemo(() => {
     return getStats(attempts || []);
   }, [attempts]);
@@ -55,9 +48,7 @@ const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
   const columns = useMemo(
     () => [
       {
-        // first group - TV Show
         Header: "Lines",
-        // First group columns
         columns: [
           {
             Header: "Study",
@@ -71,8 +62,9 @@ const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
           },
           {
             Header: "Line",
-            id: "lineId",
-            accessor: "stat.lineId",
+            id: "line",
+            accessor: "line",
+            minWidth: 600,
           },
           {
             Header: "Num Attempts",
@@ -86,20 +78,15 @@ const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
             accessor: "stat.numCorrect",
             sortType: numericSortType,
           },
-
           {
             Header: "Latest Attempt",
             id: "latestAttempt",
             accessor: "stat.latestAttempt",
             sortType: dateSortType,
             Cell: ({ value }: { value: string }) => {
-              // Custom rendering logic for the 'Latest Attempt' column
-              const date = new Date(value);
-              // Format the date as a date/time
-              return date.toLocaleString();
+              return new Date(value).toLocaleString();
             },
           },
-
           {
             Header: "Estimated Success Rate",
             id: "estimatedSuccessRate",
@@ -116,10 +103,21 @@ const StatsPage: React.FC<StatsPageProps> = ({ attempts }) => {
   const data = useMemo(() => {
     const rows = [];
     for (const stat of stats.values()) {
-      rows.push({ stat });
+      const lineAndChapter = lineAndChapters.find(
+        (lineAndChapter) => lineAndChapter.line.lineId === stat.lineId,
+      );
+
+      if (!lineAndChapter) {
+        throw new Error("Could not find line and chapter");
+      }
+
+      rows.push({
+        stat: stat,
+        line: makePositionChips(lineAndChapter, chessboardState),
+      });
     }
     return rows;
-  }, [stats]);
+  }, [stats, lineAndChapters]);
 
   return (
     <div>

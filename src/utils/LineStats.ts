@@ -102,6 +102,7 @@ export const calculateProbability = (
   return probability;
 };
 
+// A map of LineId to the attempt stats
 export const getStats = (attempts: Attempt[]): Map<string, LineStats> => {
   const statsPerLine = new Map<string, LineStats>();
 
