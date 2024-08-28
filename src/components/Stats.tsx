@@ -3,14 +3,11 @@
 import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
-import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import SuperTable from "@/components/SuperTable";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
-import { dateSortType, numericSortType } from "@/utils/Sorting";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo } from "react";
-import { Row } from "react-table";
 import { makePositionChips } from "./PositionChip";
 
 interface StatsPageProps {
@@ -48,19 +45,12 @@ const StatsPage: React.FC<StatsPageProps> = ({
 
   type DataType = {
     line: React.JSX.Element[];
-    stat: {
-      study: string;
-      chapter: string;
-      numAttempts: number;
-      numCorrect: number;
-      latestAttempt: string;
-      estimatedSuccessRate: number;
-    };
+    stat: LineStats;
   };
 
   const columnHelper = createColumnHelper<DataType>();
 
-  const columns = useMemo<ColumnDef<DataType>[]>(
+  const columns: ColumnDef<DataType>[] = useMemo<ColumnDef<DataType>[]>(
     () => [
       columnHelper.group({
         id: "lines",
@@ -169,8 +159,8 @@ const StatsPage: React.FC<StatsPageProps> = ({
     [],
   );
 */
-  const data = useMemo(() => {
-    const rows = [];
+  const data: DataType[] = useMemo(() => {
+    const rows: DataType[] = [];
     for (const stat of stats.values()) {
       const lineAndChapter = lineAndChapters.find(
         (lineAndChapter) => lineAndChapter.line.lineId === stat.lineId,

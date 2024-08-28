@@ -1,5 +1,5 @@
 import {
-  Column,
+  ColumnDef,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -9,7 +9,7 @@ import {
 import React from "react";
 
 type SuperTableProps<T extends object> = {
-  columns: Column<T>[];
+  columns: ColumnDef<T>[];
   data: T[];
   onRowClick?: (row: T) => void;
 };
