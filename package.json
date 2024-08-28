@@ -13,6 +13,7 @@
   "dependencies": {
     "@stdlib/stats-base-dists-beta": "^0.1.0",
     "@stdlib/stats-base-dists-beta-cdf": "^0.1.0",
+    "@tanstack/react-table": "^8.20.5",
     "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.8",
     "chess.js": "^1.0.0-beta.6",
@@ -27,7 +28,6 @@
     "react-chessboard": "^4.2.1",
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",
-    "react-table": "^7.8.0",
     "ts-jest": "^29.1.1"
   },
   "devDependencies": {
@@ -37,7 +37,6 @@
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@types/react-modal": "^3.16.3",
-    "@types/react-table": "^7.7.18",
     "autoprefixer": "latest",
     "eslint": "^8.54.0",
     "eslint-config-next": "^14.0.3",

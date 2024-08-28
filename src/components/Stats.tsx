@@ -8,7 +8,8 @@ import SuperTable from "@/components/SuperTable";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { dateSortType, numericSortType } from "@/utils/Sorting";
-import { useMemo } from "react";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import React, { useMemo } from "react";
 import { Row } from "react-table";
 import { makePositionChips } from "./PositionChip";
 
@@ -44,6 +45,74 @@ const StatsPage: React.FC<StatsPageProps> = ({
   const stats: Map<string, LineStats> = useMemo(() => {
     return getStats(attempts || []);
   }, [attempts]);
+
+  type DataType = {
+    line: React.JSX.Element[];
+    stat: {
+      study: string;
+      chapter: string;
+      numAttempts: number;
+      numCorrect: number;
+      latestAttempt: string;
+      estimatedSuccessRate: number;
+    };
+  };
+
+  const columnHelper = createColumnHelper<DataType>();
+
+  const columns = useMemo<ColumnDef<DataType>[]>(
+    () => [
+      columnHelper.group({
+        id: "lines",
+        header: "Lines",
+        columns: [
+          columnHelper.accessor("stat.study", {
+            header: "Study",
+          }),
+          columnHelper.accessor("stat.chapter", {
+            header: "Chapter",
+          }),
+          columnHelper.accessor("line", {
+            header: "Line",
+            size: 15000, // Set minimum width to 300px
+            cell: ({ getValue }) => {
+              const elements = getValue() as React.JSX.Element[];
+              return (
+                <div className="flex flex-wrap gap-1 w-full">
+                  {elements.map((element, index) => (
+                    <React.Fragment key={index}>{element}</React.Fragment>
+                  ))}
+                </div>
+              );
+            },
+          }),
+          columnHelper.accessor("stat.numAttempts", {
+            header: "Num Attempts",
+            sortingFn: "basic",
+          }),
+          columnHelper.accessor("stat.numCorrect", {
+            header: "Num Correct",
+            sortingFn: "basic",
+          }),
+          columnHelper.accessor("stat.latestAttempt", {
+            header: "Latest Attempt",
+            sortingFn: "datetime",
+            cell: ({ getValue }) => new Date(getValue()).toLocaleString(),
+          }),
+          columnHelper.accessor("stat.estimatedSuccessRate", {
+            header: "Estimated Success Rate",
+            sortingFn: "basic",
+            cell: ({ getValue }) => getValue().toFixed(3),
+          }),
+        ],
+      }),
+    ],
+    [],
+  );
+
+  /*
+
+
 
   const columns = useMemo(
     () => [
@@ -99,7 +168,7 @@ const StatsPage: React.FC<StatsPageProps> = ({
     ],
     [],
   );
-
+*/
   const data = useMemo(() => {
     const rows = [];
     for (const stat of stats.values()) {

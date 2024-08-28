@@ -6,6 +6,7 @@ import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { dateSortType, numericSortType } from "@/utils/Sorting";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { get } from "http";
 import React, {
   Dispatch,
@@ -177,31 +178,35 @@ const SelectedLines: React.FC<SelectedLinesProps> = ({
   lineAndChapters,
   chessboardState,
 }) => {
-  const columns = useMemo(
-    () => [
-      {
-        Header: "Lines",
-        columns: [
-          {
-            Header: "Study",
-            id: "study",
-            accessor: "studyName",
+  const columns: ColumnDef<SearchResultRow>[] = [
+    {
+      header: "Lines",
+      columns: [
+        {
+          header: "Study",
+          accessorKey: "studyName",
+        },
+        {
+          header: "Chapter",
+          accessorKey: "chapterName",
+        },
+        {
+          header: "Line",
+          accessorKey: "line",
+          cell: ({ getValue }) => {
+            const elements = getValue() as React.JSX.Element[];
+            return (
+              <div>
+                {elements.map((element, index) => (
+                  <React.Fragment key={index}>{element}</React.Fragment>
+                ))}
+              </div>
+            );
           },
-          {
-            Header: "Chater",
-            id: "chapter",
-            accessor: "chapterName",
-          },
-          {
-            Header: "Line",
-            id: "lineId",
-            accessor: "line",
-          },
-        ],
-      },
-    ],
-    [],
-  );
+        },
+      ],
+    },
+  ];
 
   const data: SearchResultRow[] = useMemo(() => {
     return lineAndChapters.map((lineAndChapter) => {

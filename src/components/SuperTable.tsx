@@ -1,5 +1,12 @@
+import {
+  Column,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import React from "react";
-import { Column, Row, useSortBy, useTable } from "react-table";
 
 type SuperTableProps<T extends object> = {
   columns: Column<T>[];
@@ -12,71 +19,61 @@ const SuperTable = <T extends object>({
   data,
   onRowClick,
 }: SuperTableProps<T>) => {
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable(
-      {
-        columns,
-        data,
-      },
-      useSortBy,
-    );
+  const table = useReactTable(
+    {
+      columns,
+      data,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(), //order doesn't matter anymore!
+    }, //,
+    //useSortBy,
+  );
 
   return (
     <div className="w-full overflow-x-auto">
-      <table
-        {...getTableProps()}
-        className="w-full table-fixed divide-y divide-gray-700"
-      >
+      <table className="w-full table-fixed divide-y divide-gray-700">
         <thead className="bg-gray-800">
-          {headerGroups.map((headerGroup: any, headerIdx: number) => (
-            <tr
-              {...headerGroup.getHeaderGroupProps()}
-              key={`header-tr-${headerIdx}`}
-            >
-              {headerGroup.headers.map((column: any, idx: number) => (
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
                 <th
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  key={`header-th-${headerIdx}-${idx}`}
+                  key={header.id}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={header.column.getToggleSortingHandler()}
                 >
-                  {column.render("Header")}
-                  <span key={`header-span-${headerIdx}-${idx}`}>
-                    {column.isSorted
-                      ? column.isSortedDesc
-                        ? " 🔽"
-                        : " 🔼"
-                      : ""}
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                  <span>
+                    {{
+                      asc: " 🔼",
+                      desc: " 🔽",
+                    }[header.column.getIsSorted() as string] ?? ""}
                   </span>
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody
-          {...getTableBodyProps()}
-          className="bg-gray-900 divide-y divide-gray-700"
-        >
-          {rows.map((row: Row<T>, trIdx: number) => {
-            prepareRow(row);
-            return (
-              <tr
-                {...row.getRowProps()}
-                key={`row-tr-${trIdx}`}
-                className="hover:bg-gray-700 cursor-pointer"
-                onClick={() => onRowClick && onRowClick(row.original)}
-              >
-                {row.cells.map((cell: any, tdIdx: number) => (
-                  <td
-                    {...cell.getCellProps()}
-                    key={`row-td-${trIdx}-${tdIdx}`}
-                    className="px-6 py-4 whitespace-normal break-words text-gray-300"
-                  >
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+        <tbody className="bg-gray-900 divide-y divide-gray-700">
+          {table.getRowModel().rows.map((row) => (
+            <tr
+              key={row.id}
+              className="hover:bg-gray-700 cursor-pointer"
+              onClick={() => onRowClick && onRowClick(row.original)}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <td
+                  key={cell.id}
+                  className="px-6 py-4 whitespace-normal break-words text-gray-300"
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
