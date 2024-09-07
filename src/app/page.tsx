@@ -4,7 +4,10 @@ import { Position } from "@/chess/Position";
 import { PositionNode } from "@/chess/PositionTree";
 import Chessboard, { MoveValidator } from "@/components/Chessboard";
 import { Mode, NavBar } from "@/components/NavBar";
-import OpeningTree from "@/components/OpeningTree";
+import {
+  default as OpeningGraph,
+  default as OpeningTree,
+} from "@/components/OpeningTree";
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
 import Search from "@/components/Search";
@@ -87,10 +90,10 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
       {mode === "TREE" && (
-        <OpeningTree
+        <OpeningGraph
           chapter={(studyData.chapters || [])[0]}
           onNodeClick={function (node: PositionNode): void {
-            throw new Error("Function not implemented.");
+            console.log("Clicked move:", node.position.lastMove?.san);
           }}
         />
       )}

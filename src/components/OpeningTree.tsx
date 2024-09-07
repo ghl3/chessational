@@ -1,104 +1,112 @@
 import { Chapter } from "@/chess/Chapter";
 import { PositionNode } from "@/chess/PositionTree";
-import { BLACK, WHITE } from "chess.js";
-import React, { useCallback } from "react";
-import Tree, {
-  CustomNodeElementProps,
-  RawNodeDatum,
-  TreeNodeDatum,
-} from "react-d3-tree";
+import React, { useCallback, useMemo } from "react";
+import { ForceGraph2D } from "react-force-graph";
 
-interface ChessNodeDatum extends RawNodeDatum {
+interface GraphNode {
+  id: string;
   name: string;
-  attributes: {
-    isWhiteMove: boolean;
-    //positionNode: PositionNode;
-  };
-  children: ChessNodeDatum[];
+  positionNode: PositionNode;
 }
 
-interface OpeningTreeProps {
+interface GraphLink {
+  source: string;
+  target: string;
+  name: string;
+}
+
+interface OpeningGraphProps {
   chapter: Chapter;
-  onNodeClick: (node: ChessNodeDatum) => void;
+  onNodeClick: (node: PositionNode) => void;
 }
 
-const buildTree = (chapter: Chapter): ChessNodeDatum => {
-  const buildChildren = (
-    node: PositionNode,
-    //node: PositionNode,
-    //isWhiteMove: boolean,
-  ): ChessNodeDatum[] => {
-    return node.children.map((child) => ({
-      name: child.position.lastMove?.san || "Start",
-      attributes: {
-        isWhiteMove: child.position.lastMove?.player === BLACK,
-      },
-      children: buildChildren(child),
-    }));
+const buildGraph = (
+  chapter: Chapter,
+): { nodes: GraphNode[]; links: GraphLink[] } => {
+  const nodes: GraphNode[] = [];
+  const links: GraphLink[] = [];
+  const nodeMap: Map<string, GraphNode> = new Map();
+
+  const addNode = (positionNode: PositionNode): GraphNode => {
+    const fen = positionNode.position.fen;
+    if (!nodeMap.has(fen)) {
+      const node: GraphNode = {
+        id: fen,
+        name: positionNode.position.lastMove?.san || "Start",
+        positionNode: positionNode,
+      };
+      nodes.push(node);
+      nodeMap.set(fen, node);
+    }
+    return nodeMap.get(fen)!;
   };
 
-  return {
-    name: "Start",
-    //positionNode: chapter.positionTree,
-    attributes: {
-      //positionNode: chapter.positionTree,
-      isWhiteMove: true,
-    },
-    children: buildChildren(chapter.positionTree),
+  const traversePositions = (
+    node: PositionNode,
+    parentNode: GraphNode | null,
+  ) => {
+    const currentNode = addNode(node);
+
+    if (parentNode) {
+      links.push({
+        source: parentNode.id,
+        target: currentNode.id,
+        name: node.position.lastMove?.san || "",
+      });
+    }
+
+    for (const child of node.children) {
+      traversePositions(child, currentNode);
+    }
   };
+
+  traversePositions(chapter.positionTree, null);
+  return { nodes, links };
 };
 
-const OpeningTree: React.FC<OpeningTreeProps> = ({ chapter, onNodeClick }) => {
-  const data = buildTree(chapter);
+const OpeningGraph: React.FC<OpeningGraphProps> = ({
+  chapter,
+  onNodeClick,
+}) => {
+  const graphData = useMemo(() => buildGraph(chapter), [chapter]);
 
   const handleNodeClick = useCallback(
-    (nodeData: TreeNodeDatum, event: React.MouseEvent<SVGElement>) => {
-      const chessNode = nodeData as RawNodeDatum as ChessNodeDatum;
-      console.log("Clicked move:", chessNode.name);
-      onNodeClick(chessNode);
+    (node: GraphNode) => {
+      console.log("Clicked move:", node.name);
+      onNodeClick(node.positionNode);
     },
     [onNodeClick],
   );
 
-  const renderCustomNode = useCallback(
-    ({ nodeDatum }: CustomNodeElementProps) => {
-      const chessNode = nodeDatum as RawNodeDatum as ChessNodeDatum;
-      return (
-        <g onClick={(event) => handleNodeClick(nodeDatum, event)}>
-          <circle
-            r={10}
-            fill={chessNode.attributes.isWhiteMove ? "#f0f0f0" : "#303030"}
-          />
-          <text
-            dy=".31em"
-            x={chessNode.children ? -15 : 15}
-            textAnchor={chessNode.children ? "end" : "start"}
-            style={{
-              fill: chessNode.attributes.isWhiteMove ? "black" : "white",
-              fontSize: "12px",
-            }}
-          >
-            {chessNode.name}
-          </text>
-        </g>
-      );
-    },
-    [handleNodeClick],
-  );
-
   return (
     <div style={{ width: "100%", height: "400px" }}>
-      <Tree
-        data={data}
-        orientation="horizontal"
-        pathFunc="diagonal"
-        translate={{ x: 50, y: 200 }}
-        nodeSize={{ x: 100, y: 30 }}
-        separation={{ siblings: 1, nonSiblings: 1 }}
-        renderCustomNodeElement={renderCustomNode}
+      <ForceGraph2D
+        graphData={graphData}
+        nodeLabel="name"
+        linkLabel="name"
+        nodeColor={(node) =>
+          (node as GraphNode).positionNode.position.lastMove?.player === "w"
+            ? "#f0f0f0"
+            : "#303030"
+        }
+        linkDirectionalArrowLength={3.5}
+        linkDirectionalArrowRelPos={1}
+        onNodeClick={(node) => handleNodeClick(node as GraphNode)}
+        nodeCanvasObject={(node, ctx, globalScale) => {
+          const label = (node as GraphNode).name;
+          const fontSize = 12 / globalScale;
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle =
+            (node as GraphNode).positionNode.position.lastMove?.player === "w"
+              ? "black"
+              : "white";
+          ctx.fillText(label, node.x!, node.y!);
+        }}
       />
     </div>
   );
 };
 
-export default OpeningTree;
+export default OpeningGraph;

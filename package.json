@@ -29,6 +29,7 @@
     "react-chessboard": "^4.2.1",
     "react-d3-tree": "^3.6.2",
     "react-dom": "^18.2.0",
+    "react-force-graph": "^1.44.4",
     "react-modal": "^3.16.1",
     "ts-jest": "^29.1.1"
   },
