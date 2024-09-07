@@ -11,7 +11,6 @@ import React, { useMemo } from "react";
 import { makePositionChips } from "./PositionChip";
 
 interface StatsPageProps {
-  //lineAndChapters: LineAndChapter[];
   lines: Line[];
   chapters: Chapter[];
   attempts: Attempt[];
@@ -58,13 +57,15 @@ const StatsPage: React.FC<StatsPageProps> = ({
         columns: [
           columnHelper.accessor("stat.study", {
             header: "Study",
+            //size: 100,
           }),
           columnHelper.accessor("stat.chapter", {
             header: "Chapter",
+            //size: 100,
           }),
           columnHelper.accessor("line", {
             header: "Line",
-            size: 15000, // Set minimum width to 300px
+            size: 500,
             cell: ({ getValue }) => {
               const elements = getValue() as React.JSX.Element[];
               return (
@@ -100,65 +101,6 @@ const StatsPage: React.FC<StatsPageProps> = ({
     [],
   );
 
-  /*
-
-
-
-  const columns = useMemo(
-    () => [
-      {
-        Header: "Lines",
-        columns: [
-          {
-            Header: "Study",
-            id: "study",
-            accessor: "stat.study",
-          },
-          {
-            Header: "Chater",
-            id: "chapter",
-            accessor: "stat.chapter",
-          },
-          {
-            Header: "Line",
-            id: "line",
-            accessor: "line",
-            minWidth: 600,
-          },
-          {
-            Header: "Num Attempts",
-            id: "numAttempts",
-            accessor: "stat.numAttempts",
-            sortType: numericSortType,
-          },
-          {
-            Header: "Num Correct",
-            id: "numCorrect",
-            accessor: "stat.numCorrect",
-            sortType: numericSortType,
-          },
-          {
-            Header: "Latest Attempt",
-            id: "latestAttempt",
-            accessor: "stat.latestAttempt",
-            sortType: dateSortType,
-            Cell: ({ value }: { value: string }) => {
-              return new Date(value).toLocaleString();
-            },
-          },
-          {
-            Header: "Estimated Success Rate",
-            id: "estimatedSuccessRate",
-            accessor: "stat.estimatedSuccessRate",
-            sortType: numericSortType,
-            Cell: ({ value }: { value: any }) => value.toFixed(3),
-          },
-        ],
-      },
-    ],
-    [],
-  );
-*/
   const data: DataType[] = useMemo(() => {
     const rows: DataType[] = [];
     for (const stat of stats.values()) {

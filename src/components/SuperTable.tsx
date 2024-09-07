@@ -19,16 +19,15 @@ const SuperTable = <T extends object>({
   data,
   onRowClick,
 }: SuperTableProps<T>) => {
-  const table = useReactTable(
-    {
-      columns,
-      data,
-      getCoreRowModel: getCoreRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getSortedRowModel: getSortedRowModel(), //order doesn't matter anymore!
-    }, //,
-    //useSortBy,
-  );
+  const table = useReactTable({
+    columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+  });
 
   return (
     <div className="w-full overflow-x-auto">
@@ -46,6 +45,13 @@ const SuperTable = <T extends object>({
                     header.column.columnDef.header,
                     header.getContext(),
                   )}
+                  <div
+                    onMouseDown={header.getResizeHandler()}
+                    onTouchStart={header.getResizeHandler()}
+                    className={`resizer ${
+                      header.column.getIsResizing() ? "isResizing" : ""
+                    }`}
+                  />
                   <span>
                     {{
                       asc: " 🔼",
