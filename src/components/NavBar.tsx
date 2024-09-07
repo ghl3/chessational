@@ -3,7 +3,13 @@ import { Dispatch, SetStateAction } from "react";
 import { ChapterSelector } from "./ChapterSelector";
 import { StudySelector } from "./StudySelector";
 
-export type Mode = "REVIEW" | "EXPLORE" | "SEARCH" | "STATS" | "STUDIES";
+export type Mode =
+  | "REVIEW"
+  | "EXPLORE"
+  | "SEARCH"
+  | "STATS"
+  | "STUDIES"
+  | "TREE";
 
 const NavEntry: React.FC<{
   name: string;
@@ -66,6 +72,12 @@ export const NavBar: React.FC<{
           <NavEntry
             name="Stats"
             mode="STATS"
+            currentMode={mode}
+            setMode={setMode}
+          />
+          <NavEntry
+            name="Tree"
+            mode="TREE"
             currentMode={mode}
             setMode={setMode}
           />
