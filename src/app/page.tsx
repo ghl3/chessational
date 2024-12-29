@@ -4,10 +4,7 @@ import { Position } from "@/chess/Position";
 import { PositionNode } from "@/chess/PositionTree";
 import Chessboard, { MoveValidator } from "@/components/Chessboard";
 import { Mode, NavBar } from "@/components/NavBar";
-import {
-  default as OpeningGraph,
-  default as OpeningTree,
-} from "@/components/OpeningTree";
+import { default as OpeningGraph } from "@/components/OpeningTree";
 import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
 import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
 import Search from "@/components/Search";
@@ -61,7 +58,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 }) => {
   return (
     <div className="flex flex-col flex-1 justify-start">
-      <NavBar mode={mode} setMode={setMode} studyData={studyData} />
+      <NavBar mode={mode} setMode={setMode} />
       {mode !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
       {mode === "STUDIES" && <Studies studyData={studyData} />}
       {(mode === "REVIEW" || mode == "EXPLORE") && (

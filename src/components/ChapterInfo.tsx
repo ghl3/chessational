@@ -5,8 +5,7 @@ import { PositionNode } from "@/chess/PositionTree";
 import React from "react";
 
 interface ChapterInfoProps {
-  chapter?: Chapter;
-  showChapter: boolean;
+  chapter: Chapter;
   position?: Position;
 }
 
@@ -57,15 +56,7 @@ const getLastMainLineMoveIndex = (
   return moveIndex;
 };
 
-const ChapterInfo: React.FC<ChapterInfoProps> = ({
-  chapter,
-  showChapter,
-  position,
-}) => {
-  if (!showChapter || !chapter) {
-    return null;
-  }
-
+const ChapterInfo: React.FC<ChapterInfoProps> = ({ chapter, position }) => {
   const chapterUrl = chapter.headers["Site"];
 
   // Lichess lets you link to a specific part of a chater, but only

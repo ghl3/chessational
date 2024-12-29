@@ -1,6 +1,4 @@
-import { StudyData } from "@/hooks/UseStudyData";
 import { Dispatch, SetStateAction } from "react";
-import { StudyChapterSelector } from "./StudyChapterSelector";
 
 export type Mode =
   | "REVIEW"
@@ -33,13 +31,7 @@ const NavEntry: React.FC<{
 export const NavBar: React.FC<{
   mode: Mode;
   setMode: Dispatch<SetStateAction<Mode>>;
-  studyData: StudyData;
-}> = ({ mode, setMode, studyData }) => {
-  const { studies, selectedChapterNames } = studyData;
-
-  const chapterNames = studyData.chapters
-    ? studyData.chapters.map((chapter) => chapter.name)
-    : undefined;
+}> = ({ mode, setMode }) => {
   return (
     <div>
       <nav className="flex flex-row bg-gray-800 text-white p-4 space-x-4">

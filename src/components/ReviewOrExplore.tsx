@@ -11,7 +11,6 @@ export interface ReviewOrExploreLineProps {
   mode: Mode;
   chessboardState: ChessboardState;
   studyData: StudyData;
-  //currentLineData: CurrentLineData;
   engineData: EngineData;
   reviewState: ReviewState;
   height: number;
@@ -21,7 +20,6 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
   mode,
   chessboardState,
   studyData,
-  //currentLineData,
   engineData,
   reviewState,
   height,
@@ -41,7 +39,6 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
         <ReviewLine
           chessboardState={chessboardState}
           studyData={studyData}
-          //currentLineData={currentLineData}
           reviewState={reviewState}
         />
       )}

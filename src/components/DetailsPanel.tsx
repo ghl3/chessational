@@ -26,10 +26,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 }) => {
   const comments = position?.comments || [];
 
+  const [showPgn, setShowPgn] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
   const [showDatabase, setShowDatabase] = useState<boolean>(false);
   const [showChapter, setShowChapter] = useState(false);
   const [showComments, setShowComments] = useState<boolean>(false);
+
+  const toggleShowPgn = useCallback(() => {
+    setShowPgn((showPgn) => !showPgn);
+  }, []);
 
   const toggleShowChapter = useCallback(() => {
     setShowChapter((showChapter) => !showChapter);
@@ -48,8 +53,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     setShowComments((showComments) => !showComments);
   }, []);
 
-  // const width = Math.floor(0.75 * height);
-
   return (
     <div className="flex flex-col space-y-2 min-height:12px">
       <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
@@ -58,6 +61,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
             onChange={toggleShowChapter}
             checked={showChapter}
             label="Chapter"
+            labelPosition="top"
+            size="medium"
+          />
+          <SwitchButton
+            onChange={toggleShowPgn}
+            checked={showPgn}
+            label="PGN"
             labelPosition="top"
             size="medium"
           />
@@ -84,21 +94,23 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           />
         </div>
 
-        <PositionDescription position={position} gameMoves={gameMoves} />
+        {showChapter && chapter && (
+          <ChapterInfo chapter={chapter} position={position} />
+        )}
 
-        <ChapterInfo
-          chapter={chapter}
-          showChapter={showChapter}
-          position={position}
-        />
+        {showPgn && position && (
+          <PositionDescription position={position} gameMoves={gameMoves} />
+        )}
 
         {showEngine && position && (
           <EngineEvaluation position={position} engineData={engineData} />
         )}
 
-        <Database showDatabase={showDatabase} position={position} />
+        {showDatabase && position && <Database position={position} />}
 
-        <CommentArea comments={comments} showComments={showComments} />
+        {showComments && comments && comments.length > 0 && (
+          <CommentArea comments={comments} />
+        )}
 
         {/* Spacer div will grow to fill space*/}
         <div className="flex-grow"></div>

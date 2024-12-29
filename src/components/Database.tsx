@@ -6,19 +6,19 @@ import { useEffect, useState } from "react";
 import Table from "./Table";
 
 interface DatabaseProps extends React.HTMLAttributes<HTMLDivElement> {
-  showDatabase: boolean;
-  position?: Position;
+  //showDatabase: boolean;
+  position: Position;
 }
 
 export const Database: React.FC<DatabaseProps> = ({
-  showDatabase,
+  //showDatabase,
   position,
 }) => {
   const [database, setDatabase] = useState<LichessDatabase | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(showDatabase && position !== null);
+    setLoading(position !== null);
     if (position) {
       getOrFetchAndCacheDatabase(position.fen, db.positions)
         .then((data) => {
@@ -30,9 +30,9 @@ export const Database: React.FC<DatabaseProps> = ({
           setLoading(false);
         });
     }
-  }, [position, showDatabase]);
+  }, [position]);
 
-  if (!showDatabase || !position || !database) return null;
+  if (!database) return null;
 
   //const totalGames = database.black + database.white + database.draws;
   const totalGames = database.black + database.white + database.draws;
