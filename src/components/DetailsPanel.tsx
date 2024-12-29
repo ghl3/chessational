@@ -54,9 +54,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-2 min-height:12px">
-      <div className="flex flex-col flex-grow justify-start bg-gray-700 ">
-        <div className="flex flex-row justify-between text-sm">
+    <div className="flex flex-col space-y-2 min-h-12 max-w-3xl">
+      <div className="flex flex-col flex-grow justify-start bg-gray-700 p-4 w-full">
+        <div className="flex flex-row gap-8 text-sm max-w-3xl">
           <SwitchButton
             onChange={toggleShowChapter}
             checked={showChapter}
