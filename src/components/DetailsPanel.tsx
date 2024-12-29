@@ -98,12 +98,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           <ChapterInfo chapter={chapter} position={position} />
         )}
 
-        {showPgn && position && (
-          <PositionDescription position={position} gameMoves={gameMoves} />
-        )}
-
         {showEngine && position && (
           <EngineEvaluation position={position} engineData={engineData} />
+        )}
+
+        {showPgn && position && (
+          <PositionDescription position={position} gameMoves={gameMoves} />
         )}
 
         {showDatabase && position && <Database position={position} />}

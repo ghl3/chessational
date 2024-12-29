@@ -17,16 +17,15 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
-  <html lang="en">
-    <body className={inter.className} id="root">
-      <div className="charcoal-bg text-white min-h-screen">
+  <html lang="en" className="h-full">
+    <body className={`min-h-full m-0 charcoal-bg ${inter.className}`} id="root">
+      <div className="text-white min-h-screen flex flex-col">
         <Title />
-        {children}
+        <main className="flex-1 flex">{children}</main>
       </div>
       <Analytics />
       <SpeedInsights />
     </body>
   </html>
 );
-
 export default RootLayout;
