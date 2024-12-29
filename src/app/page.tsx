@@ -13,6 +13,7 @@ import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
 import Search from "@/components/Search";
 import StatsPage from "@/components/Stats";
 import { Studies } from "@/components/Studies";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Engine } from "@/engine/Engine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
@@ -61,6 +62,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={mode} setMode={setMode} studyData={studyData} />
+      <StudyChapterSelector studyData={studyData} />
       {mode === "STUDIES" && <Studies studyData={studyData} />}
       {(mode === "REVIEW" || mode == "EXPLORE") && (
         <ReviewOrExploreLine
@@ -92,7 +94,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       {mode === "TREE" && (
         <OpeningGraph
           chapter={(studyData.chapters || [])[0]}
-          onNodeClick={function (node: PositionNode): void {
+          onNodeClick={(node: PositionNode): void => {
             console.log("Clicked move:", node.position.lastMove?.san);
           }}
         />

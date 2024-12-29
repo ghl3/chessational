@@ -1,7 +1,6 @@
 import { StudyData } from "@/hooks/UseStudyData";
 import { Dispatch, SetStateAction } from "react";
-import { ChapterSelector } from "./ChapterSelector";
-import { StudySelector } from "./StudySelector";
+import { StudyChapterSelector } from "./StudyChapterSelector";
 
 export type Mode =
   | "REVIEW"
@@ -82,22 +81,6 @@ export const NavBar: React.FC<{
             setMode={setMode}
           />
         </ul>
-
-        {studies && studies.length > 0 && (
-          <>
-            <StudySelector
-              studies={studyData.studies}
-              selectedStudy={studyData.selectedStudy || null}
-              selectStudy={studyData.selectStudy}
-            />
-            <ChapterSelector
-              chapters={chapterNames || []}
-              selectedChapters={selectedChapterNames || null}
-              selectChapter={studyData.addSelectedChapterName}
-              deselectChapter={studyData.removeSelectedChapterName}
-            />
-          </>
-        )}
       </nav>
     </div>
   );
