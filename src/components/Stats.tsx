@@ -3,7 +3,7 @@ import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { ColumnDef } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { makePositionChips } from "./PositionChip";
 import { BaseStudyRow, StudyTable } from "./StudyTable";
@@ -101,13 +101,7 @@ const StatsPage: React.FC<StatsPageProps> = ({
     return rows;
   }, [stats, lineAndChapters, chessboardState]);
 
-  return (
-    <div>
-      <div className="w-full overflow-hidden flex-shrink-0">
-        <StudyTable data={tableData} extraColumns={extraColumns} />
-      </div>
-    </div>
-  );
+  return <StudyTable data={tableData} extraColumns={extraColumns} />;
 };
 
 export default StatsPage;

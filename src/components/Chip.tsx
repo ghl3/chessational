@@ -6,6 +6,7 @@ interface ChipProps {
   style?: string;
   isRemovable?: boolean;
   removeButtonStyle?: string;
+  size: string;
 }
 
 const Chip: React.FC<ChipProps> = ({
@@ -14,9 +15,9 @@ const Chip: React.FC<ChipProps> = ({
   style = "blue",
   removeButtonStyle = "blue",
   isRemovable = false,
+  size = "text-sm",
 }) => {
-  const baseClasses =
-    "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200 ease-in-out";
+  const baseClasses = `inline-flex items-center px-3 py-1 rounded-full font-medium transition-colors duration-200 ease-in-out ${size}`;
 
   return (
     <span

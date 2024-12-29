@@ -78,16 +78,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
       {mode === "STATS" && (
-        <div className="min-w-0">
-          {" "}
-          {/* Added wrapper with min-w-0 */}
-          <StatsPage
-            lines={studyData.lines || []}
-            chapters={studyData.chapters || []}
-            attempts={studyData.attempts || []}
-            chessboardState={chessboardState}
-          />
-        </div>
+        <StatsPage
+          lines={studyData.lines || []}
+          chapters={studyData.chapters || []}
+          attempts={studyData.attempts || []}
+          chessboardState={chessboardState}
+        />
       )}
       {mode === "TREE" && (
         <OpeningGraph

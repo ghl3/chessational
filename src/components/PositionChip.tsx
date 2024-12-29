@@ -51,6 +51,7 @@ export const PositionChip: React.FC<{
       style={color}
       isRemovable={isRemovable}
       removeButtonStyle={removeColor}
+      size="text-xs"
     />
   );
 };
