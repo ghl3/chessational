@@ -1,6 +1,13 @@
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import {
+  ColumnDef,
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import React, { useMemo } from "react";
-import SuperTable from "./SuperTable";
 
 export interface BaseStudyRow {
   studyName: string;
@@ -75,17 +82,76 @@ export const StudyTable = <T extends BaseStudyRow>({
       return baseWidth + extraWidth;
     };
 
-    const minWidth = calculateMinWidth();
-    return { columns: baseColumns, minWidth };
+    return { columns: baseColumns, minWidth: calculateMinWidth() };
   }, [columnHelper, extraColumns]);
+
+  const table = useReactTable({
+    columns: columns.columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+  });
 
   return (
     <div style={{ width: `${columns.minWidth}px` }}>
-      <SuperTable
-        columns={columns.columns}
-        data={data}
-        onRowClick={onRowClick}
-      />
+      <div className="min-w-0 inline-block">
+        <table className="divide-y divide-gray-700">
+          <thead className="bg-gray-800">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
+                    onClick={header.column.getToggleSortingHandler()}
+                    style={{ width: header.column.columnDef.size }}
+                  >
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+                    <div
+                      onMouseDown={header.getResizeHandler()}
+                      onTouchStart={header.getResizeHandler()}
+                      className={`resizer ${
+                        header.column.getIsResizing() ? "isResizing" : ""
+                      }`}
+                    />
+                    <span>
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string] ?? ""}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className="bg-gray-900 divide-y divide-gray-700">
+            {table.getRowModel().rows.map((row) => (
+              <tr
+                key={row.id}
+                className="hover:bg-gray-700 cursor-pointer"
+                onClick={() => onRowClick && onRowClick(row.original)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className="px-6 py-4 whitespace-normal break-words text-gray-300"
+                    style={{ width: cell.column.columnDef.size }}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
