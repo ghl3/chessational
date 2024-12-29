@@ -13,7 +13,6 @@ export interface ReviewOrExploreLineProps {
   studyData: StudyData;
   engineData: EngineData;
   reviewState: ReviewState;
-  height: number;
 }
 
 export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
@@ -22,19 +21,11 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
   studyData,
   engineData,
   reviewState,
-  height,
 }) => {
   const position = chessboardState.getPosition();
 
-  const width = Math.floor(0.5 * height);
-
   return (
-    <div
-      style={{
-        height: height ? `${height}px` : "auto",
-        minWidth: `${width}px`,
-      }}
-    >
+    <div>
       {mode === "REVIEW" && studyData.selectedStudy != null && (
         <ReviewLine
           chessboardState={chessboardState}

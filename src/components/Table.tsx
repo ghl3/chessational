@@ -19,7 +19,7 @@ const Table: React.FC<TableProps> = ({
         {row.map((cell, cellIndex) => (
           <td
             key={cellIndex}
-            className="py-1 px-2 border-b border-gray-600 text-left"
+            className="py-1 px-2 border-b border-gray-600 text-left break-words"
           >
             {cell}
           </td>
@@ -56,9 +56,9 @@ const Table: React.FC<TableProps> = ({
       ) : (
         <div
           style={{
-            maxHeight: "calc(1.25rem * 10 + 2px)",
+            maxHeight: "calc(1.25rem * 10 + 2px)", // Maintain vertical max height
             overflowY: "auto",
-            overflowX: "hidden",
+            overflowX: "auto", // Enable horizontal scrolling
           }}
         >
           <table className="min-w-full text-sm bg-gray-700 border border-gray-600">

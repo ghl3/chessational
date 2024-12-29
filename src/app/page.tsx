@@ -68,7 +68,6 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           studyData={studyData}
           engineData={engineData}
           reviewState={reviewState}
-          height={height || 0}
         />
       )}
       {mode === "SEARCH" && (
@@ -79,14 +78,16 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
       {mode === "STATS" && (
-        <StatsPage
-          lines={studyData.lines || []}
-          chapters={studyData.chapters || []}
-          //      lineAndChapters={studyData.lineAndChapters || []}
-
-          attempts={studyData.attempts || []}
-          chessboardState={chessboardState}
-        />
+        <div className="min-w-0">
+          {" "}
+          {/* Added wrapper with min-w-0 */}
+          <StatsPage
+            lines={studyData.lines || []}
+            chapters={studyData.chapters || []}
+            attempts={studyData.attempts || []}
+            chessboardState={chessboardState}
+          />
+        </div>
       )}
       {mode === "TREE" && (
         <OpeningGraph
@@ -178,8 +179,9 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   };
 
   return (
-    <div className="flex flex-row justify-center w-full min-h-full">
-      <div className="w-1/2">
+    <div className="flex flex-row w-full min-h-full">
+      {/* Left Column: Fixed at 50% of viewport */}
+      <div className="w-1/2 flex-shrink-0">
         <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
           <Chessboard
             chessboardSize={chessboardSize}
@@ -190,8 +192,9 @@ const Home: React.FC<HomeProps> = ({ params }) => {
         </div>
       </div>
 
-      <div className="w-1/2 min-h-full">
-        <div className="ml-3 min-h-full">
+      {/* Right Column: 50% minimum but can expand */}
+      <div className="w-1/2 min-w-fit flex-shrink-0">
+        <div className="ml-3 min-h-full min-w-0">
           <RightPanel
             mode={mode}
             setMode={setMode}

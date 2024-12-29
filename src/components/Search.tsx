@@ -1,13 +1,8 @@
-import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
-import { getStats, LineStats } from "@/utils/LineStats";
-import { dateSortType, numericSortType } from "@/utils/Sorting";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { get } from "http";
 import React, {
   Dispatch,
   SetStateAction,
@@ -18,14 +13,13 @@ import React, {
   useState,
 } from "react";
 import { makePositionChips } from "./PositionChip";
-import SuperTable from "./SuperTable";
+import { BaseStudyRow, StudyTable } from "./StudyTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
   const positions = line.positions.flatMap((position) => {
     return position.lastMove ? [position.lastMove.san] : [];
   });
 
-  // Check if all the tokens are present in the line
   return tokens
     .filter((token) => token.type == "move")
     .every((token) => {
@@ -120,7 +114,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         ? lines
         : lines.filter((line) => matchesQuery(line.line, tokens));
     setFilteredLines(filtered);
-  }, [query, lines, setFilteredLines]);
+  }, [query, lines, setFilteredLines, tokens]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -129,7 +123,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const suggestions = useMemo(
     () => makeSuggestions(filteredLines, tokens),
-    [lines, query],
+    [filteredLines, tokens],
   );
 
   const handleSuggestionSelect = useCallback(
@@ -137,7 +131,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setQuery((query) => mergeSuggestionWithQuery(query, tokens, suggestion));
       setIsOpen(false);
     },
-    [query, tokens, setQuery, setIsOpen],
+    [tokens, setQuery, setIsOpen],
   );
 
   return (
@@ -162,77 +156,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
   );
 };
 
-interface SelectedLinesProps {
-  lineAndChapters: LineAndChapter[];
-  chessboardState: ChessboardState;
-}
-
-interface SearchResultRow {
+// Extend BaseStudyRow with our specific needs
+interface SearchRow extends BaseStudyRow {
   lineAndChapter: LineAndChapter;
-  studyName: string;
-  chapterName: string;
-  line: React.JSX.Element[];
 }
-
-const SelectedLines: React.FC<SelectedLinesProps> = ({
-  lineAndChapters,
-  chessboardState,
-}) => {
-  const columns: ColumnDef<SearchResultRow>[] = [
-    {
-      header: "Lines",
-      columns: [
-        {
-          header: "Study",
-          accessorKey: "studyName",
-        },
-        {
-          header: "Chapter",
-          accessorKey: "chapterName",
-        },
-        {
-          header: "Line",
-          accessorKey: "line",
-          cell: ({ getValue }) => {
-            const elements = getValue() as React.JSX.Element[];
-            return (
-              <div>
-                {elements.map((element, index) => (
-                  <React.Fragment key={index}>{element}</React.Fragment>
-                ))}
-              </div>
-            );
-          },
-        },
-      ],
-    },
-  ];
-
-  const data: SearchResultRow[] = useMemo(() => {
-    return lineAndChapters.map((lineAndChapter) => {
-      return {
-        lineAndChapter: lineAndChapter,
-        studyName: lineAndChapter.line.studyName,
-        chapterName: lineAndChapter.line.chapterName,
-        line: makePositionChips(lineAndChapter, chessboardState),
-      };
-    });
-  }, [lineAndChapters]);
-
-  const onRowClick = (result: SearchResultRow) => {
-    chessboardState.setOrientation(result.lineAndChapter.chapter.orientation);
-    chessboardState.clearAndSetPositions(
-      result.lineAndChapter.line.positions,
-      0,
-    );
-  };
-
-  return (
-    <div>
-      <SuperTable columns={columns} data={data} onRowClick={onRowClick} />
-    </div>
-  );
-};
 
 interface SearchProps {
   lines: Line[];
@@ -263,6 +190,21 @@ const Search: React.FC<SearchProps> = ({
   const [filteredLines, setFilteredLines] =
     useState<LineAndChapter[]>(lineAndChapters);
 
+  // Transform the data for the table
+  const tableData: SearchRow[] = useMemo(() => {
+    return filteredLines.map((lineAndChapter) => ({
+      lineAndChapter,
+      studyName: lineAndChapter.line.studyName,
+      chapterName: lineAndChapter.line.chapterName,
+      line: makePositionChips(lineAndChapter, chessboardState),
+    }));
+  }, [filteredLines, chessboardState]);
+
+  const onRowClick = (row: SearchRow) => {
+    chessboardState.setOrientation(row.lineAndChapter.chapter.orientation);
+    chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
+  };
+
   if (lines.length === 0) {
     return (
       <div className="text-gray-800 dark:text-gray-200">
@@ -278,10 +220,7 @@ const Search: React.FC<SearchProps> = ({
         filteredLines={filteredLines}
         setFilteredLines={setFilteredLines}
       />
-      <SelectedLines
-        lineAndChapters={filteredLines}
-        chessboardState={chessboardState}
-      />
+      <StudyTable data={tableData} onRowClick={onRowClick} />
     </>
   );
 };

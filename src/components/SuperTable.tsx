@@ -30,8 +30,12 @@ const SuperTable = <T extends object>({
   });
 
   return (
-    <div className="w-full overflow-x-auto">
-      <table className="w-full table-fixed divide-y divide-gray-700">
+    <div className="min-w-0 inline-block">
+      {" "}
+      {/* Changed from w-full */}
+      <table className="divide-y divide-gray-700">
+        {" "}
+        {/* Removed table-fixed and w-full */}
         <thead className="bg-gray-800">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -40,6 +44,7 @@ const SuperTable = <T extends object>({
                   key={header.id}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
                   onClick={header.column.getToggleSortingHandler()}
+                  style={{ width: header.column.columnDef.size }}
                 >
                   {flexRender(
                     header.column.columnDef.header,
@@ -74,6 +79,7 @@ const SuperTable = <T extends object>({
                 <td
                   key={cell.id}
                   className="px-6 py-4 whitespace-normal break-words text-gray-300"
+                  style={{ width: cell.column.columnDef.size }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>

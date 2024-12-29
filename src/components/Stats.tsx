@@ -1,14 +1,19 @@
-"use client";
-
 import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
-import SuperTable from "@/components/SuperTable";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { makePositionChips } from "./PositionChip";
+import { BaseStudyRow, StudyTable } from "./StudyTable";
+
+interface StatsRow extends BaseStudyRow {
+  numAttempts: number;
+  numCorrect: number;
+  latestAttempt: Date;
+  estimatedSuccessRate: number;
+}
 
 interface StatsPageProps {
   lines: Line[];
@@ -42,67 +47,38 @@ const StatsPage: React.FC<StatsPageProps> = ({
     return getStats(attempts || []);
   }, [attempts]);
 
-  type DataType = {
-    line: React.JSX.Element[];
-    stat: LineStats;
-  };
-
-  const columnHelper = createColumnHelper<DataType>();
-
-  const columns: ColumnDef<DataType>[] = useMemo<ColumnDef<DataType>[]>(
+  // Define the extra columns for stats using explicit ColumnDef type
+  const extraColumns = useMemo<ColumnDef<StatsRow>[]>(
     () => [
-      columnHelper.group({
-        id: "lines",
-        header: "Lines",
-        columns: [
-          columnHelper.accessor("stat.study", {
-            header: "Study",
-            //size: 100,
-          }),
-          columnHelper.accessor("stat.chapter", {
-            header: "Chapter",
-            //size: 100,
-          }),
-          columnHelper.accessor("line", {
-            header: "Line",
-            size: 500,
-            cell: ({ getValue }) => {
-              const elements = getValue() as React.JSX.Element[];
-              return (
-                <div className="flex flex-wrap gap-1 w-full">
-                  {elements.map((element, index) => (
-                    <React.Fragment key={index}>{element}</React.Fragment>
-                  ))}
-                </div>
-              );
-            },
-          }),
-          columnHelper.accessor("stat.numAttempts", {
-            header: "Num Attempts",
-            sortingFn: "basic",
-          }),
-          columnHelper.accessor("stat.numCorrect", {
-            header: "Num Correct",
-            sortingFn: "basic",
-          }),
-          columnHelper.accessor("stat.latestAttempt", {
-            header: "Latest Attempt",
-            sortingFn: "datetime",
-            cell: ({ getValue }) => new Date(getValue()).toLocaleString(),
-          }),
-          columnHelper.accessor("stat.estimatedSuccessRate", {
-            header: "Estimated Success Rate",
-            sortingFn: "basic",
-            cell: ({ getValue }) => getValue().toFixed(3),
-          }),
-        ],
-      }),
+      {
+        header: "Num Attempts",
+        accessorFn: (row) => row.numAttempts,
+        sortingFn: "basic",
+      },
+      {
+        header: "Num Correct",
+        accessorFn: (row) => row.numCorrect,
+        sortingFn: "basic",
+      },
+      {
+        header: "Latest Attempt",
+        accessorFn: (row) => row.latestAttempt,
+        cell: (info) => info.getValue<Date>().toLocaleString(),
+        sortingFn: "datetime",
+      },
+      {
+        header: "Estimated Success Rate",
+        accessorFn: (row) => row.estimatedSuccessRate,
+        cell: (info) => info.getValue<number>().toFixed(3),
+        sortingFn: "basic",
+      },
     ],
     [],
   );
 
-  const data: DataType[] = useMemo(() => {
-    const rows: DataType[] = [];
+  // Transform data into the format StudyTable expects
+  const tableData: StatsRow[] = useMemo(() => {
+    const rows: StatsRow[] = [];
     for (const stat of stats.values()) {
       const lineAndChapter = lineAndChapters.find(
         (lineAndChapter) => lineAndChapter.line.lineId === stat.lineId,
@@ -113,16 +89,23 @@ const StatsPage: React.FC<StatsPageProps> = ({
       }
 
       rows.push({
-        stat: stat,
+        studyName: stat.study,
+        chapterName: stat.chapter,
         line: makePositionChips(lineAndChapter, chessboardState),
+        numAttempts: stat.numAttempts,
+        numCorrect: stat.numCorrect,
+        latestAttempt: new Date(stat.latestAttempt),
+        estimatedSuccessRate: stat.estimatedSuccessRate,
       });
     }
     return rows;
-  }, [stats, lineAndChapters]);
+  }, [stats, lineAndChapters, chessboardState]);
 
   return (
     <div>
-      <SuperTable columns={columns} data={data} />
+      <div className="w-full overflow-hidden flex-shrink-0">
+        <StudyTable data={tableData} extraColumns={extraColumns} />
+      </div>
     </div>
   );
 };
