@@ -62,7 +62,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={mode} setMode={setMode} studyData={studyData} />
-      <StudyChapterSelector studyData={studyData} />
+      {mode !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
       {mode === "STUDIES" && <Studies studyData={studyData} />}
       {(mode === "REVIEW" || mode == "EXPLORE") && (
         <ReviewOrExploreLine
