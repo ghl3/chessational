@@ -30,10 +30,10 @@ export const StudyTable = <T extends BaseStudyRow>({
 
   const columns = useMemo(() => {
     const BASE_COLUMN_WIDTHS = {
-      study: 100,
-      chapter: 100,
-      line: 300,
-      extra: 40,
+      study: 80,
+      chapter: 80,
+      line: 240,
+      extra: 32,
     } as const;
 
     const createBaseColumns = () => [
@@ -53,7 +53,7 @@ export const StudyTable = <T extends BaseStudyRow>({
             header: "Line",
             size: BASE_COLUMN_WIDTHS.line,
             cell: ({ getValue }) => (
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-0.5">
                 {getValue().map((element: React.JSX.Element, index: number) => (
                   <React.Fragment key={index}>{element}</React.Fragment>
                 ))}
@@ -89,14 +89,14 @@ export const StudyTable = <T extends BaseStudyRow>({
   });
 
   return (
-    <table className="divide-y divide-gray-700">
+    <table className="divide-y divide-gray-700 text-sm">
       <thead className="bg-gray-800">
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <th
                 key={header.id}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
+                className="px-1 py-1 text-center text-xs font-medium text-gray-300 uppercase tracking-wide cursor-pointer"
                 onClick={header.column.getToggleSortingHandler()}
                 style={{ width: header.column.columnDef.size }}
               >
@@ -111,10 +111,10 @@ export const StudyTable = <T extends BaseStudyRow>({
                     header.column.getIsResizing() ? "isResizing" : ""
                   }`}
                 />
-                <span>
+                <span className="ml-1 text-xs">
                   {{
-                    asc: " 🔼",
-                    desc: " 🔽",
+                    asc: "↑",
+                    desc: "↓",
                   }[header.column.getIsSorted() as string] ?? ""}
                 </span>
               </th>
@@ -132,7 +132,7 @@ export const StudyTable = <T extends BaseStudyRow>({
             {row.getVisibleCells().map((cell) => (
               <td
                 key={cell.id}
-                className="px-6 py-4 whitespace-normal break-words text-gray-300"
+                className="px-2 py-2 whitespace-normal break-words text-gray-300 text-center"
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
