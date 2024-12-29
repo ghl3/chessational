@@ -139,11 +139,11 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
 
     reviewState.initializeLine({ line, chapter }, chessboardState);
   }, [
-    reviewState.initializeLine,
-    reviewState.clearLine,
+    reviewState,
+    chessboardState,
+    studyData.lines,
     studyData.attempts,
     studyData.chapters,
-    studyData.lines,
   ]);
 
   const onRestartLine = useCallback(() => {
@@ -152,11 +152,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     }
     reviewState.clearLine(chessboardState);
     reviewState.initializeLine(reviewState.lineAndChapter, chessboardState);
-  }, [
-    reviewState.clearLine,
-    reviewState.initializeLine,
-    reviewState.lineAndChapter,
-  ]);
+  }, [chessboardState, reviewState]);
 
   const arrows = useMemo(() => {
     if (reviewState?.lineAndChapter?.line?.positions == null) {
@@ -203,13 +199,7 @@ export const ReviewLine: React.FC<ReviewLineProps> = ({
     }
 
     reviewState.setShowSolution(newState);
-  }, [
-    arrows,
-    chessboardState,
-    reviewState.lineAndChapter,
-    reviewState.lineIndex,
-    reviewState.showSolution,
-  ]);
+  }, [arrows, chessboardState, reviewState]);
 
   const position = chessboardState.getPosition();
 
