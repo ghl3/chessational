@@ -36,50 +36,35 @@ export const StudyTable = <T extends BaseStudyRow>({
       extra: 32,
     } as const;
 
-    const createBaseColumns = () => [
-      columnHelper.group({
-        header: "Lines",
-        columns: [
-          columnHelper.accessor((row) => row.studyName, {
-            header: "Study",
-            size: BASE_COLUMN_WIDTHS.study,
-          }),
-          columnHelper.accessor((row) => row.chapterName, {
-            header: "Chapter",
-            size: BASE_COLUMN_WIDTHS.chapter,
-          }),
-          columnHelper.accessor((row) => row.line, {
-            id: "line",
-            header: "Line",
-            size: BASE_COLUMN_WIDTHS.line,
-            cell: ({ getValue }) => (
-              <div className="flex flex-wrap gap-0.5">
-                {getValue().map((element: React.JSX.Element, index: number) => (
-                  <React.Fragment key={index}>{element}</React.Fragment>
-                ))}
-              </div>
-            ),
-          }),
-        ],
+    return [
+      columnHelper.accessor((row: T) => row.studyName, {
+        id: "studyName",
+        header: "Study",
+        size: BASE_COLUMN_WIDTHS.study,
       }),
-    ];
-
-    const baseColumns = createBaseColumns();
-    const mainColumns = baseColumns[0].columns;
-
-    if (extraColumns.length > 0 && mainColumns) {
-      const sizedExtraColumns = extraColumns.map((col) => ({
-        ...col,
-        size: col.size || BASE_COLUMN_WIDTHS.extra,
-      }));
-      mainColumns.push(...sizedExtraColumns);
-    }
-
-    return { columns: baseColumns };
+      columnHelper.accessor((row: T) => row.chapterName, {
+        id: "chapterName",
+        header: "Chapter",
+        size: BASE_COLUMN_WIDTHS.chapter,
+      }),
+      columnHelper.accessor((row: T) => row.line, {
+        id: "line",
+        header: "Line",
+        size: BASE_COLUMN_WIDTHS.line,
+        cell: ({ getValue }) => (
+          <div className="flex flex-wrap gap-0.5">
+            {getValue().map((element: React.JSX.Element, index: number) => (
+              <React.Fragment key={index}>{element}</React.Fragment>
+            ))}
+          </div>
+        ),
+      }),
+      ...extraColumns,
+    ] as ColumnDef<T>[];
   }, [columnHelper, extraColumns]);
 
   const table = useReactTable({
-    columns: columns.columns,
+    columns,
     data,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
