@@ -16,9 +16,11 @@ interface GraphLink {
 }
 
 const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-  // Just track which nodes are expanded
+  // A node is 'expanded' if it's children are shown.
+  // Clicking on a node toggles expansion.
+  // Initially only the root note is expanded
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
-    new Set([chapter.positionTree.position.fen]),
+    new Set<string>(chapter.positionTree.position.fen),
   );
 
   // Build the graph data based on expanded state
@@ -73,6 +75,7 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
       } else {
         next.add(node.id);
       }
+
       return next;
     });
   }, []);
