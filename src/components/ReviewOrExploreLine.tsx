@@ -5,7 +5,7 @@ import { StudyData } from "@/hooks/UseStudyData";
 import React from "react";
 import { DetailsPanel } from "./DetailsPanel";
 import { Mode } from "./NavBar";
-import { ReviewLine } from "./ReviewLine";
+import { ReviewLineControls } from "./ReviewLineControls";
 
 export interface ReviewOrExploreLineProps {
   mode: Mode;
@@ -27,7 +27,7 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
   return (
     <div>
       {mode === "REVIEW" && studyData.selectedStudy != null && (
-        <ReviewLine
+        <ReviewLineControls
           chessboardState={chessboardState}
           studyData={studyData}
           reviewState={reviewState}

@@ -108,7 +108,7 @@ export interface ReviewLineProps {
   reviewState: ReviewState;
 }
 
-export const ReviewLine: React.FC<ReviewLineProps> = ({
+export const ReviewLineControls: React.FC<ReviewLineProps> = ({
   chessboardState,
   studyData,
   reviewState,
