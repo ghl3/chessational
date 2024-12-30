@@ -16,7 +16,7 @@ export interface Arrow {
   color?: string;
 }
 
-export type MoveValidator = (
+export type MoveExecutor = (
   newPosition: Position,
   sourceSquare: Square,
   targetSquare: Square,
@@ -26,13 +26,13 @@ export type MoveValidator = (
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
   chessboardSize: number;
   chessboardState: ChessboardState;
-  onValidPieceDrop: MoveValidator | null;
+  onLegalMove: MoveExecutor;
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
   chessboardSize,
   chessboardState,
-  onValidPieceDrop,
+  onLegalMove,
 }) => {
   const handleFlipBoard = useCallback(() => {
     chessboardState.setOrientation((prevOrientation) =>
@@ -116,23 +116,17 @@ const Chessboard: React.FC<ChessboardProps> = ({
         return false;
       }
 
-      // If we've gotten here, then the move is valid
-      const shouldExecuteMove = onValidPieceDrop
-        ? onValidPieceDrop(
-            newPosition,
-            sourceSquare,
-            targetSquare,
-            promoteToPiece,
-          )
-        : true;
-
-      // TODO: We should move the logic to update the state here:
-      if (shouldExecuteMove) {
-        chessboardState.setNextPosition(newPosition, true);
-      }
-      return shouldExecuteMove;
+      // If we've gotten here, then the move is legal.
+      // We now call the onLegalMove callback to handle the move
+      // (which will likely update the board state).
+      return onLegalMove(
+        newPosition,
+        sourceSquare,
+        targetSquare,
+        promoteToPiece,
+      );
     },
-    [chessboardState, onValidPieceDrop],
+    [chessboardState, onLegalMove],
   );
 
   return (

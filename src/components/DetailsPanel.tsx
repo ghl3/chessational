@@ -1,5 +1,4 @@
 import { Chapter } from "@/chess/Chapter";
-import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { Database } from "@/components/Database";
 import { EngineEvaluation } from "@/components/EngineEvaluation";
@@ -13,18 +12,18 @@ import { SwitchButton } from "./SwitchButton";
 
 export interface DetailsPanelProps {
   chapter?: Chapter;
-  position?: Position;
-  gameMoves: Move[];
+  currentPosition?: Position;
+  positions: Position[];
   engineData: EngineData;
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   chapter,
-  position,
-  gameMoves,
+  currentPosition,
+  positions,
   engineData,
 }) => {
-  const comments = position?.comments || [];
+  const comments = currentPosition?.comments || [];
 
   const [showPgn, setShowPgn] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
@@ -95,18 +94,26 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         </div>
 
         {showChapter && chapter && (
-          <ChapterInfo chapter={chapter} position={position} />
+          <ChapterInfo chapter={chapter} position={currentPosition} />
         )}
 
-        {showEngine && position && (
-          <EngineEvaluation position={position} engineData={engineData} />
+        {showEngine && currentPosition && (
+          <EngineEvaluation
+            position={currentPosition}
+            engineData={engineData}
+          />
         )}
 
-        {showPgn && position && (
-          <PositionDescription position={position} gameMoves={gameMoves} />
+        {showPgn && currentPosition && (
+          <PositionDescription
+            currentPosition={currentPosition}
+            positions={positions}
+          />
         )}
 
-        {showDatabase && position && <Database position={position} />}
+        {showDatabase && currentPosition && (
+          <Database position={currentPosition} />
+        )}
 
         {showComments && comments && comments.length > 0 && (
           <CommentArea comments={comments} />

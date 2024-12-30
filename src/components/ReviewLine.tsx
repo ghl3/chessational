@@ -13,7 +13,7 @@ import { MoveDescription } from "./MoveDescription";
 
 const OPPONENT_MOVE_DELAY = 250;
 
-export const onValidPieceDrop = (
+export const executeLegalMoveIfIsCorrect = (
   chessboardState: ChessboardState,
   reviewState: ReviewState,
   newPosition: Position,

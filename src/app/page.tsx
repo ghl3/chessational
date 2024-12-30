@@ -1,11 +1,10 @@
 "use client";
 
 import { Position } from "@/chess/Position";
-import { PositionNode } from "@/chess/PositionTree";
-import Chessboard, { MoveValidator } from "@/components/Chessboard";
+import Chessboard, { MoveExecutor } from "@/components/Chessboard";
 import { Mode, NavBar } from "@/components/NavBar";
 import { default as OpeningGraph } from "@/components/OpeningTree";
-import { onValidPieceDrop as onReviewValidPieceDrop } from "@/components/ReviewLine";
+import { executeLegalMoveIfIsCorrect } from "@/components/ReviewLine";
 import { ReviewOrExploreLine } from "@/components/ReviewOrExplore";
 import Search from "@/components/Search";
 import StatsPage from "@/components/Stats";
@@ -132,42 +131,31 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     }
   }, [chessboardSize]);
 
-  const moveMatchesCorrectMove = useCallback(
+  const onValidPieceDrop: MoveExecutor = useCallback(
     (
       newPosition: Position,
       sourceSquare: Square,
       targetSquare: Square,
       promoteToPiece?: PieceSymbol,
     ): boolean => {
-      return onReviewValidPieceDrop(
-        chessboardState,
-        reviewState,
-        newPosition,
-        sourceSquare,
-        targetSquare,
-        promoteToPiece,
-      );
+      // In review mode, we check
+      if (mode === "REVIEW") {
+        return executeLegalMoveIfIsCorrect(
+          chessboardState,
+          reviewState,
+          newPosition,
+          sourceSquare,
+          targetSquare,
+          promoteToPiece,
+        );
+      } else {
+        chessboardState.setNextPosition(newPosition, true);
+      }
+
+      return true;
     },
-    [chessboardState, reviewState],
+    [chessboardState, mode, reviewState],
   );
-
-  const onValidPieceDrop: MoveValidator = (
-    newPosition: Position,
-    sourceSquare: Square,
-    targetSquare: Square,
-    promoteToPiece?: PieceSymbol,
-  ): boolean => {
-    if (mode === "REVIEW") {
-      return moveMatchesCorrectMove(
-        newPosition,
-        sourceSquare,
-        targetSquare,
-        promoteToPiece,
-      );
-    }
-
-    return true;
-  };
 
   return (
     <div className="flex flex-row w-full min-h-full">
@@ -177,7 +165,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           <Chessboard
             chessboardSize={chessboardSize}
             chessboardState={chessboardState}
-            onValidPieceDrop={onValidPieceDrop}
+            onLegalMove={onValidPieceDrop}
             className="flex-none"
           />
         </div>

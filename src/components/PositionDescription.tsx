@@ -1,34 +1,35 @@
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
+import { PositionChip } from "./PositionChip";
 
 export interface PositionDescriptionProps {
-  position?: Position;
-  gameMoves: Move[];
+  currentPosition?: Position;
+  positions: Position[];
 }
 
 export const PositionDescription: React.FC<PositionDescriptionProps> = ({
-  position,
-  gameMoves,
+  currentPosition,
+  positions,
 }) => {
-  if (position === undefined) {
+  if (currentPosition === undefined) {
     return null;
   }
 
-  const moveString =
-    gameMoves.length > 0 ? gameMoves.map((move) => move.san).join(" ") : "";
-
   return (
     <div className="flex flex-col space-y-2 p-4">
-      <div className="flex items-center">
-        <span className="flex items-center text-gray-400 text-sm italic w-12">
-          PGN:
-        </span>
-        <div
-          className="ml-2 bg-gray-600 text-white p-1 flex-1 overflow-auto"
-          style={{ whiteSpace: "pre-wrap" }} // Ensures text wraps
-          contentEditable={false}
-        >
-          {moveString}
+      <div className="flex flex-col">
+        <span className="text-gray-400 text-sm italic mb-2">Moves:</span>
+        <div className="flex flex-wrap gap-2 max-w-full overflow-x-auto p-2 bg-gray-600">
+          {positions
+            .filter((position) => position.lastMove != null)
+            .map((position, index) => (
+              <PositionChip
+                key={`move-${index}`}
+                position={position}
+                onClick={() => {}}
+                isRemovable={false}
+              />
+            ))}
         </div>
       </div>
       <div className="flex items-center">
@@ -39,9 +40,11 @@ export const PositionDescription: React.FC<PositionDescriptionProps> = ({
           type="text"
           readOnly
           className="ml-2 bg-gray-600 text-white p-1 flex-1"
-          value={position?.fen}
+          value={currentPosition?.fen}
         />
       </div>
     </div>
   );
 };
+
+export default PositionDescription;

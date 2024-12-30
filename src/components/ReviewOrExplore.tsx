@@ -36,8 +36,8 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
 
       <DetailsPanel
         chapter={reviewState.lineAndChapter?.chapter || undefined}
-        position={position || undefined}
-        gameMoves={chessboardState.getGameMoves()}
+        currentPosition={position || undefined}
+        positions={chessboardState.positions}
         engineData={engineData}
       />
     </div>
