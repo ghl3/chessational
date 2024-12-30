@@ -86,12 +86,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
       {mode === "TREE" && (
-        <OpeningGraph
-          chapter={(studyData.chapters || [])[0]}
-          onNodeClick={(node: PositionNode): void => {
-            console.log("Clicked move:", node.position.lastMove?.san);
-          }}
-        />
+        <OpeningGraph chapter={(studyData.chapters || [])[0]} />
       )}
     </div>
   );
