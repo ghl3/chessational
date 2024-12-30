@@ -49,29 +49,24 @@ export const executeLegalMoveIfIsCorrect = (
     nextMoveInLine.to === targetSquare &&
     (promoteToPiece || null) == (nextMoveInLine.promotion || null)
   ) {
-    // If it matches a child node, it's an acceptable move
-    // and we update the current line and the board state.
-    // Note that we use line.positions[lineIndex + 1] because
-    // we want to make sure to keep the comments.
-    chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
-
     // As a sanity check, make sure the next position in the line matches
     // the expected next position from the move
     if (newPosition.fen != line.positions[lineIndex + 1].fen) {
       throw new Error("newPosition does not match the expected next position");
     }
 
-    // Since the move was correct, we move to the next position in the line
+    // If it matches a child node, it's an acceptable move
+    // and we update the current line and the board state.
+    chessboardState.setNextPosition(line.positions[lineIndex + 1], false);
+    chessboardState.setArrows([]);
     reviewState.setLineIndex(lineIndex + 1);
     reviewState.setLineMoveResult("CORRECT");
     reviewState.setShowSolution(false);
-    chessboardState.setArrows([]);
-
-    const nextLineIndex = lineIndex + 1;
 
     // If this is the end of the line, we're done.
     // Otherwise, we play the opponent's next move and advance
     // to that position.
+    const nextLineIndex = lineIndex + 1;
     const endOfLine = nextLineIndex == line.positions.length - 1;
 
     // If this is the end of the line, we're done.

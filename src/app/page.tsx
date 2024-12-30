@@ -131,14 +131,13 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     }
   }, [chessboardSize]);
 
-  const onValidPieceDrop: MoveExecutor = useCallback(
+  const onLegalMove: MoveExecutor = useCallback(
     (
       newPosition: Position,
       sourceSquare: Square,
       targetSquare: Square,
       promoteToPiece?: PieceSymbol,
     ): boolean => {
-      // In review mode, we check
       if (mode === "REVIEW") {
         return executeLegalMoveIfIsCorrect(
           chessboardState,
@@ -150,28 +149,25 @@ const Home: React.FC<HomeProps> = ({ params }) => {
         );
       } else {
         chessboardState.setNextPosition(newPosition, true);
+        return true;
       }
-
-      return true;
     },
     [chessboardState, mode, reviewState],
   );
 
   return (
     <div className="flex flex-row w-full min-h-full">
-      {/* Left Column: Fixed at 50% of viewport */}
       <div className="w-1/2 flex-shrink-0">
         <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
           <Chessboard
             chessboardSize={chessboardSize}
             chessboardState={chessboardState}
-            onLegalMove={onValidPieceDrop}
+            onLegalMove={onLegalMove}
             className="flex-none"
           />
         </div>
       </div>
 
-      {/* Right Column: 50% minimum but can expand */}
       <div className="w-1/2 min-w-fit flex-shrink-0">
         <div className="ml-3 min-h-full min-w-0">
           <RightPanel
