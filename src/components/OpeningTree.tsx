@@ -1,13 +1,22 @@
 import { Chapter } from "@/chess/Chapter";
 import { PositionNode } from "@/chess/PositionTree";
-import React, { useCallback, useMemo, useState } from "react";
-import { ForceGraph2D } from "react-force-graph";
+import * as d3 from "d3-force";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { ForceGraph2D, ForceGraphMethods } from "react-force-graph";
 
 interface GraphNode {
   id: string;
   name: string;
   positionNode: PositionNode;
   isRoot?: boolean;
+  x?: number;
+  y?: number;
 }
 
 interface GraphLink {
@@ -16,20 +25,16 @@ interface GraphLink {
 }
 
 const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-  // A node is 'expanded' if it's children are shown.
-  // Clicking on a node toggles expansion.
-  // Initially only the root note is expanded
+  const fgRef = useRef<ForceGraphMethods>();
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
-    new Set<string>(chapter.positionTree.position.fen),
+    new Set([chapter.positionTree.position.fen]),
   );
 
-  // Build the graph data based on expanded state
   const graphData = useMemo(() => {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
     const nodeMap = new Map<string, GraphNode>();
 
-    // Helper to add a node if we haven't seen it
     const addNode = (positionNode: PositionNode, isRoot = false) => {
       const fen = positionNode.position.fen;
       if (!nodeMap.has(fen)) {
@@ -45,18 +50,13 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
       return nodeMap.get(fen)!;
     };
 
-    // Traverse the tree, adding nodes and links
     const traverse = (node: PositionNode, parentId: string | null) => {
       const currentNode = addNode(node, parentId === null);
 
       if (parentId) {
-        links.push({
-          source: parentId,
-          target: currentNode.id,
-        });
+        links.push({ source: parentId, target: currentNode.id });
       }
 
-      // Only traverse children if this is root or node is expanded
       if (parentId === null || expandedNodes.has(node.position.fen)) {
         node.children.forEach((child) => traverse(child, currentNode.id));
       }
@@ -66,7 +66,32 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     return { nodes, links };
   }, [chapter, expandedNodes]);
 
-  // Toggle node expansion on click
+  useEffect(() => {
+    if (!fgRef.current) return;
+
+    const fg = fgRef.current;
+
+    const forceLink = fg.d3Force("link");
+    if (forceLink) {
+      forceLink.distance(150);
+    }
+
+    const forceCharge = fg.d3Force("charge");
+    if (forceCharge) {
+      forceCharge.strength(-400);
+    }
+
+    const forceCollide = fg.d3Force("collision");
+    if (!forceCollide) {
+      fg.d3Force("collision", d3.forceCollide(40));
+    }
+
+    const forceCenter = fg.d3Force("center");
+    if (forceCenter) {
+      forceCenter.strength(0.05);
+    }
+  }, [graphData]);
+
   const handleNodeClick = useCallback((node: GraphNode) => {
     setExpandedNodes((prev) => {
       const next = new Set(prev);
@@ -75,59 +100,79 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
       } else {
         next.add(node.id);
       }
-
       return next;
     });
   }, []);
 
-  const nodeCanvasObject = useCallback(
-    (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+  const renderNode = useCallback(
+    (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
       if (!node?.x || !node?.y) return;
 
-      const label = node.name;
       const fontSize = 16 / globalScale;
-      const nodeSize = fontSize;
-
+      const nodeSize = fontSize * 1.2;
+      const glowSize = 3;
       const isWhiteMove =
         node.isRoot || node.positionNode.position.lastMove?.player === "w";
 
-      // Draw circle
+      const gradient = ctx.createRadialGradient(
+        node.x,
+        node.y,
+        nodeSize - glowSize,
+        node.x,
+        node.y,
+        nodeSize + glowSize,
+      );
+      gradient.addColorStop(0, isWhiteMove ? "#ffffff40" : "#30303040");
+      gradient.addColorStop(1, "#00000000");
+
+      // Glow effect
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, nodeSize + glowSize, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Main circle
       ctx.beginPath();
       ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
       ctx.fillStyle = isWhiteMove ? "#ffffff" : "#303030";
       ctx.fill();
-      ctx.strokeStyle = "#666666";
+      ctx.strokeStyle = isWhiteMove ? "#ffffff44" : "#30303044";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Draw text
+      // Text
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = isWhiteMove ? "black" : "white";
-      ctx.font = `${fontSize}px Sans-Serif`;
-      ctx.fillText(label, node.x, node.y);
+      ctx.fillStyle = isWhiteMove ? "#000000" : "#ffffff";
+      ctx.font = `${fontSize}px Inter, Sans-Serif`;
+      ctx.fillText(node.name, node.x, node.y);
 
-      // Draw expansion dot if node has children
+      // Expansion indicator
       if (
         node.positionNode.children.length > 0 &&
         !expandedNodes.has(node.id)
       ) {
         ctx.beginPath();
-        ctx.arc(node.x + nodeSize * 1.2, node.y, 3, 0, 2 * Math.PI);
-        ctx.fillStyle = isWhiteMove ? "#303030" : "#ffffff";
+        ctx.arc(node.x + nodeSize * 1.2, node.y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = "#666666";
         ctx.fill();
+        ctx.strokeStyle = "#ffffff22";
+        ctx.lineWidth = 1;
+        ctx.stroke();
       }
     },
     [expandedNodes],
   );
 
   return (
-    <div className="w-full h-[600px] border border-gray-200 rounded-lg bg-white">
+    <div className="w-full h-[600px] border border-gray-700 rounded-lg bg-gray-900">
       <ForceGraph2D
+        ref={fgRef}
         graphData={graphData}
-        nodeCanvasObject={nodeCanvasObject}
-        nodePointerAreaPaint={(node, color, ctx) => {
-          const nodeSize = 20;
+        nodeCanvasObject={renderNode}
+        nodePointerAreaPaint={(node, color, ctx, globalScale) => {
+          const fontSize = 16 / globalScale;
+          const nodeSize = fontSize * 1.2;
           ctx.beginPath();
           ctx.arc(node.x!, node.y!, nodeSize, 0, 2 * Math.PI);
           ctx.fillStyle = color;
@@ -135,11 +180,14 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
         }}
         onNodeClick={(node) => handleNodeClick(node as GraphNode)}
         dagMode="lr"
-        dagLevelDistance={100}
-        nodeRelSize={8}
-        backgroundColor="#ffffff"
-        linkColor={() => "#999999"}
-        linkWidth={2}
+        dagLevelDistance={150}
+        nodeRelSize={10}
+        backgroundColor="#111827"
+        linkColor={() => "#ffffff22"}
+        linkWidth={1.5}
+        d3VelocityDecay={0.3}
+        warmupTicks={50}
+        cooldownTicks={100}
       />
     </div>
   );
