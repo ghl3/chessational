@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { ForceGraph2D } from "react-force-graph";
+import ForceGraph2D from "react-force-graph-2d";
 
 interface BaseGraphNode {
   id: string;
