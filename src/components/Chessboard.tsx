@@ -41,23 +41,23 @@ const Chessboard: React.FC<ChessboardProps> = ({
   }, [chessboardState]);
 
   const handleLeftClick = useCallback(() => {
-    if (chessboardState.getPositionIndex() <= 0) {
+    if (chessboardState.currentPositionIndex <= 0) {
       return;
     }
     chessboardState.setPositionFromIndex(
-      chessboardState.getPositionIndex() - 1,
+      chessboardState.currentPositionIndex - 1,
     );
   }, [chessboardState]);
 
   const handleRightClick = useCallback(() => {
     if (
-      chessboardState.getPositionIndex() + 1 ==
+      chessboardState.currentPositionIndex + 1 ==
       chessboardState.positions.length
     ) {
       return;
     }
     chessboardState.setPositionFromIndex(
-      chessboardState.getPositionIndex() + 1,
+      chessboardState.currentPositionIndex + 1,
     );
   }, [chessboardState]);
 
@@ -80,7 +80,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
     onRightArrow: handleRightClick,
   });
 
-  const fen = chessboardState.getFen() || DEFAULT_POSITION;
+  const fen = chessboardState.getCurrentFen() || DEFAULT_POSITION;
 
   const pieceCount: PieceCount = getPieceCounts(fen);
 

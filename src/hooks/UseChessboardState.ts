@@ -6,23 +6,19 @@ import { Chess, Color, Move as MoveResult, PieceSymbol, WHITE } from "chess.js";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
-// A Chessboard can be thought of as a series of moves and
-// positions as well as an orientation and board size.
+// A Chessboard consists of:
+// - A list of positions
+// - The current position index
+// - The orientation of the board
+// - A list of arrows
 export interface ChessboardState {
   positions: Position[];
+  currentPositionIndex: number;
   orientation: Color;
   arrows: Arrow[];
-  setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
 
-  getPosition: () => Position | null;
-  getGameMoves: () => Move[];
-  getPositionIndex: () => number;
-  getFen: () => Fen | null;
-  createMoveOrNull: (
-    sourceSquare: Square,
-    targetSquare: Square,
-    promotion?: PieceSymbol,
-  ) => [Move, Position] | null;
+  getCurrentPosition: () => Position | null;
+  getCurrentFen: () => Fen | null;
   getPieceAtSquare: (square: Square) => PieceSymbol | null;
 
   // The mutating functions
@@ -31,6 +27,12 @@ export interface ChessboardState {
   setNextPosition: (position: Position, overwrite: boolean) => void;
   setOrientation: React.Dispatch<React.SetStateAction<Color>>;
   clearAndSetPositions: (newPositions: Position[], newIndex: number) => void;
+  setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
+  createMoveOrNull: (
+    sourceSquare: Square,
+    targetSquare: Square,
+    promotion?: PieceSymbol,
+  ) => [Move, Position] | null;
 }
 
 interface GameState {
@@ -185,24 +187,6 @@ export const useChessboardState = (): ChessboardState => {
     }
   }, [getPosition]);
 
-  const getGameMoves = useCallback((): Move[] => {
-    if (
-      gameState.positions.length === 0 ||
-      gameState.currentPositionIndex < 0
-    ) {
-      return [];
-    }
-    return gameState.positions
-      .slice(1, gameState.currentPositionIndex + 1)
-      .flatMap((position) => {
-        if (position.lastMove != null) {
-          return [position.lastMove];
-        } else {
-          return [];
-        }
-      });
-  }, [gameState]);
-
   const clearAndSetPositions = useCallback(
     (newPositions: Position[], newIndex: number) => {
       dispatch({ type: "CLEAR_HISTORY" });
@@ -220,14 +204,13 @@ export const useChessboardState = (): ChessboardState => {
 
   return {
     positions,
+    currentPositionIndex,
     orientation,
     arrows,
     setArrows,
 
-    getPosition,
-    getGameMoves,
-    getPositionIndex: () => currentPositionIndex,
-    getFen,
+    getCurrentPosition: getPosition,
+    getCurrentFen: getFen,
     createMoveOrNull,
     getPieceAtSquare,
 
