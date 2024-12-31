@@ -4,7 +4,7 @@ import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { EngineData } from "@/hooks/UseEngineData";
-import { ReviewMode, ReviewState } from "@/hooks/UseReviewState";
+import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
@@ -23,10 +23,10 @@ export const executeLegalMoveIfIsCorrect = (
   sourceSquare: Square,
   targetSquare: Square,
   promoteToPiece?: PieceSymbol,
-): ReviewMode | null => {
+): boolean => {
   if (reviewState.lineAndChapter == null) {
     window.alert('Please click "New Line" to start a new line.');
-    return null;
+    return false;
   }
 
   const line = reviewState.lineAndChapter.line;
@@ -38,7 +38,7 @@ export const executeLegalMoveIfIsCorrect = (
   // when not in the latest position in the line.
   if (line.positions[lineIndex] != chessboardState.getCurrentPosition()) {
     reviewState.setLineMoveResult(null);
-    return null;
+    return false;
   }
 
   // Check whether the attempted move is the next move in the line.
@@ -82,7 +82,7 @@ export const executeLegalMoveIfIsCorrect = (
         storeAttemptResult(reviewState.lineAndChapter.line, true, db.attempts);
       }
 
-      return "EXPLORE";
+      return true;
     } else {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
@@ -93,7 +93,7 @@ export const executeLegalMoveIfIsCorrect = (
       }, OPPONENT_MOVE_DELAY);
     }
 
-    return "QUIZ";
+    return true;
   } else {
     // If we got here, the move is not correct
     reviewState.setLineMoveResult("INCORRECT");
@@ -101,13 +101,12 @@ export const executeLegalMoveIfIsCorrect = (
       reviewState.setAttemptResult(false);
       storeAttemptResult(reviewState.lineAndChapter.line, false, db.attempts);
     }
-    return "QUIZ";
+    return true;
   }
 };
 
 type ControlProps = {
   lineStatus?: LineStatus;
-  reviewMode: ReviewMode;
   toggleShowSolution: () => void;
   onNewLine: () => void;
   onRestartLine: () => void;
@@ -115,7 +114,6 @@ type ControlProps = {
 
 const Controls: React.FC<ControlProps> = ({
   lineStatus,
-  reviewMode,
   onNewLine,
   onRestartLine,
   toggleShowSolution,
@@ -256,7 +254,6 @@ export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
     <div>
       <Controls
         lineStatus={reviewState.lineStatus}
-        reviewMode={reviewState.reviewMode}
         onNewLine={onNewLine}
         onRestartLine={onRestartLine}
         toggleShowSolution={toggleShowSolution}

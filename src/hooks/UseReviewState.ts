@@ -12,14 +12,10 @@ import {
 import { ChessboardState } from "./UseChessboardState";
 import useStateWithTimeout from "./UseStateWithTimeout";
 
-export type ReviewMode = "QUIZ" | "EXPLORE";
-
 export interface ReviewState {
   lineAndChapter: LineAndChapter | null;
   lineIndex: number;
   lineStatus: LineStatus | undefined;
-  reviewMode: ReviewMode;
-  setReviewMode: Dispatch<SetStateAction<ReviewMode>>;
 
   setLineAndChapter: (
     lineAndChapter: LineAndChapter | null,
@@ -47,6 +43,7 @@ export const useReviewState = (): ReviewState => {
 
   // The current position in the line.
   // The next move to play is line.moves[lineIndex+1]
+  // Note that this is independent of the position on the board
   const [currentLineIndex, setCurrentLineIndex] = useState<number>(-1);
 
   const lineStatus = useMemo(() => {
@@ -62,8 +59,6 @@ export const useReviewState = (): ReviewState => {
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
-  const [reviewMode, setReviewMode] = useState<ReviewMode>("QUIZ");
-
   const setLineAndChapterWithDefaults = (
     lineAndChapter: LineAndChapter | null,
   ) => {
@@ -73,7 +68,6 @@ export const useReviewState = (): ReviewState => {
 
   const clearLine = useCallback(
     (chessboardState: ChessboardState) => {
-      // Reset the game
       chessboardState.clearGame();
       setCurrentLineAndChapter(null);
       setCurrentLineIndex(-1);
@@ -101,8 +95,6 @@ export const useReviewState = (): ReviewState => {
       chessboardState.setNextPosition(line.positions[0], true);
       setCurrentLineIndex((lineIndex: number) => lineIndex + 1);
 
-      setReviewMode("QUIZ");
-
       // If we are black, we first have to do white's move
       if (line.orientation == "b") {
         const firstPosition: Position = line.positions[1];
@@ -119,9 +111,6 @@ export const useReviewState = (): ReviewState => {
     lineIndex: currentLineIndex,
     setLineIndex: setCurrentLineIndex,
     lineStatus,
-
-    reviewMode,
-    setReviewMode,
 
     clearLine,
     initializeLine,

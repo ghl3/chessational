@@ -97,10 +97,6 @@ interface HomeProps {
 }
 
 const getDefaultTab = (studyData: StudyData): Tab => {
-  if (studyData.studies == null || studyData.studies.length === 0) {
-    return "STUDIES";
-  }
-
   return "REVIEW";
 };
 
@@ -136,8 +132,10 @@ const Home: React.FC<HomeProps> = ({ params }) => {
       targetSquare: Square,
       promoteToPiece?: PieceSymbol,
     ): boolean => {
-      if (tab === "REVIEW" && reviewState.reviewMode === "QUIZ") {
-        const moveResult = executeLegalMoveIfIsCorrect(
+      // The user is in 'Quiz' mode until the end of the line, where
+      // they enter 'Explore' mode.
+      if (tab === "REVIEW" && reviewState.lineStatus != "LINE_COMPLETE") {
+        return executeLegalMoveIfIsCorrect(
           chessboardState,
           reviewState,
           newPosition,
@@ -145,14 +143,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           targetSquare,
           promoteToPiece,
         );
-        if (moveResult === null) {
-          return false;
-        } else if (moveResult === "EXPLORE") {
-          reviewState.setReviewMode("EXPLORE");
-          return true;
-        } else {
-          return true;
-        }
       } else {
         chessboardState.setNextPosition(newPosition, true);
         return true;
