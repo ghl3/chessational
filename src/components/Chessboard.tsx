@@ -105,16 +105,17 @@ const Chessboard: React.FC<ChessboardProps> = ({
         convertToPieceSymbol(piece),
       );
 
-      const [move, newPosition]: [Move | null, Position | null] =
-        chessboardState.createMoveOrNull(
-          sourceSquare,
-          targetSquare,
-          promoteToPiece,
-        ) || [null, null];
+      const moveAndPosition = chessboardState.createMoveOrNull(
+        sourceSquare,
+        targetSquare,
+        promoteToPiece,
+      );
 
-      if (move == null || newPosition == null) {
+      if (moveAndPosition == null) {
         return false;
       }
+
+      const [_, newPosition] = moveAndPosition;
 
       // If we've gotten here, then the move is legal.
       // We now call the onLegalMove callback to handle the move

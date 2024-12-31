@@ -1,25 +1,19 @@
 import { Dispatch, SetStateAction } from "react";
 
-export type Mode =
-  | "REVIEW"
-  | "EXPLORE"
-  | "SEARCH"
-  | "STATS"
-  | "STUDIES"
-  | "TREE";
+export type Tab = "STUDIES" | "REVIEW" | "SEARCH" | "STATS" | "TREE";
 
 const NavEntry: React.FC<{
   name: string;
-  mode: Mode;
-  currentMode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
-}> = ({ name, mode, setMode, currentMode }) => {
-  const active = mode === currentMode;
+  tab: Tab;
+  currentMode: Tab;
+  setTab: Dispatch<SetStateAction<Tab>>;
+}> = ({ name, tab, setTab, currentMode }) => {
+  const active = tab === currentMode;
   return (
     <li className={active ? "border-b-2 border-blue-500" : ""}>
       <button
         key={name}
-        onClick={() => setMode(mode)}
+        onClick={() => setTab(tab)}
         className="hover:text-blue-300 transition duration-300"
       >
         {name}
@@ -29,8 +23,8 @@ const NavEntry: React.FC<{
 };
 
 export const NavBar: React.FC<{
-  mode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
+  mode: Tab;
+  setMode: Dispatch<SetStateAction<Tab>>;
 }> = ({ mode, setMode }) => {
   return (
     <div>
@@ -38,39 +32,33 @@ export const NavBar: React.FC<{
         <ul className="flex justify-center space-x-4">
           <NavEntry
             name="Studies"
-            mode="STUDIES"
+            tab="STUDIES"
             currentMode={mode}
-            setMode={setMode}
+            setTab={setMode}
           />
           <NavEntry
             name="Review"
-            mode="REVIEW"
+            tab="REVIEW"
             currentMode={mode}
-            setMode={setMode}
-          />
-          <NavEntry
-            name="Explore"
-            mode="EXPLORE"
-            currentMode={mode}
-            setMode={setMode}
+            setTab={setMode}
           />
           <NavEntry
             name="Search"
-            mode="SEARCH"
+            tab="SEARCH"
             currentMode={mode}
-            setMode={setMode}
+            setTab={setMode}
           />
           <NavEntry
             name="Stats"
-            mode="STATS"
+            tab="STATS"
             currentMode={mode}
-            setMode={setMode}
+            setTab={setMode}
           />
           <NavEntry
             name="Tree"
-            mode="TREE"
+            tab="TREE"
             currentMode={mode}
-            setMode={setMode}
+            setTab={setMode}
           />
         </ul>
       </nav>

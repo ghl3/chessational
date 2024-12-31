@@ -2,10 +2,12 @@
 
 import { Position } from "@/chess/Position";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
-import { Mode, NavBar } from "@/components/NavBar";
+import { NavBar, Tab } from "@/components/NavBar";
 import { default as OpeningGraph } from "@/components/OpeningTree";
-import { executeLegalMoveIfIsCorrect } from "@/components/ReviewLineControls";
-import { ReviewOrExploreLine } from "@/components/ReviewOrExploreLine";
+import {
+  executeLegalMoveIfIsCorrect,
+  ReviewOrExploreLine,
+} from "@/components/Review";
 import Search from "@/components/Search";
 import StatsPage from "@/components/Stats";
 import { Studies } from "@/components/Studies";
@@ -37,8 +39,8 @@ if (typeof window !== "undefined") {
 }
 
 export interface RightPanelProps {
-  mode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
+  tab: Tab;
+  setTab: Dispatch<SetStateAction<Tab>>;
   chessboardState: ChessboardState;
   studyData: StudyData;
   engineData: EngineData;
@@ -47,8 +49,8 @@ export interface RightPanelProps {
 }
 
 export const RightPanel: React.FC<RightPanelProps> = ({
-  mode,
-  setMode,
+  tab,
+  setTab,
   chessboardState,
   studyData,
   engineData,
@@ -57,26 +59,25 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 }) => {
   return (
     <div className="flex flex-col flex-1 justify-start">
-      <NavBar mode={mode} setMode={setMode} />
-      {mode !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
-      {mode === "STUDIES" && <Studies studyData={studyData} />}
-      {(mode === "REVIEW" || mode == "EXPLORE") && (
+      <NavBar mode={tab} setMode={setTab} />
+      {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
+      {tab === "STUDIES" && <Studies studyData={studyData} />}
+      {tab === "REVIEW" && (
         <ReviewOrExploreLine
-          mode={mode}
           chessboardState={chessboardState}
           studyData={studyData}
           engineData={engineData}
           reviewState={reviewState}
         />
       )}
-      {mode === "SEARCH" && (
+      {tab === "SEARCH" && (
         <Search
           lines={studyData.lines || []}
           chapters={studyData.chapters || []}
           chessboardState={chessboardState}
         />
       )}
-      {mode === "STATS" && (
+      {tab === "STATS" && (
         <StatsPage
           lines={studyData.lines || []}
           chapters={studyData.chapters || []}
@@ -84,7 +85,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           chessboardState={chessboardState}
         />
       )}
-      {mode === "TREE" && (
+      {tab === "TREE" && (
         <OpeningGraph chapter={(studyData.chapters || [])[0]} />
       )}
     </div>
@@ -95,15 +96,12 @@ interface HomeProps {
   params: { slug: string };
 }
 
-const getDefaultMode = (studyData: StudyData): Mode => {
-  if (
-    studyData.selectedChapterNames &&
-    studyData.selectedChapterNames.length > 0
-  ) {
-    return "REVIEW";
+const getDefaultTab = (studyData: StudyData): Tab => {
+  if (studyData.studies == null || studyData.studies.length === 0) {
+    return "STUDIES";
   }
 
-  return "EXPLORE";
+  return "REVIEW";
 };
 
 const Home: React.FC<HomeProps> = ({ params }) => {
@@ -120,7 +118,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     }
   }, [engineData]);
 
-  const [mode, setMode] = useState<Mode>(getDefaultMode(studyData));
+  const [tab, setTab] = useState<Tab>(getDefaultTab(studyData));
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
@@ -138,8 +136,8 @@ const Home: React.FC<HomeProps> = ({ params }) => {
       targetSquare: Square,
       promoteToPiece?: PieceSymbol,
     ): boolean => {
-      if (mode === "REVIEW") {
-        return executeLegalMoveIfIsCorrect(
+      if (tab === "REVIEW" && reviewState.reviewMode === "QUIZ") {
+        const moveResult = executeLegalMoveIfIsCorrect(
           chessboardState,
           reviewState,
           newPosition,
@@ -147,12 +145,20 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           targetSquare,
           promoteToPiece,
         );
+        if (moveResult === null) {
+          return false;
+        } else if (moveResult === "EXPLORE") {
+          reviewState.setReviewMode("EXPLORE");
+          return true;
+        } else {
+          return true;
+        }
       } else {
         chessboardState.setNextPosition(newPosition, true);
         return true;
       }
     },
-    [chessboardState, mode, reviewState],
+    [chessboardState, tab, reviewState],
   );
 
   return (
@@ -171,8 +177,8 @@ const Home: React.FC<HomeProps> = ({ params }) => {
       <div className="w-1/2 min-w-fit flex-shrink-0">
         <div className="ml-3 min-h-full min-w-0">
           <RightPanel
-            mode={mode}
-            setMode={setMode}
+            tab={tab}
+            setTab={setTab}
             chessboardState={chessboardState}
             studyData={studyData}
             engineData={engineData}

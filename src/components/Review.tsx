@@ -1,14 +1,17 @@
 import { storeAttemptResult } from "@/chess/Attempt";
+import { LineStatus } from "@/chess/Line";
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { ChessboardState } from "@/hooks/UseChessboardState";
-import { ReviewState } from "@/hooks/UseReviewState";
+import { EngineData } from "@/hooks/UseEngineData";
+import { ReviewMode, ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
-import React, { useCallback, useMemo } from "react";
+import { default as React, useCallback, useMemo } from "react";
 import { db } from "../app/db";
-import { Controls } from "./Controls";
+import { ControlButton } from "./ControlButton";
+import { DetailsPanel } from "./DetailsPanel";
 import { MoveDescription } from "./MoveDescription";
 
 const OPPONENT_MOVE_DELAY = 250;
@@ -20,10 +23,10 @@ export const executeLegalMoveIfIsCorrect = (
   sourceSquare: Square,
   targetSquare: Square,
   promoteToPiece?: PieceSymbol,
-): boolean => {
+): ReviewMode | null => {
   if (reviewState.lineAndChapter == null) {
     window.alert('Please click "New Line" to start a new line.');
-    return false;
+    return null;
   }
 
   const line = reviewState.lineAndChapter.line;
@@ -33,9 +36,9 @@ export const executeLegalMoveIfIsCorrect = (
   // we don't accept the move.  This can happen if the user uses
   // the left/right arrows to move around the line and then tries to move
   // when not in the latest position in the line.
-  if (line.positions[lineIndex] != chessboardState.getPosition()) {
+  if (line.positions[lineIndex] != chessboardState.getCurrentPosition()) {
     reviewState.setLineMoveResult(null);
-    return false;
+    return null;
   }
 
   // Check whether the attempted move is the next move in the line.
@@ -78,6 +81,8 @@ export const executeLegalMoveIfIsCorrect = (
         reviewState.setAttemptResult(true);
         storeAttemptResult(reviewState.lineAndChapter.line, true, db.attempts);
       }
+
+      return "EXPLORE";
     } else {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
@@ -88,31 +93,82 @@ export const executeLegalMoveIfIsCorrect = (
       }, OPPONENT_MOVE_DELAY);
     }
 
-    // Return true to accept the move
-    return true;
+    return "QUIZ";
+  } else {
+    // If we got here, the move is not correct
+    reviewState.setLineMoveResult("INCORRECT");
+    if (reviewState.attemptResult == null) {
+      reviewState.setAttemptResult(false);
+      storeAttemptResult(reviewState.lineAndChapter.line, false, db.attempts);
+    }
+    return "QUIZ";
   }
-
-  // If we got here, the move is not correct
-  reviewState.setLineMoveResult("INCORRECT");
-  if (reviewState.attemptResult == null) {
-    reviewState.setAttemptResult(false);
-    storeAttemptResult(reviewState.lineAndChapter.line, false, db.attempts);
-  }
-
-  return false;
 };
 
-export interface ReviewLineProps {
+type ControlProps = {
+  lineStatus?: LineStatus;
+  reviewMode: ReviewMode;
+  toggleShowSolution: () => void;
+  onNewLine: () => void;
+  onRestartLine: () => void;
+};
+
+const Controls: React.FC<ControlProps> = ({
+  lineStatus,
+  reviewMode,
+  onNewLine,
+  onRestartLine,
+  toggleShowSolution,
+}) => {
+  const hasActiveLine = lineStatus != undefined;
+
+  const lineIsComplete = lineStatus === "LINE_COMPLETE";
+
+  const lineModeButtons = (
+    <div className="flex space-x-4">
+      <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
+
+      {hasActiveLine ? (
+        <ControlButton
+          onClick={onRestartLine}
+          label="Restart Line"
+          size={"large"}
+        />
+      ) : null}
+
+      {hasActiveLine && !lineIsComplete ? (
+        <ControlButton
+          onClick={toggleShowSolution}
+          label="Show Solution"
+          size={"large"}
+          disabled={lineIsComplete}
+        />
+      ) : null}
+    </div>
+  );
+
+  return (
+    <div className="p-5 space-y-6">
+      <div className="flex justify-center space-x-4">{lineModeButtons}</div>
+    </div>
+  );
+};
+
+export interface ReviewOrExploreLineProps {
   chessboardState: ChessboardState;
   studyData: StudyData;
+  engineData: EngineData;
   reviewState: ReviewState;
 }
 
-export const ReviewLineControls: React.FC<ReviewLineProps> = ({
+export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
   chessboardState,
   studyData,
+  engineData,
   reviewState,
 }) => {
+  const position = chessboardState.getCurrentPosition();
+
   const onNewLine = useCallback(() => {
     reviewState.clearLine(chessboardState);
 
@@ -196,25 +252,29 @@ export const ReviewLineControls: React.FC<ReviewLineProps> = ({
     reviewState.setShowSolution(newState);
   }, [arrows, chessboardState, reviewState]);
 
-  const position = chessboardState.getPosition();
-
   return (
     <div>
-      {studyData.selectedStudy != null && (
-        <Controls
-          lineStatus={reviewState.lineStatus}
-          onNewLine={onNewLine}
-          onRestartLine={onRestartLine}
-          toggleShowSolution={toggleShowSolution}
-        />
-      )}
+      <Controls
+        lineStatus={reviewState.lineStatus}
+        reviewMode={reviewState.reviewMode}
+        onNewLine={onNewLine}
+        onRestartLine={onRestartLine}
+        toggleShowSolution={toggleShowSolution}
+      />
+
       {position && (
         <MoveDescription
-          position={position}
           status={reviewState.lineStatus}
           result={reviewState.lineMoveResult || undefined}
         />
       )}
+
+      <DetailsPanel
+        chapter={reviewState.lineAndChapter?.chapter || undefined}
+        currentPosition={position || undefined}
+        positions={chessboardState.positions}
+        engineData={engineData}
+      />
     </div>
   );
 };
