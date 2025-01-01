@@ -48,12 +48,14 @@ export const NavBar: React.FC<{
             currentMode={mode}
             setTab={setMode}
           />
+          {/*
           <NavEntry
             name="Tree"
             tab="TREE"
             currentMode={mode}
             setTab={setMode}
           />
+          */}
         </ul>
       </nav>
     </div>

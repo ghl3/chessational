@@ -76,9 +76,11 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         />
       )}
 
+      {/*
       {tab === "TREE" && (
         <OpeningGraph chapter={(studyData.chapters || [])[0]} />
       )}
+      */}
     </div>
   );
 };
