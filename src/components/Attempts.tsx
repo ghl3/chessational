@@ -54,15 +54,15 @@ export const Attempts: React.FC<AttemptsProps> = ({
         );
 
         // Handle old attempts with lines that are now missing
-        const lineElement =
+        const lineElements: React.JSX.Element[] =
           lineAndChapter != null
             ? makePositionChips(lineAndChapter, chessboardState)
-            : attempt.lineId;
+            : [<div key={attempt.lineId}>{attempt.lineId}</div>];
 
         return {
           studyName: attempt.studyName,
           chapterName: attempt.chapterName,
-          line: lineElement,
+          line: lineElements,
           lineAndChapter,
           attemptDate: attempt.timestamp,
           correct: attempt.correct,
