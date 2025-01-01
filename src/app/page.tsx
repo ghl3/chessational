@@ -74,6 +74,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         <Search
           lines={studyData.lines || []}
           chapters={studyData.chapters || []}
+          attempts={studyData.attempts || []}
           chessboardState={chessboardState}
         />
       )}
