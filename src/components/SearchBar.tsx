@@ -1,7 +1,5 @@
-import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
-import { ChessboardState } from "@/hooks/UseChessboardState";
 import { Token, tokenizeQuery } from "@/utils/Tokenizer";
 import React, {
   Dispatch,
@@ -12,8 +10,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { makePositionChips } from "./PositionChip";
-import { BaseStudyRow, StudyTable } from "./StudyTable";
 
 const matchesQuery = (line: Line, tokens: Token[]): boolean => {
   const positions = line.positions.flatMap((position) => {

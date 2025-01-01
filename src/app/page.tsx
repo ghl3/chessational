@@ -2,14 +2,13 @@
 
 import { Position } from "@/chess/Position";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
+import Lines from "@/components/Lines";
 import { NavBar, Tab } from "@/components/NavBar";
 import { default as OpeningGraph } from "@/components/OpeningTree";
 import {
   executeLegalMoveIfIsCorrect,
   ReviewOrExploreLine,
 } from "@/components/Review";
-import Search from "@/components/Search";
-import StatsPage from "@/components/Stats";
 import { Studies } from "@/components/Studies";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Engine } from "@/engine/Engine";
@@ -45,7 +44,6 @@ export interface RightPanelProps {
   studyData: StudyData;
   engineData: EngineData;
   reviewState: ReviewState;
-  height?: number;
 }
 
 export const RightPanel: React.FC<RightPanelProps> = ({
@@ -55,13 +53,20 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   studyData,
   engineData,
   reviewState,
-  height,
 }) => {
   return (
     <div className="flex flex-col flex-1 justify-start">
       <NavBar mode={tab} setMode={setTab} />
       {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
       {tab === "STUDIES" && <Studies studyData={studyData} />}
+      {tab === "LINES" && (
+        <Lines
+          lines={studyData.lines || []}
+          chapters={studyData.chapters || []}
+          attempts={studyData.attempts || []}
+          chessboardState={chessboardState}
+        />
+      )}
       {tab === "REVIEW" && (
         <ReviewOrExploreLine
           chessboardState={chessboardState}
@@ -70,22 +75,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           reviewState={reviewState}
         />
       )}
-      {tab === "SEARCH" && (
-        <Search
-          lines={studyData.lines || []}
-          chapters={studyData.chapters || []}
-          attempts={studyData.attempts || []}
-          chessboardState={chessboardState}
-        />
-      )}
-      {tab === "STATS" && (
-        <StatsPage
-          lines={studyData.lines || []}
-          chapters={studyData.chapters || []}
-          attempts={studyData.attempts || []}
-          chessboardState={chessboardState}
-        />
-      )}
+
       {tab === "TREE" && (
         <OpeningGraph chapter={(studyData.chapters || [])[0]} />
       )}
@@ -119,12 +109,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
   // Set and maintain the size of the board
   const chessboardRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState<number | null>(null);
-  useEffect(() => {
-    if (chessboardRef.current) {
-      setHeight(chessboardRef.current.clientHeight);
-    }
-  }, [chessboardSize]);
 
   const onLegalMove: MoveExecutor = useCallback(
     (
@@ -174,7 +158,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
             studyData={studyData}
             engineData={engineData}
             reviewState={reviewState}
-            height={height || 0}
           />
         </div>
       </div>

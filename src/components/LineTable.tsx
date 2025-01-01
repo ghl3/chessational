@@ -1,3 +1,4 @@
+import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import {
   ColumnDef,
   createColumnHelper,
@@ -9,40 +10,7 @@ import {
 } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
-const ClickableLineFn: React.FC<{ getValue: () => React.JSX.Element[] }> = ({
-  getValue,
-}) => (
-  <div
-    className="flex flex-wrap items-center gap-0.5"
-    style={{
-      maxWidth: "100%", // Ensure it fits within the column width
-      overflow: "hidden", // Prevent content from spilling out
-      textOverflow: "ellipsis", // Add ellipsis for overflowing content
-      whiteSpace: "nowrap", // Prevent wrapping for a compact layout
-      fontSize: "0.75rem", // Make text smaller (adjust as needed)
-      lineHeight: "1rem", // Adjust line height to be compact
-      padding: "0", // Remove extra padding
-      margin: "0", // Remove extra margin
-    }}
-  >
-    {getValue().map((element: React.JSX.Element, index: number) => (
-      <React.Fragment key={index}>
-        <span
-          className="inline-block"
-          style={{
-            padding: "0", // No padding inside elements
-            margin: "0", // No margin inside elements
-            fontSize: "inherit", // Use the same size as parent
-          }}
-        >
-          {element}
-        </span>
-      </React.Fragment>
-    ))}
-  </div>
-);
-
-const ClickableLineSimpleFn: React.FC<{
+const ClickableLineFn: React.FC<{
   getValue: () => React.JSX.Element[];
 }> = ({ getValue }) => (
   <div className="text-left p-0.5">
@@ -54,23 +22,26 @@ const ClickableLineSimpleFn: React.FC<{
   </div>
 );
 
-export interface BaseStudyRow {
+export interface LineRow {
   studyName: string;
   chapterName: string;
   line: React.JSX.Element[];
+  lineAndChapter: LineAndChapter;
+  numAttempts: number;
+  numCorrect: number;
+  latestAttempt: Date | null;
+  estimatedSuccessRate: number | null;
 }
 
-export interface StudyTableProps<T extends BaseStudyRow> {
+export interface LineTableProps<T extends LineRow> {
   data: T[];
-  extraColumns?: ColumnDef<T>[];
   onRowClick?: (row: T) => void;
 }
 
-export const StudyTable = <T extends BaseStudyRow>({
+export const LineTable = <T extends LineRow>({
   data,
-  extraColumns = [],
   onRowClick,
-}: StudyTableProps<T>) => {
+}: LineTableProps<T>) => {
   const columnHelper = createColumnHelper<T>();
 
   const columns = useMemo(() => {
@@ -78,13 +49,11 @@ export const StudyTable = <T extends BaseStudyRow>({
       study: 80,
       chapter: 80,
       line: 200,
-      extra: 32,
+      numAttempts: 32,
+      numCorrect: 32,
+      latestAttempt: 64,
+      estimatedSuccessRate: 64,
     } as const;
-
-    const extraColumnsWithSize = extraColumns.map((column) => ({
-      ...column,
-      size: BASE_COLUMN_WIDTHS.extra,
-    }));
 
     return [
       columnHelper.accessor((row: T) => row.studyName, {
@@ -101,11 +70,48 @@ export const StudyTable = <T extends BaseStudyRow>({
         id: "line",
         header: "Line",
         size: BASE_COLUMN_WIDTHS.line,
-        cell: ClickableLineSimpleFn,
+        cell: ClickableLineFn,
       }),
-      ...extraColumnsWithSize,
+      {
+        header: "Num Attempts",
+        accessorFn: (row) => row.numAttempts,
+        sortingFn: "basic",
+        size: BASE_COLUMN_WIDTHS.numAttempts,
+      },
+      {
+        header: "Num Correct",
+        accessorFn: (row) => row.numCorrect,
+        sortingFn: "basic",
+        size: BASE_COLUMN_WIDTHS.numCorrect,
+      },
+      {
+        header: "Latest Attempt",
+        accessorFn: (row) => row.latestAttempt,
+        cell: (info) => {
+          if (info.getValue<Date>() === null) {
+            return "";
+          } else {
+            return info.getValue<Date>().toLocaleString();
+          }
+        },
+        sortingFn: "datetime",
+        size: BASE_COLUMN_WIDTHS.latestAttempt,
+      },
+      {
+        header: "Estimated Success Rate",
+        accessorFn: (row) => row.estimatedSuccessRate,
+        cell: (info) => {
+          if (info.getValue<number>() === null) {
+            return "";
+          } else {
+            return info.getValue<number>().toFixed(3);
+          }
+        },
+        sortingFn: "basic",
+        size: BASE_COLUMN_WIDTHS.estimatedSuccessRate,
+      },
     ] as ColumnDef<T>[];
-  }, [columnHelper, extraColumns]);
+  }, [columnHelper]);
 
   const table = useReactTable({
     columns,

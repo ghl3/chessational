@@ -4,29 +4,19 @@ import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
-import { ColumnDef } from "@tanstack/react-table";
 import React, { useMemo, useState } from "react";
+import { LineRow, LineTable } from "./LineTable";
 import { makePositionChips } from "./PositionChip";
 import { SearchBar } from "./SearchBar";
-import { BaseStudyRow, StudyTable } from "./StudyTable";
 
-// Extend BaseStudyRow with our specific needs
-interface SearchRow extends BaseStudyRow {
-  lineAndChapter: LineAndChapter;
-  numAttempts: number;
-  numCorrect: number;
-  latestAttempt: Date | null;
-  estimatedSuccessRate: number | null;
-}
-
-interface SearchProps {
+interface LinesProps {
   lines: Line[];
   chapters: Chapter[];
   attempts: Attempt[];
   chessboardState: ChessboardState;
 }
 
-const Search: React.FC<SearchProps> = ({
+const Lines: React.FC<LinesProps> = ({
   lines,
   chapters,
   attempts,
@@ -54,50 +44,9 @@ const Search: React.FC<SearchProps> = ({
     return getStats(attempts || []);
   }, [attempts]);
 
-  // Define the extra columns for stats using explicit ColumnDef type
-  const extraColumns = useMemo<ColumnDef<SearchRow>[]>(
-    () => [
-      {
-        header: "Num Attempts",
-        accessorFn: (row) => row.numAttempts,
-        sortingFn: "basic",
-      },
-      {
-        header: "Num Correct",
-        accessorFn: (row) => row.numCorrect,
-        sortingFn: "basic",
-      },
-      {
-        header: "Latest Attempt",
-        accessorFn: (row) => row.latestAttempt,
-        cell: (info) => {
-          if (info.getValue<Date>() === null) {
-            return "";
-          } else {
-            return info.getValue<Date>().toLocaleString();
-          }
-        },
-        sortingFn: "datetime",
-      },
-      {
-        header: "Estimated Success Rate",
-        accessorFn: (row) => row.estimatedSuccessRate,
-        cell: (info) => {
-          if (info.getValue<number>() === null) {
-            return "";
-          } else {
-            return info.getValue<number>().toFixed(3);
-          }
-        },
-        sortingFn: "basic",
-      },
-    ],
-    [],
-  );
-
   // Transform the data for the table
-  const tableData: SearchRow[] = useMemo(() => {
-    const rows: SearchRow[] = [];
+  const tableData: LineRow[] = useMemo(() => {
+    const rows: LineRow[] = [];
 
     for (const lineAndChapter of filteredLines) {
       const stat: LineStats | null =
@@ -118,7 +67,7 @@ const Search: React.FC<SearchProps> = ({
     return rows;
   }, [filteredLines, chessboardState, stats]);
 
-  const onRowClick = (row: SearchRow) => {
+  const onRowClick = (row: LineRow) => {
     chessboardState.setOrientation(row.lineAndChapter.chapter.orientation);
     chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
   };
@@ -138,13 +87,9 @@ const Search: React.FC<SearchProps> = ({
         filteredLines={filteredLines}
         setFilteredLines={setFilteredLines}
       />
-      <StudyTable
-        data={tableData}
-        extraColumns={extraColumns}
-        onRowClick={onRowClick}
-      />
+      <LineTable data={tableData} onRowClick={onRowClick} />
     </>
   );
 };
 
-export default Search;
+export default Lines;

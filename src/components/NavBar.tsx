@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 
-export type Tab = "STUDIES" | "REVIEW" | "SEARCH" | "STATS" | "TREE";
+export type Tab = "STUDIES" | "LINES" | "REVIEW" | "TREE";
 
 const NavEntry: React.FC<{
   name: string;
@@ -37,20 +37,14 @@ export const NavBar: React.FC<{
             setTab={setMode}
           />
           <NavEntry
+            name="Lines"
+            tab="LINES"
+            currentMode={mode}
+            setTab={setMode}
+          />
+          <NavEntry
             name="Review"
             tab="REVIEW"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Search"
-            tab="SEARCH"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Stats"
-            tab="STATS"
             currentMode={mode}
             setTab={setMode}
           />
