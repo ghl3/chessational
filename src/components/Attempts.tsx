@@ -1,7 +1,6 @@
 import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
-import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -15,7 +14,6 @@ export interface AttemptRow {
   studyName: string;
   chapterName: string;
   line: React.JSX.Element[];
-  lineAndChapter: LineAndChapter;
   attemptDate: Date | null;
   correct: boolean;
 }
@@ -54,18 +52,17 @@ export const Attempts: React.FC<AttemptsProps> = ({
         const lineAndChapter = lineAndChapters.find(
           (lc) => lc.line.lineId === attempt.lineId,
         );
-        if (lineAndChapter == undefined) {
-          throw new Error(`Line ${attempt.lineId} not found`);
-        }
-        const { line, chapter } = lineAndChapter;
-        const positionChips = makePositionChips(
-          lineAndChapter,
-          chessboardState,
-        );
+
+        // Handle old attempts with lines that are now missing
+        const lineElement =
+          lineAndChapter != null
+            ? makePositionChips(lineAndChapter, chessboardState)
+            : attempt.lineId;
+
         return {
-          studyName: line.studyName,
-          chapterName: line.chapterName,
-          line: positionChips,
+          studyName: attempt.studyName,
+          chapterName: attempt.chapterName,
+          line: lineElement,
           lineAndChapter,
           attemptDate: attempt.timestamp,
           correct: attempt.correct,
