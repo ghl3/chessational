@@ -114,7 +114,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
         cell: (info) => (info.getValue() ? "Correct" : "Incorrect"),
       }),
     ],
-    [],
+    [columnHelper],
   );
 
   return (

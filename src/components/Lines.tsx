@@ -88,14 +88,6 @@ const Lines: React.FC<LinesProps> = ({
     chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
   };
 
-  if (lines.length === 0) {
-    return (
-      <div className="text-gray-800 dark:text-gray-200">
-        Select a chapter first
-      </div>
-    );
-  }
-
   const columnHelper = createColumnHelper<LineRow>();
   const columns = useMemo(
     () => [
@@ -138,8 +130,16 @@ const Lines: React.FC<LinesProps> = ({
         cell: (info) => info.getValue()?.toFixed(3) ?? "",
       }),
     ],
-    [],
+    [columnHelper],
   );
+
+  if (lines.length === 0) {
+    return (
+      <div className="text-gray-800 dark:text-gray-200">
+        Select a chapter first
+      </div>
+    );
+  }
 
   return (
     <>
