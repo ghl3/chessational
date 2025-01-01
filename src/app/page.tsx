@@ -4,7 +4,6 @@ import { Position } from "@/chess/Position";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
 import Lines from "@/components/Lines";
 import { NavBar, Tab } from "@/components/NavBar";
-import { default as OpeningGraph } from "@/components/OpeningTree";
 import {
   executeLegalMoveIfIsCorrect,
   ReviewOrExploreLine,
@@ -37,7 +36,7 @@ if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
 
-export interface RightPanelProps {
+interface RightPanelProps {
   tab: Tab;
   setTab: Dispatch<SetStateAction<Tab>>;
   chessboardState: ChessboardState;
@@ -46,7 +45,7 @@ export interface RightPanelProps {
   reviewState: ReviewState;
 }
 
-export const RightPanel: React.FC<RightPanelProps> = ({
+const RightPanel: React.FC<RightPanelProps> = ({
   tab,
   setTab,
   chessboardState,
@@ -86,7 +85,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 };
 
 interface HomeProps {
-  params: { slug: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const getDefaultTab = (studyData: StudyData): Tab => {
