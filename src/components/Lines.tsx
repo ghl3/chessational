@@ -4,10 +4,22 @@ import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
+import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo, useState } from "react";
-import { LineRow, LineTable } from "./LineTable";
+import { BASE_COLUMN_WIDTHS, ClickableLineFn, LineTable } from "./LineTable";
 import { makePositionChips } from "./PositionChip";
 import { SearchBar } from "./SearchBar";
+
+export interface LineRow {
+  studyName: string;
+  chapterName: string;
+  line: React.JSX.Element[];
+  lineAndChapter: LineAndChapter;
+  numAttempts: number;
+  numCorrect: number;
+  latestAttempt: Date | null;
+  estimatedSuccessRate: number | null;
+}
 
 interface LinesProps {
   lines: Line[];
@@ -80,6 +92,51 @@ const Lines: React.FC<LinesProps> = ({
     );
   }
 
+  const columnHelper = createColumnHelper<LineRow>();
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor((row) => row.studyName, {
+        id: "studyName",
+        header: "Study",
+        size: BASE_COLUMN_WIDTHS.study,
+      }),
+      columnHelper.accessor((row) => row.chapterName, {
+        id: "chapterName",
+        header: "Chapter",
+        size: BASE_COLUMN_WIDTHS.chapter,
+      }),
+      columnHelper.accessor((row) => row.line, {
+        id: "line",
+        header: "Line",
+        size: BASE_COLUMN_WIDTHS.line,
+        cell: (props) => <ClickableLineFn value={props.getValue()} />,
+      }),
+      columnHelper.accessor((row) => row.numAttempts, {
+        id: "numAttempts",
+        header: "Num Attempts",
+        size: BASE_COLUMN_WIDTHS.numAttempts,
+      }),
+      columnHelper.accessor((row) => row.numCorrect, {
+        id: "numCorrect",
+        header: "Num Correct",
+        size: BASE_COLUMN_WIDTHS.numCorrect,
+      }),
+      columnHelper.accessor((row) => row.latestAttempt, {
+        id: "latestAttempt",
+        header: "Latest Attempt",
+        size: BASE_COLUMN_WIDTHS.latestAttempt,
+        cell: (info) => info.getValue()?.toLocaleString() ?? "",
+      }),
+      columnHelper.accessor((row) => row.estimatedSuccessRate, {
+        id: "estimatedSuccessRate",
+        header: "Estimated Success Rate",
+        size: BASE_COLUMN_WIDTHS.estimatedSuccessRate,
+        cell: (info) => info.getValue()?.toFixed(3) ?? "",
+      }),
+    ],
+    [],
+  );
+
   return (
     <>
       <SearchBar
@@ -87,7 +144,7 @@ const Lines: React.FC<LinesProps> = ({
         filteredLines={filteredLines}
         setFilteredLines={setFilteredLines}
       />
-      <LineTable data={tableData} onRowClick={onRowClick} />
+      <LineTable columns={columns} data={tableData} onRowClick={onRowClick} />
     </>
   );
 };

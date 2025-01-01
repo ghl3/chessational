@@ -1,15 +1,13 @@
-import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import {
   ColumnDef,
-  createColumnHelper,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import React, { useMemo } from "react";
+import React from "react";
 
-type ColumnWidths = {
+export type ColumnWidths = {
   study: number;
   chapter: number;
   line: number;
@@ -19,7 +17,7 @@ type ColumnWidths = {
   estimatedSuccessRate: number;
 };
 
-const BASE_COLUMN_WIDTHS: Readonly<ColumnWidths> = {
+export const BASE_COLUMN_WIDTHS: Readonly<ColumnWidths> = {
   study: 80,
   chapter: 80,
   line: 200,
@@ -29,7 +27,7 @@ const BASE_COLUMN_WIDTHS: Readonly<ColumnWidths> = {
   estimatedSuccessRate: 64,
 } as const;
 
-const ClickableLineFn = ({ value }: { value: React.JSX.Element[] }) => (
+export const ClickableLineFn = ({ value }: { value: React.JSX.Element[] }) => (
   <div className="text-left p-0.5">
     {value.map((element, index) => (
       <span key={index} className="m-0">
@@ -39,72 +37,18 @@ const ClickableLineFn = ({ value }: { value: React.JSX.Element[] }) => (
   </div>
 );
 
-export interface LineRow {
-  studyName: string;
-  chapterName: string;
-  line: React.JSX.Element[];
-  lineAndChapter: LineAndChapter;
-  numAttempts: number;
-  numCorrect: number;
-  latestAttempt: Date | null;
-  estimatedSuccessRate: number | null;
-}
-
-export interface LineTableProps<T extends LineRow> {
+// Keep the original props interface simple
+export interface LineTableProps<T> {
+  columns: ColumnDef<T, any>[];
   data: T[];
   onRowClick?: (row: T) => void;
 }
 
-export const LineTable = <T extends LineRow>({
+export const LineTable = <T,>({
+  columns,
   data,
   onRowClick,
 }: LineTableProps<T>) => {
-  const columnHelper = createColumnHelper<T>();
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor((row) => row.studyName, {
-        id: "studyName",
-        header: "Study",
-        size: BASE_COLUMN_WIDTHS.study,
-      }),
-      columnHelper.accessor((row) => row.chapterName, {
-        id: "chapterName",
-        header: "Chapter",
-        size: BASE_COLUMN_WIDTHS.chapter,
-      }),
-      columnHelper.accessor((row) => row.line, {
-        id: "line",
-        header: "Line",
-        size: BASE_COLUMN_WIDTHS.line,
-        cell: (props) => <ClickableLineFn value={props.getValue()} />,
-      }),
-      columnHelper.accessor((row) => row.numAttempts, {
-        id: "numAttempts",
-        header: "Num Attempts",
-        size: BASE_COLUMN_WIDTHS.numAttempts,
-      }),
-      columnHelper.accessor((row) => row.numCorrect, {
-        id: "numCorrect",
-        header: "Num Correct",
-        size: BASE_COLUMN_WIDTHS.numCorrect,
-      }),
-      columnHelper.accessor((row) => row.latestAttempt, {
-        id: "latestAttempt",
-        header: "Latest Attempt",
-        size: BASE_COLUMN_WIDTHS.latestAttempt,
-        cell: (info) => info.getValue()?.toLocaleString() ?? "",
-      }),
-      columnHelper.accessor((row) => row.estimatedSuccessRate, {
-        id: "estimatedSuccessRate",
-        header: "Estimated Success Rate",
-        size: BASE_COLUMN_WIDTHS.estimatedSuccessRate,
-        cell: (info) => info.getValue()?.toFixed(3) ?? "",
-      }),
-    ],
-    [columnHelper],
-  );
-
   const table = useReactTable({
     columns,
     data,
@@ -118,8 +62,8 @@ export const LineTable = <T extends LineRow>({
     <div
       className="w-full overflow-auto"
       style={{
-        height: "calc(70vh)", // or whatever percentage you want
-        minHeight: "400px", // minimum height in pixels
+        height: "calc(70vh)",
+        minHeight: "400px",
       }}
     >
       <table className="w-full divide-y divide-gray-700 text-sm">
@@ -177,3 +121,5 @@ export const LineTable = <T extends LineRow>({
     </div>
   );
 };
+
+export default LineTable;

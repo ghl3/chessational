@@ -1,6 +1,7 @@
 "use client";
 
 import { Position } from "@/chess/Position";
+import { Attempts } from "@/components/Attempts";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
 import Lines from "@/components/Lines";
 import { NavBar, Tab } from "@/components/NavBar";
@@ -74,7 +75,14 @@ const RightPanel: React.FC<RightPanelProps> = ({
           reviewState={reviewState}
         />
       )}
-
+      {tab === "ATTEMPTS" && (
+        <Attempts
+          lines={studyData.lines || []}
+          chapters={studyData.chapters || []}
+          attempts={studyData.attempts || []}
+          chessboardState={chessboardState}
+        />
+      )}
       {/*
       {tab === "TREE" && (
         <OpeningGraph chapter={(studyData.chapters || [])[0]} />
