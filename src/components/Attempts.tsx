@@ -32,7 +32,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
-    return lines.map((line) => {
+    return lines?.map((line) => {
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
       );
@@ -48,7 +48,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
 
   const attemptRows: AttemptRow[] = useMemo(() => {
     return attempts
-      .map((attempt) => {
+      ?.map((attempt) => {
         const lineAndChapter = lineAndChapters.find(
           (lc) => lc.line.lineId === attempt.lineId,
         );
@@ -68,7 +68,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
           correct: attempt.correct,
         } as AttemptRow;
       })
-      .sort((a, b) => {
+      ?.sort((a, b) => {
         if (a.attemptDate == null) {
           return 1;
         }
