@@ -6,7 +6,11 @@ import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo, useState } from "react";
-import { BASE_COLUMN_WIDTHS, ClickableLineFn, LineTable } from "./LineTable";
+import {
+  BASE_COLUMN_WIDTHS,
+  ClickableLineFn,
+  DynamicTable,
+} from "./DynamicTable";
 import { makePositionChips } from "./PositionChip";
 import { SearchBar } from "./SearchBar";
 
@@ -144,7 +148,11 @@ const Lines: React.FC<LinesProps> = ({
         filteredLines={filteredLines}
         setFilteredLines={setFilteredLines}
       />
-      <LineTable columns={columns} data={tableData} onRowClick={onRowClick} />
+      <DynamicTable
+        columns={columns}
+        data={tableData}
+        onRowClick={onRowClick}
+      />
     </>
   );
 };

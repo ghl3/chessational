@@ -38,17 +38,17 @@ export const ClickableLineFn = ({ value }: { value: React.JSX.Element[] }) => (
 );
 
 // Keep the original props interface simple
-export interface LineTableProps<T> {
+export interface DynamicTableProps<T> {
   columns: ColumnDef<T, any>[];
   data: T[];
   onRowClick?: (row: T) => void;
 }
 
-export const LineTable = <T,>({
+export const DynamicTable = <T,>({
   columns,
   data,
   onRowClick,
-}: LineTableProps<T>) => {
+}: DynamicTableProps<T>) => {
   const table = useReactTable({
     columns,
     data,
@@ -122,4 +122,4 @@ export const LineTable = <T,>({
   );
 };
 
-export default LineTable;
+export default DynamicTable;

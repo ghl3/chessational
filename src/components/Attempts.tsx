@@ -5,7 +5,10 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
-import LineTable, { BASE_COLUMN_WIDTHS, ClickableLineFn } from "./LineTable";
+import DynamicTable, {
+  BASE_COLUMN_WIDTHS,
+  ClickableLineFn,
+} from "./DynamicTable";
 import { makePositionChips } from "./PositionChip";
 
 export interface AttemptRow {
@@ -116,7 +119,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
 
   return (
     <div className="flex flex-col flex-1">
-      <LineTable columns={columns} data={attemptRows} />
+      <DynamicTable columns={columns} data={attemptRows} />
     </div>
   );
 };
