@@ -4,17 +4,34 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 
-const ClickableLineFn: React.FC<{
-  getValue: () => React.JSX.Element[];
-}> = ({ getValue }) => (
+type ColumnWidths = {
+  study: number;
+  chapter: number;
+  line: number;
+  numAttempts: number;
+  numCorrect: number;
+  latestAttempt: number;
+  estimatedSuccessRate: number;
+};
+
+const BASE_COLUMN_WIDTHS: Readonly<ColumnWidths> = {
+  study: 80,
+  chapter: 80,
+  line: 200,
+  numAttempts: 32,
+  numCorrect: 32,
+  latestAttempt: 64,
+  estimatedSuccessRate: 64,
+} as const;
+
+const ClickableLineFn = ({ value }: { value: React.JSX.Element[] }) => (
   <div className="text-left p-0.5">
-    {getValue().map((element, index) => (
+    {value.map((element, index) => (
       <span key={index} className="m-0">
         {element}
       </span>
@@ -44,96 +61,69 @@ export const LineTable = <T extends LineRow>({
 }: LineTableProps<T>) => {
   const columnHelper = createColumnHelper<T>();
 
-  const columns = useMemo(() => {
-    const BASE_COLUMN_WIDTHS = {
-      study: 80,
-      chapter: 80,
-      line: 200,
-      numAttempts: 32,
-      numCorrect: 32,
-      latestAttempt: 64,
-      estimatedSuccessRate: 64,
-    } as const;
-
-    return [
-      columnHelper.accessor((row: T) => row.studyName, {
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor((row) => row.studyName, {
         id: "studyName",
         header: "Study",
         size: BASE_COLUMN_WIDTHS.study,
       }),
-      columnHelper.accessor((row: T) => row.chapterName, {
+      columnHelper.accessor((row) => row.chapterName, {
         id: "chapterName",
         header: "Chapter",
         size: BASE_COLUMN_WIDTHS.chapter,
       }),
-      columnHelper.accessor((row: T) => row.line, {
+      columnHelper.accessor((row) => row.line, {
         id: "line",
         header: "Line",
         size: BASE_COLUMN_WIDTHS.line,
-        cell: ClickableLineFn,
+        cell: (props) => <ClickableLineFn value={props.getValue()} />,
       }),
-      {
+      columnHelper.accessor((row) => row.numAttempts, {
+        id: "numAttempts",
         header: "Num Attempts",
-        accessorFn: (row) => row.numAttempts,
-        sortingFn: "basic",
         size: BASE_COLUMN_WIDTHS.numAttempts,
-      },
-      {
+      }),
+      columnHelper.accessor((row) => row.numCorrect, {
+        id: "numCorrect",
         header: "Num Correct",
-        accessorFn: (row) => row.numCorrect,
-        sortingFn: "basic",
         size: BASE_COLUMN_WIDTHS.numCorrect,
-      },
-      {
+      }),
+      columnHelper.accessor((row) => row.latestAttempt, {
+        id: "latestAttempt",
         header: "Latest Attempt",
-        accessorFn: (row) => row.latestAttempt,
-        cell: (info) => {
-          if (info.getValue<Date>() === null) {
-            return "";
-          } else {
-            return info.getValue<Date>().toLocaleString();
-          }
-        },
-        sortingFn: "datetime",
         size: BASE_COLUMN_WIDTHS.latestAttempt,
-      },
-      {
+        cell: (info) => info.getValue()?.toLocaleString() ?? "",
+      }),
+      columnHelper.accessor((row) => row.estimatedSuccessRate, {
+        id: "estimatedSuccessRate",
         header: "Estimated Success Rate",
-        accessorFn: (row) => row.estimatedSuccessRate,
-        cell: (info) => {
-          if (info.getValue<number>() === null) {
-            return "";
-          } else {
-            return info.getValue<number>().toFixed(3);
-          }
-        },
-        sortingFn: "basic",
         size: BASE_COLUMN_WIDTHS.estimatedSuccessRate,
-      },
-    ] as ColumnDef<T>[];
-  }, [columnHelper]);
+        cell: (info) => info.getValue()?.toFixed(3) ?? "",
+      }),
+    ],
+    [columnHelper],
+  );
 
   const table = useReactTable({
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableColumnResizing: true,
     columnResizeMode: "onChange",
   });
 
-  table.getHeaderGroups().map((headerGroup) => {
-    console.log(headerGroup.id);
-    headerGroup.headers.map((header) => {
-      console.log(header.column.columnDef);
-    });
-  });
-
   return (
-    <div className="w-full overflow-hidden flex-shrink-0">
-      <table className="divide-y divide-gray-700 text-sm">
-        <thead className="bg-gray-800">
+    <div
+      className="w-full overflow-auto"
+      style={{
+        height: "calc(70vh)", // or whatever percentage you want
+        minHeight: "400px", // minimum height in pixels
+      }}
+    >
+      <table className="w-full divide-y divide-gray-700 text-sm">
+        <thead className="bg-gray-800 sticky top-0 z-10">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -170,7 +160,7 @@ export const LineTable = <T extends LineRow>({
             <tr
               key={row.id}
               className="hover:bg-gray-700 cursor-pointer"
-              onClick={() => onRowClick && onRowClick(row.original)}
+              onClick={() => onRowClick?.(row.original)}
             >
               {row.getVisibleCells().map((cell) => (
                 <td

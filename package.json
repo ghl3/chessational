@@ -17,6 +17,7 @@
     "@stdlib/stats-base-dists-beta": "^0.1.0",
     "@stdlib/stats-base-dists-beta-cdf": "^0.1.0",
     "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.11.2",
     "@use-gesture/react": "^10.3.1",
     "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.8",
