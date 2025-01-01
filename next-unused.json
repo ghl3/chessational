@@ -1,0 +1,6 @@
+{
+  "debug": false,
+  "include": ["src"],
+  "exclude": ["node_modules"],
+  "entrypoints": ["src/app"]
+}
