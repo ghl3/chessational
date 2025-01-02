@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-// Configuration object for easy tweaking
 const CHESSBOARD_CONFIG = {
   // Size relative to container width (0.85 = 85%)
   WIDTH_RATIO: 0.92,

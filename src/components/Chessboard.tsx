@@ -1,5 +1,5 @@
 import { PieceCount, getPieceCounts } from "@/chess/Fen";
-import { Move, convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
+import { convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
@@ -74,7 +74,6 @@ const Chessboard: React.FC<ChessboardProps> = ({
     }
   }, [chessboardState]);
 
-  // Inside your Review component
   useArrowKeys({
     onLeftArrow: handleLeftClick,
     onRightArrow: handleRightClick,
@@ -138,7 +137,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation == WHITE ? BLACK : WHITE}
-        className="h-6" // Fixed height to maintain consistent spacing
+        className="h-6"
       />
       <ReactChessboard
         position={fen}
@@ -156,7 +155,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation == WHITE ? WHITE : BLACK}
-        className="h-6" // Fixed height to maintain consistent spacing
+        className="h-6"
       />
       <ChessboardButtons
         isDisabled={false}

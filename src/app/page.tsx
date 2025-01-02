@@ -26,7 +26,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
@@ -116,9 +115,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
   const [tab, setTab] = useState<Tab>(getDefaultTab(studyData));
 
-  // Set and maintain the size of the board
-  //const chessboardRef = useRef<HTMLDivElement>(null);
-
   const onLegalMove: MoveExecutor = useCallback(
     (
       newPosition: Position,
@@ -148,7 +144,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="w-full flex-1 flex flex-col lg:flex-row gap-2">
-        {/* Left column - minimal side padding, aligned top */}
         <div ref={containerRef} className="w-full lg:w-1/2 flex justify-center">
           <div className="flex flex-col">
             <Chessboard
@@ -159,7 +154,6 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           </div>
         </div>
 
-        {/* Right column - same top padding */}
         <div className="w-full lg:w-1/2 pt-8 px-4">
           <RightPanel
             tab={tab}
