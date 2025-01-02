@@ -91,7 +91,7 @@ export const StudyChapterSelector: React.FC<{
     : undefined;
 
   return (
-    <div className="flex flex-row bg-gray-800 text-white p-4 space-x-4">
+    <div className="flex flex-row bg-gray-800 text-white p-2 space-x-4">
       <div className="flex justify-center space-x-4">
         <StudySelector
           studies={studyData.studies}

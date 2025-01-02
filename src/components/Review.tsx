@@ -122,32 +122,28 @@ const Controls: React.FC<ControlProps> = ({
 
   const lineIsComplete = lineStatus === "LINE_COMPLETE";
 
-  const lineModeButtons = (
-    <div className="flex space-x-4">
-      <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
-
-      {hasActiveLine ? (
-        <ControlButton
-          onClick={onRestartLine}
-          label="Restart Line"
-          size={"large"}
-        />
-      ) : null}
-
-      {hasActiveLine && !lineIsComplete ? (
-        <ControlButton
-          onClick={toggleShowSolution}
-          label="Show Solution"
-          size={"large"}
-          disabled={lineIsComplete}
-        />
-      ) : null}
-    </div>
-  );
-
   return (
-    <div className="p-5 space-y-6">
-      <div className="flex justify-center space-x-4">{lineModeButtons}</div>
+    <div className="p-2 space-y-6">
+      <div className="flex flex-row justify-start space-x-4">
+        <ControlButton onClick={onNewLine} label="New Line" size={"large"} />
+
+        {hasActiveLine ? (
+          <ControlButton
+            onClick={onRestartLine}
+            label="Restart Line"
+            size={"large"}
+          />
+        ) : null}
+
+        {hasActiveLine && !lineIsComplete ? (
+          <ControlButton
+            onClick={toggleShowSolution}
+            label="Show Solution"
+            size={"large"}
+            disabled={lineIsComplete}
+          />
+        ) : null}
+      </div>
     </div>
   );
 };
@@ -159,7 +155,7 @@ export interface ReviewOrExploreLineProps {
   reviewState: ReviewState;
 }
 
-export const ReviewOrExploreLine: React.FC<ReviewOrExploreLineProps> = ({
+export const Review: React.FC<ReviewOrExploreLineProps> = ({
   chessboardState,
   studyData,
   engineData,

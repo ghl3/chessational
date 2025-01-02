@@ -22,7 +22,7 @@ const LoadingScreen: React.FC = () => (
 const AddStudyButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button
-      className="w-full p-2 text-white rounded bg-blue-500 hover:bg-blue-700"
+      className="w-1/4 p-2 text-white rounded bg-blue-500 hover:bg-blue-700"
       onClick={onClick}
     >
       Add Study
@@ -39,15 +39,10 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
     deleteStudy,
   } = studyData;
 
-  //const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isStudyInput, setIsStudyInput] = useState(false);
   const [isDeleteConfirmation, setIsDeleteConfirmation] = useState(false);
   const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
-
-  //useEffect(() => {
-  //  Modal.setAppElement("#root");
-  //}, []);
 
   const title = selectedStudy ? selectedStudy.name : "Add Study";
 
@@ -84,7 +79,6 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
   const selectStudyAndCloseModal = useCallback(
     (studyName: string) => {
       selectStudy(studyName);
-      //setIsModalOpen(false);
     },
     [selectStudy],
   );
@@ -101,7 +95,6 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
             }
             deleteStudy(studyToDelete);
             setIsDeleteConfirmation(false);
-            //setIsModalOpen(false);
           }}
           onConfirmDeleteNo={() => {
             setIsDeleteConfirmation(false);
@@ -115,7 +108,6 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
           addStudyAndChapters={addStudyAndChapters}
           onClose={() => {
             setIsStudyInput(false);
-            //setIsModalOpen(false);
           }}
           onFetchError={() => {
             setIsStudyInput(false);
@@ -125,7 +117,7 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
       );
     } else {
       return (
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-4 p-2">
           <StudyCardList
             studies={studies}
             selectedStudy={selectedStudy || null}

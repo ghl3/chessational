@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 
-export type Tab = "STUDIES" | "LINES" | "REVIEW" | "ATTEMPTS" | "TREE";
+export type Tab = "REVIEW" | "STUDIES" | "LINES" | "ATTEMPTS" | "TREE";
 
 const NavEntry: React.FC<{
   name: string;
@@ -31,6 +31,12 @@ export const NavBar: React.FC<{
       <nav className="flex flex-row bg-gray-800 text-white p-4 space-x-4">
         <ul className="flex justify-center space-x-4">
           <NavEntry
+            name="Review"
+            tab="REVIEW"
+            currentMode={mode}
+            setTab={setMode}
+          />
+          <NavEntry
             name="Studies"
             tab="STUDIES"
             currentMode={mode}
@@ -39,12 +45,6 @@ export const NavBar: React.FC<{
           <NavEntry
             name="Lines"
             tab="LINES"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Review"
-            tab="REVIEW"
             currentMode={mode}
             setTab={setMode}
           />

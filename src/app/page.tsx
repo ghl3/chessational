@@ -5,10 +5,7 @@ import { Attempts } from "@/components/Attempts";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
 import Lines from "@/components/Lines";
 import { NavBar, Tab } from "@/components/NavBar";
-import {
-  executeLegalMoveIfIsCorrect,
-  ReviewOrExploreLine,
-} from "@/components/Review";
+import { executeLegalMoveIfIsCorrect, Review } from "@/components/Review";
 import { Studies } from "@/components/Studies";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { Engine } from "@/engine/Engine";
@@ -57,8 +54,16 @@ const RightPanel: React.FC<RightPanelProps> = ({
     <div className="w-full h-full flex flex-col bg-gray-800 rounded-lg">
       <NavBar mode={tab} setMode={setTab} />
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
+        <div className="p-2">
           {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
+          {tab === "REVIEW" && (
+            <Review
+              chessboardState={chessboardState}
+              studyData={studyData}
+              engineData={engineData}
+              reviewState={reviewState}
+            />
+          )}
           {tab === "STUDIES" && <Studies studyData={studyData} />}
           {tab === "LINES" && (
             <Lines
@@ -68,14 +73,7 @@ const RightPanel: React.FC<RightPanelProps> = ({
               chessboardState={chessboardState}
             />
           )}
-          {tab === "REVIEW" && (
-            <ReviewOrExploreLine
-              chessboardState={chessboardState}
-              studyData={studyData}
-              engineData={engineData}
-              reviewState={reviewState}
-            />
-          )}
+
           {tab === "ATTEMPTS" && (
             <Attempts
               lines={studyData.lines || []}

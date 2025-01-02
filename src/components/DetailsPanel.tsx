@@ -53,8 +53,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-4 bg-gray-800 rounded-lg p-4">
-      <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col space-y-4 bg-gray-800 rounded-lg">
+      <div className="flex flex-wrap gap-4 p-2">
         <SwitchButton
           onChange={toggleShowChapter}
           checked={showChapter}
