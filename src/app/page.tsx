@@ -144,7 +144,10 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="w-full flex-1 flex flex-col lg:flex-row gap-2">
-        <div ref={containerRef} className="w-full lg:w-1/2 flex justify-center">
+        <div
+          ref={containerRef}
+          className="w-full lg:w-1/2 flex justify-center lg:justify-end px-4"
+        >
           <div className="flex flex-col">
             <Chessboard
               chessboardSize={boardSize}
