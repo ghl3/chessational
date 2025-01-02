@@ -1,7 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 
+// Configuration object for easy tweaking
+const CHESSBOARD_CONFIG = {
+  // Size relative to container width (0.85 = 85%)
+  WIDTH_RATIO: 0.92,
+  // Size boundaries in pixels
+  MIN_SIZE: 400,
+  MAX_SIZE: 800,
+  // Default size before measurement
+  DEFAULT_SIZE: 600,
+  // Extra space needed for MaterialDiff and buttons
+  EXTRA_VERTICAL_SPACE: 104,
+  // Additional padding reserve
+  PADDING_RESERVE: 100,
+  // Minimum size change to trigger update
+  UPDATE_THRESHOLD: 8,
+};
+
 export const useChessboardSize = () => {
-  const [boardSize, setBoardSize] = useState(600); // Smaller default
+  const [boardSize, setBoardSize] = useState(CHESSBOARD_CONFIG.DEFAULT_SIZE);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -11,20 +28,22 @@ export const useChessboardSize = () => {
       const container = containerRef.current;
       const containerWidth = container.offsetWidth - 16;
 
-      // Use 85% of the available width instead of 98%
-      let newSize = Math.floor(containerWidth * 0.85);
+      let newSize = Math.floor(containerWidth * CHESSBOARD_CONFIG.WIDTH_RATIO);
 
-      const extraVerticalSpace = 104;
-      const availableHeight = window.innerHeight - extraVerticalSpace - 100;
+      const availableHeight =
+        window.innerHeight -
+        CHESSBOARD_CONFIG.EXTRA_VERTICAL_SPACE -
+        CHESSBOARD_CONFIG.PADDING_RESERVE;
 
       newSize = Math.min(newSize, availableHeight);
-
-      // Reduced maximum size
-      newSize = Math.max(Math.min(newSize, 800), 400);
+      newSize = Math.max(
+        Math.min(newSize, CHESSBOARD_CONFIG.MAX_SIZE),
+        CHESSBOARD_CONFIG.MIN_SIZE,
+      );
 
       newSize = Math.floor(newSize / 8) * 8;
 
-      if (Math.abs(newSize - boardSize) > 8) {
+      if (Math.abs(newSize - boardSize) > CHESSBOARD_CONFIG.UPDATE_THRESHOLD) {
         setBoardSize(newSize);
       }
     };
