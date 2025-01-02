@@ -53,74 +53,67 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-2 min-h-12 max-w-3xl">
-      <div className="flex flex-col flex-grow justify-start bg-gray-700 p-4 w-full">
-        <div className="flex flex-row gap-8 text-sm max-w-3xl">
-          <SwitchButton
-            onChange={toggleShowChapter}
-            checked={showChapter}
-            label="Chapter"
-            labelPosition="top"
-            size="medium"
-          />
-          <SwitchButton
-            onChange={toggleShowPgn}
-            checked={showPgn}
-            label="PGN"
-            labelPosition="top"
-            size="medium"
-          />
-          <SwitchButton
-            onChange={toggleShowComments}
-            checked={showComments}
-            label="Comments"
-            labelPosition="top"
-            size="medium"
-          />
-          <SwitchButton
-            onChange={toggleShowEngine}
-            checked={showEngine}
-            label="Engine"
-            labelPosition="top"
-            size="medium"
-          />
-          <SwitchButton
-            onChange={toggleDatabase}
-            checked={showDatabase}
-            label="Database"
-            labelPosition="top"
-            size="medium"
-          />
-        </div>
+    <div className="flex flex-col space-y-4 bg-gray-800 rounded-lg p-4">
+      <div className="flex flex-wrap gap-4">
+        <SwitchButton
+          onChange={toggleShowChapter}
+          checked={showChapter}
+          label="Chapter"
+          labelPosition="top"
+          size="medium"
+        />
+        <SwitchButton
+          onChange={toggleShowPgn}
+          checked={showPgn}
+          label="PGN"
+          labelPosition="top"
+          size="medium"
+        />
+        <SwitchButton
+          onChange={toggleShowComments}
+          checked={showComments}
+          label="Comments"
+          labelPosition="top"
+          size="medium"
+        />
+        <SwitchButton
+          onChange={toggleShowEngine}
+          checked={showEngine}
+          label="Engine"
+          labelPosition="top"
+          size="medium"
+        />
+        <SwitchButton
+          onChange={toggleDatabase}
+          checked={showDatabase}
+          label="Database"
+          labelPosition="top"
+          size="medium"
+        />
+      </div>
 
+      <div className="space-y-4 overflow-y-auto">
         {showChapter && chapter && (
           <ChapterInfo chapter={chapter} position={currentPosition} />
         )}
-
         {showEngine && currentPosition && (
           <EngineEvaluation
             position={currentPosition}
             engineData={engineData}
           />
         )}
-
         {showPgn && currentPosition && (
           <PositionDescription
             currentPosition={currentPosition}
             positions={positions}
           />
         )}
-
         {showDatabase && currentPosition && (
           <Database position={currentPosition} />
         )}
-
         {showComments && comments && comments.length > 0 && (
           <CommentArea comments={comments} />
         )}
-
-        {/* Spacer div will grow to fill space*/}
-        <div className="flex-grow"></div>
       </div>
     </div>
   );

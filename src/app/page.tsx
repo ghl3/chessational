@@ -55,39 +55,38 @@ const RightPanel: React.FC<RightPanelProps> = ({
   reviewState,
 }) => {
   return (
-    <div className="flex flex-col flex-1 justify-start">
+    <div className="w-full h-full flex flex-col bg-gray-800 rounded-lg">
       <NavBar mode={tab} setMode={setTab} />
-      {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
-      {tab === "STUDIES" && <Studies studyData={studyData} />}
-      {tab === "LINES" && (
-        <Lines
-          lines={studyData.lines || []}
-          chapters={studyData.chapters || []}
-          attempts={studyData.attempts || []}
-          chessboardState={chessboardState}
-        />
-      )}
-      {tab === "REVIEW" && (
-        <ReviewOrExploreLine
-          chessboardState={chessboardState}
-          studyData={studyData}
-          engineData={engineData}
-          reviewState={reviewState}
-        />
-      )}
-      {tab === "ATTEMPTS" && (
-        <Attempts
-          lines={studyData.lines || []}
-          chapters={studyData.chapters || []}
-          attempts={studyData.attempts || []}
-          chessboardState={chessboardState}
-        />
-      )}
-      {/*
-      {tab === "TREE" && (
-        <OpeningGraph chapter={(studyData.chapters || [])[0]} />
-      )}
-      */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
+          {tab === "STUDIES" && <Studies studyData={studyData} />}
+          {tab === "LINES" && (
+            <Lines
+              lines={studyData.lines || []}
+              chapters={studyData.chapters || []}
+              attempts={studyData.attempts || []}
+              chessboardState={chessboardState}
+            />
+          )}
+          {tab === "REVIEW" && (
+            <ReviewOrExploreLine
+              chessboardState={chessboardState}
+              studyData={studyData}
+              engineData={engineData}
+              reviewState={reviewState}
+            />
+          )}
+          {tab === "ATTEMPTS" && (
+            <Attempts
+              lines={studyData.lines || []}
+              chapters={studyData.chapters || []}
+              attempts={studyData.attempts || []}
+              chessboardState={chessboardState}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -102,7 +101,7 @@ const getDefaultTab = (studyData: StudyData): Tab => {
 };
 
 const Home: React.FC<HomeProps> = ({ params }) => {
-  const chessboardSize = useChessboardSize();
+  const { boardSize, containerRef } = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
   const studyData = useStudyData();
@@ -118,7 +117,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   const [tab, setTab] = useState<Tab>(getDefaultTab(studyData));
 
   // Set and maintain the size of the board
-  const chessboardRef = useRef<HTMLDivElement>(null);
+  //const chessboardRef = useRef<HTMLDivElement>(null);
 
   const onLegalMove: MoveExecutor = useCallback(
     (
@@ -147,20 +146,21 @@ const Home: React.FC<HomeProps> = ({ params }) => {
   );
 
   return (
-    <div className="flex flex-row w-full min-h-full">
-      <div className="w-1/2 flex-shrink-0">
-        <div ref={chessboardRef} className="flex-1 flex justify-end mr-3">
-          <Chessboard
-            chessboardSize={chessboardSize}
-            chessboardState={chessboardState}
-            onLegalMove={onLegalMove}
-            className="flex-none"
-          />
+    <div className="w-full h-full flex flex-col">
+      <div className="w-full flex-1 flex flex-col lg:flex-row gap-2">
+        {/* Left column - minimal side padding, aligned top */}
+        <div ref={containerRef} className="w-full lg:w-1/2 flex justify-center">
+          <div className="flex flex-col">
+            <Chessboard
+              chessboardSize={boardSize}
+              chessboardState={chessboardState}
+              onLegalMove={onLegalMove}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="w-1/2 min-w-fit flex-shrink-0">
-        <div className="ml-3 min-h-full min-w-0">
+        {/* Right column - same top padding */}
+        <div className="w-full lg:w-1/2 pt-8 px-4">
           <RightPanel
             tab={tab}
             setTab={setTab}

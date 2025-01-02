@@ -131,42 +131,42 @@ const Chessboard: React.FC<ChessboardProps> = ({
   );
 
   return (
-    <>
-      <div
-        className="flex flex-col items-center space-y-1"
-        style={{ width: `${chessboardSize}px`, height: "auto" }} // Dynamic size based on state
-      >
-        <MaterialDiff
-          pieceCount={pieceCount}
-          color={chessboardState.orientation == WHITE ? BLACK : WHITE}
-        />
-        <ReactChessboard
-          position={fen}
-          customDarkSquareStyle={{ backgroundColor: "#34495e" }}
-          boardWidth={chessboardSize}
-          areArrowsAllowed={true}
-          boardOrientation={
-            chessboardState.orientation == WHITE ? "white" : "black"
-          }
-          onPieceDrop={onPieceDrop}
-          customArrows={convertedArrows}
-          customArrowColor="rgb(0, 128, 0)"
-          promotionDialogVariant="default"
-        />
-        <MaterialDiff
-          pieceCount={pieceCount}
-          color={chessboardState.orientation == WHITE ? WHITE : BLACK}
-        />
-        <ChessboardButtons
-          isDisabled={false}
-          handleJumpToStart={handleJumpToStart}
-          handleLeftClick={handleLeftClick}
-          handleRightClick={handleRightClick}
-          handleJumpToEnd={handleJumpToEnd}
-          handleFlipBoard={handleFlipBoard}
-        />
-      </div>
-    </>
+    <div
+      className="flex flex-col items-center space-y-2"
+      style={{ width: `${chessboardSize}px`, height: "auto" }}
+    >
+      <MaterialDiff
+        pieceCount={pieceCount}
+        color={chessboardState.orientation == WHITE ? BLACK : WHITE}
+        className="h-6" // Fixed height to maintain consistent spacing
+      />
+      <ReactChessboard
+        position={fen}
+        customDarkSquareStyle={{ backgroundColor: "#34495e" }}
+        boardWidth={chessboardSize}
+        areArrowsAllowed={true}
+        boardOrientation={
+          chessboardState.orientation == WHITE ? "white" : "black"
+        }
+        onPieceDrop={onPieceDrop}
+        customArrows={convertedArrows}
+        customArrowColor="rgb(0, 128, 0)"
+        promotionDialogVariant="default"
+      />
+      <MaterialDiff
+        pieceCount={pieceCount}
+        color={chessboardState.orientation == WHITE ? WHITE : BLACK}
+        className="h-6" // Fixed height to maintain consistent spacing
+      />
+      <ChessboardButtons
+        isDisabled={false}
+        handleJumpToStart={handleJumpToStart}
+        handleLeftClick={handleLeftClick}
+        handleRightClick={handleRightClick}
+        handleJumpToEnd={handleJumpToEnd}
+        handleFlipBoard={handleFlipBoard}
+      />
+    </div>
   );
 };
 

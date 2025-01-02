@@ -21,7 +21,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
     <body className={`min-h-full m-0 charcoal-bg ${inter.className}`} id="root">
       <div className="text-white min-h-screen flex flex-col">
         <Title />
-        <main className="flex-1 flex min-w-0">{children}</main>
+        <main className="flex-1 w-full">{children}</main>
       </div>
       <Analytics />
       <SpeedInsights />

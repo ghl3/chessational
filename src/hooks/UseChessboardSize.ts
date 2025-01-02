@@ -1,49 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export const useChessboardSize = (
-  defaultSize: number = 400,
-  minSize: number = 200,
-  maxSize: number = 600,
-): number => {
-  const [boardSize, setBoardSize] = useState<number>(defaultSize);
+export const useChessboardSize = () => {
+  const [boardSize, setBoardSize] = useState(600); // Smaller default
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const getViewportSizes = () => {
-      const vw = Math.max(
-        document.documentElement.clientWidth || 0,
-        window.innerWidth || 0,
-      );
-      const vh = Math.max(
-        document.documentElement.clientHeight || 0,
-        window.innerHeight || 0,
-      );
-      return [vw, vh];
+    const updateSize = () => {
+      if (!containerRef.current) return;
+
+      const container = containerRef.current;
+      const containerWidth = container.offsetWidth - 16;
+
+      // Use 85% of the available width instead of 98%
+      let newSize = Math.floor(containerWidth * 0.85);
+
+      const extraVerticalSpace = 104;
+      const availableHeight = window.innerHeight - extraVerticalSpace - 100;
+
+      newSize = Math.min(newSize, availableHeight);
+
+      // Reduced maximum size
+      newSize = Math.max(Math.min(newSize, 800), 400);
+
+      newSize = Math.floor(newSize / 8) * 8;
+
+      if (Math.abs(newSize - boardSize) > 8) {
+        setBoardSize(newSize);
+      }
     };
 
-    const resizeBoard = () => {
-      const [vw, vh] = getViewportSizes();
+    updateSize();
+    window.addEventListener("resize", updateSize);
 
-      // The size of the board will be 1/3 of the viewport width or the
-      // viewport height minus 250, whichever is smaller. The size will be
-      const fraction = 1 / 3;
-      let newBoardSize = Math.floor(vw * fraction);
-      //let newBoardSize =
-      //  Math.floor(Math.min(vw / fraction, vh - 250) / 10) * 10;
-
-      // Apply min and max constraints to the new board size
-      newBoardSize = Math.max(Math.min(newBoardSize, maxSize), minSize);
-
-      setBoardSize(newBoardSize);
-    };
-
-    resizeBoard();
-    window.addEventListener("resize", resizeBoard);
-
-    // Cleanup function to remove event listener on component unmount
     return () => {
-      window.removeEventListener("resize", resizeBoard);
+      window.removeEventListener("resize", updateSize);
     };
-  }, [minSize, maxSize]);
+  }, [boardSize]);
 
-  return boardSize;
+  return { boardSize, containerRef };
 };

@@ -34,6 +34,7 @@ interface MaterialDiffProps extends HTMLAttributes<HTMLDivElement> {
 export const MaterialDiff: React.FC<MaterialDiffProps> = ({
   pieceCount,
   color,
+  className = "",
 }) => {
   const { diffs, materialDiff } = useMemo(() => {
     const diffMap: Map<PieceSymbol, number> = new Map();
@@ -61,7 +62,7 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
 
   return (
     <>
-      <div className="flex items-center space-x-2">
+      <div className={`flex items-center space-x-1 ${className}`}>
         {Array.from(diffs).map(([piece, num]) => (
           <span key={piece} className="text-lg">
             {Array.from({ length: Math.abs(num) }).map((_, i) => (
