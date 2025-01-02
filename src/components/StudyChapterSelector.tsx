@@ -14,25 +14,23 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
 }) => {
   return (
     <div className="flex flex-col space-y-2">
-      <select
-        className="w-full p-2 text-white rounded bg-blue-500 hover:bg-blue-700"
-        value={selectedStudy ? selectedStudy.name : ""}
-        onChange={(e) => {
-          const studyName = e.target.value;
-          selectStudy(studyName);
-        }}
-      >
-        {studies.map((study) => (
-          <option key={study.name} value={study.name}>
-            {study.name}
-          </option>
-        ))}
-      </select>
+      <Selector
+        options={studies.map((study) => ({
+          value: study.name,
+          label: study.name,
+        }))}
+        selectedValues={selectedStudy ? [selectedStudy.name] : []}
+        onChange={(values) => selectStudy(values[0])}
+        placeholder="Select a study..."
+        multiSelect={false}
+        className="w-full"
+      />
     </div>
   );
 };
 
 import CheckboxDropdown, { Option } from "./CheckboxDropdown";
+import Selector from "./Selector";
 
 interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
   chapters: string[];
@@ -47,26 +45,38 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   selectChapter,
   deselectChapter,
 }) => {
-  const options: Option[] = chapters.map((chapter) => ({
-    value: chapter,
-    label: chapter,
-  }));
+  const handleChange = (selectedValues: string[]) => {
+    // Determine which chapters were added and removed
+    const previouslySelected = selectedChapters || [];
+
+    // Handle newly selected chapters
+    selectedValues
+      .filter((chapter) => !previouslySelected.includes(chapter))
+      .forEach(selectChapter);
+
+    // Handle deselected chapters
+    previouslySelected
+      .filter((chapter) => !selectedValues.includes(chapter))
+      .forEach(deselectChapter);
+  };
 
   return (
-    <CheckboxDropdown
-      text={"Select Chapters"}
-      options={options}
-      selectedOptions={selectedChapters || []}
-      selectOption={selectChapter}
-      deselectOption={deselectChapter}
+    <Selector
+      options={chapters.map((chapter) => ({
+        value: chapter,
+        label: chapter,
+      }))}
+      selectedValues={selectedChapters || []}
+      onChange={handleChange}
+      placeholder="Select chapters..."
+      multiSelect={true}
+      className="w-64"
     />
   );
 };
 
 export const StudyChapterSelector: React.FC<{
   studyData: StudyData;
-  //chapterNames: string[] | null;
-  //selectedChapterNames: string[] | null;
 }> = ({ studyData }) => {
   const { studies, selectedChapterNames } = studyData;
 
