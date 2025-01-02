@@ -1,29 +1,33 @@
-import React, { HTMLAttributes, useMemo } from "react";
-
 import { PieceCount } from "@/chess/Fen";
-import { BLACK, Color, PieceSymbol, WHITE } from "chess.js";
+import { Color, PieceSymbol, WHITE } from "chess.js";
+import React, { HTMLAttributes, useMemo } from "react";
+import { Bishop, King, Knight, Pawn, Queen, Rook } from "./Pieces";
 
-const pieceToUnicode = (piece: PieceSymbol, color: Color): string => {
-  const pieceMap = {
-    k: "♔",
-    q: "♕",
-    r: "♖",
-    b: "♗",
-    n: "♘",
-    p: "♙",
-  };
+const PieceComponents = {
+  k: King,
+  q: Queen,
+  r: Rook,
+  b: Bishop,
+  n: Knight,
+  p: Pawn,
+} as const;
 
-  const unicode = pieceMap[piece];
-  return color === BLACK ? unicode.toLowerCase() : unicode;
-};
-
-const materialValue: { [piece in PieceSymbol]: number } = {
+const MATERIAL_VALUES: Record<PieceSymbol, number> = {
   k: 0,
   q: 9,
   r: 5,
   b: 3,
   n: 3,
   p: 1,
+};
+
+const INITIAL_PIECES: Record<PieceSymbol, number> = {
+  k: 1,
+  q: 1,
+  r: 2,
+  b: 2,
+  n: 2,
+  p: 8,
 };
 
 interface MaterialDiffProps extends HTMLAttributes<HTMLDivElement> {
@@ -36,58 +40,60 @@ export const MaterialDiff: React.FC<MaterialDiffProps> = ({
   color,
   className = "",
 }) => {
-  const { diffs, materialDiff } = useMemo(() => {
-    const diffMap: Map<PieceSymbol, number> = new Map();
-    const primary = color === WHITE ? pieceCount.white : pieceCount.black;
-    const opposite = color === WHITE ? pieceCount.black : pieceCount.white;
+  const { whiteCaptured, blackCaptured, materialBalance } = useMemo(() => {
+    const whitePieces = pieceCount.white;
+    const blackPieces = pieceCount.black;
+    const whiteCaptured = new Map<PieceSymbol, number>();
+    const blackCaptured = new Map<PieceSymbol, number>();
+    let materialSum = 0;
 
-    // Calculate material difference
-    let materialDiff = 0;
-    primary.forEach((count, piece) => {
-      materialDiff += materialValue[piece] * count;
-    });
-    opposite.forEach((count, piece) => {
-      materialDiff -= materialValue[piece] * count;
-    });
+    (["q", "r", "b", "n", "p"] as PieceSymbol[]).forEach((piece) => {
+      const whiteMissing =
+        INITIAL_PIECES[piece] - (whitePieces.get(piece) || 0);
+      const blackMissing =
+        INITIAL_PIECES[piece] - (blackPieces.get(piece) || 0);
 
-    primary.forEach((count, piece) => {
-      const diff = count - (opposite.get(piece) || 0);
-      if (diff > 0) {
-        diffMap.set(piece, diff);
+      // Only record captures that haven't been cancelled out
+      if (whiteMissing > blackMissing) {
+        // Black captured more white pieces of this type than vice versa
+        blackCaptured.set(piece, whiteMissing - blackMissing);
+        materialSum -= MATERIAL_VALUES[piece] * (whiteMissing - blackMissing);
+      } else if (blackMissing > whiteMissing) {
+        // White captured more black pieces of this type than vice versa
+        whiteCaptured.set(piece, blackMissing - whiteMissing);
+        materialSum += MATERIAL_VALUES[piece] * (blackMissing - whiteMissing);
       }
     });
 
-    return { diffs: diffMap, materialDiff };
-  }, [pieceCount, color]);
+    return { whiteCaptured, blackCaptured, materialBalance: materialSum };
+  }, [pieceCount]);
+
+  // Get the relevant captures for this side
+  const captures = color === WHITE ? whiteCaptured : blackCaptured;
+  const isAhead = color === WHITE ? materialBalance > 0 : materialBalance < 0;
+  const advantage = Math.abs(materialBalance);
 
   return (
-    <>
-      <div className={`flex items-center space-x-1 ${className}`}>
-        {Array.from(diffs).map(([piece, num]) => (
-          <span key={piece} className="text-lg">
-            {Array.from({ length: Math.abs(num) }).map((_, i) => (
-              <span key={i} className="">
-                {pieceToUnicode(piece, color)}
-              </span>
+    <div className={`flex items-center gap-1 ${className}`}>
+      {Array.from(captures).map(([piece, count]) => {
+        const Component =
+          PieceComponents[piece as keyof typeof PieceComponents];
+        return (
+          <span key={piece} className="flex items-center gap-px">
+            {Array.from({ length: count }).map((_, i) => (
+              <Component
+                key={i}
+                color={color === WHITE ? "black" : "white"} // Show captured pieces in opponent's color
+                size="s"
+              />
             ))}
           </span>
-        ))}
-        {materialDiff > 0 ? (
-          <div className="text-xs font-bold ">
-            {`+${Math.max(materialDiff, 0)}`}
-          </div>
-        ) : null}
+        );
+      })}
 
-        {/* A hack to make sure the div doesn't change size
-        when a material difference is created*/}
-        <div className="text-xs font-bold opacity-0">
-          <span key="k2" className="text-lg">
-            <span key="-1" className="">
-              {pieceToUnicode("k", "w")}
-            </span>
-          </span>
-        </div>
-      </div>
-    </>
+      {isAhead && advantage > 0 && (
+        <span className="text-xs font-bold">+{advantage}</span>
+      )}
+    </div>
   );
 };
