@@ -141,10 +141,10 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="w-full flex-1 flex flex-col lg:flex-row gap-2">
+      <div className="w-full flex-1 flex flex-col lg:flex-row">
         <div
           ref={containerRef}
-          className="w-full lg:w-1/2 flex justify-center lg:justify-end px-4"
+          className="w-full lg:w-1/2 flex justify-center lg:justify-end px-2"
         >
           <div className="flex flex-col">
             <Chessboard
@@ -155,7 +155,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 pt-8 px-4">
+        <div className="w-full lg:w-1/2 pt-8 px-2">
           <RightPanel
             tab={tab}
             setTab={setTab}
