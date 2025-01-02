@@ -189,11 +189,11 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
         : `${selectedOptions.length} items selected`;
     }, [
       selectedValues,
-      options,
       multiSelect,
       placeholder,
       renderDisplay,
       formatMultipleDisplay,
+      getSelectedOptions,
       displayAllValues,
     ]);
 
@@ -215,6 +215,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
         ref={mergeRefs(ref, containerRef)}
         className={`relative ${className}`}
         role="combobox"
+        aria-controls={id ? `${id}-listbox` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
@@ -342,9 +343,9 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
   },
 );
 
-function mergeRefs<T = any>(
+const mergeRefs = <T,>(
   ...refs: (React.MutableRefObject<T> | React.LegacyRef<T> | undefined)[]
-): React.RefCallback<T> {
+): React.RefCallback<T> => {
   return (value) => {
     refs.forEach((ref) => {
       if (typeof ref === "function") {
@@ -354,7 +355,7 @@ function mergeRefs<T = any>(
       }
     });
   };
-}
+};
 
 Selector.displayName = "Selector";
 
