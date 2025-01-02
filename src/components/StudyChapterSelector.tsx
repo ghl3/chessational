@@ -46,15 +46,10 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   deselectChapter,
 }) => {
   const handleChange = (selectedValues: string[]) => {
-    // Determine which chapters were added and removed
     const previouslySelected = selectedChapters || [];
-
-    // Handle newly selected chapters
     selectedValues
       .filter((chapter) => !previouslySelected.includes(chapter))
       .forEach(selectChapter);
-
-    // Handle deselected chapters
     previouslySelected
       .filter((chapter) => !selectedValues.includes(chapter))
       .forEach(deselectChapter);
@@ -71,6 +66,13 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
       placeholder="Select chapters..."
       multiSelect={true}
       className="w-64"
+      formatMultipleDisplay={(selected) =>
+        selected.length === 0
+          ? "No chapters selected"
+          : selected.length === 1
+          ? "1 chapter selected"
+          : `${selected.length} chapters selected`
+      }
     />
   );
 };
