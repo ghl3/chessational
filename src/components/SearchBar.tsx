@@ -119,7 +119,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       setTokens(tokenizeQuery(newQuery));
       setIsOpen(false);
     },
-    [tokens, setQuery, setIsOpen],
+    [query, tokens, setTokens],
   );
 
   return (

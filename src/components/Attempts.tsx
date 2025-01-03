@@ -32,17 +32,24 @@ export const Attempts: React.FC<AttemptsProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
-    return lines?.map((line) => {
+    if (lines == undefined || chapters == undefined) {
+      return [];
+    }
+
+    return lines.flatMap((line) => {
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
       );
       if (chapter == undefined) {
-        throw new Error(`Chapter ${line.chapterName} not found`);
+        console.log(`Chapter ${line.chapterName} not found`);
+        return [];
       }
-      return {
-        line: line,
-        chapter: chapter,
-      };
+      return [
+        {
+          line: line,
+          chapter: chapter,
+        },
+      ];
     });
   }, [lines, chapters]);
 

@@ -9,9 +9,11 @@ import { useCallback } from "react";
 
 export interface StudyData {
   studies: Study[]; // All studies
+
   selectedStudyName?: string; // The name of the selected study
   selectedStudy?: Study; // The selected study
   chapters?: Chapter[]; // All chapters from the selected study
+
   selectedChapterNames?: string[]; // The names of the selected chapters
   lines?: Line[]; // All lines from the selected chapters
   attempts?: Attempt[]; // Attempts for the selected chapters
@@ -33,81 +35,127 @@ export const useStudyData = (): StudyData => {
     [],
   );
 
-  const selectedStudyName: string | undefined = useLiveQuery(async () => {
-    const selectedStudyNames = await db.selectedStudyName.toArray();
-    if (selectedStudyNames.length === 0) {
-      return undefined;
-    } else {
-      return selectedStudyNames[0].studyName;
-    }
-  }, []);
+  const selectedStudyName: string | undefined = useLiveQuery(
+    async () => {
+      const selectedStudyNames = await db.selectedStudyName.toArray();
+      if (selectedStudyNames.length === 0) {
+        return undefined;
+      } else {
+        return selectedStudyNames[0].studyName;
+      }
+    },
+    [],
+    undefined,
+  );
 
-  const selectedStudy: Study | undefined = useLiveQuery(async () => {
-    if (selectedStudyName == undefined) {
-      return undefined;
-    }
-    const study = await db.studies
-      .where("name")
-      .equalsIgnoreCase(selectedStudyName)
-      .first();
-    return study;
-  }, [selectedStudyName]);
+  const selectedStudy: Study | undefined = useLiveQuery(
+    async () => {
+      if (selectedStudyName == undefined) {
+        return undefined;
+      }
+      const study = await db.studies
+        .where("name")
+        .equalsIgnoreCase(selectedStudyName)
+        .first();
+      return study;
+    },
+    [selectedStudyName],
+    undefined,
+  );
 
   // All chapters from the currently selected study
-  const chapters: Chapter[] | undefined = useLiveQuery(async () => {
-    if (selectedStudyName == null) {
-      return [];
-    }
-    const chatpers = await db.chapters
-      .where("studyName")
-      .equalsIgnoreCase(selectedStudyName)
-      .sortBy("chapterIndex");
-    return chatpers;
-  }, [selectedStudyName]);
+  const chapters: Chapter[] | undefined = useLiveQuery(
+    async () => {
+      if (selectedStudyName == null) {
+        return [];
+      }
+      const chatpers = await db.chapters
+        .where("studyName")
+        .equalsIgnoreCase(selectedStudyName)
+        .sortBy("chapterIndex");
+      return chatpers;
+    },
+    [selectedStudyName],
+    undefined,
+  );
 
-  const selectedChapterNames: string[] | undefined = useLiveQuery(async () => {
-    if (selectedStudyName == null) {
-      return undefined;
-    }
-    const selectedChapterNames = await db.selectedChapterNames
-      .where("studyName")
-      .equalsIgnoreCase(selectedStudyName)
-      .toArray();
+  const selectedChapterNames: string[] | undefined = useLiveQuery(
+    async () => {
+      if (selectedStudyName == null) {
+        return undefined;
+      }
+      const selectedChapterNames = await db.selectedChapterNames
+        .where("studyName")
+        .equalsIgnoreCase(selectedStudyName)
+        .toArray();
 
-    if (selectedChapterNames.length === 0) {
-      return [];
-    } else {
-      return selectedChapterNames.map((selectedChapterName) => {
-        return selectedChapterName.chapterName;
-      });
-    }
-  }, [selectedStudyName]);
+      if (selectedChapterNames.length === 0) {
+        return [];
+      } else {
+        return selectedChapterNames.map((selectedChapterName) => {
+          return selectedChapterName.chapterName;
+        });
+      }
+    },
+    [selectedStudyName],
+    undefined,
+  );
 
   // All lines from the current study and
   // the selected chapters.
-  const lines: Line[] | undefined = useLiveQuery(async () => {
-    if (selectedStudyName == null) {
-      return undefined;
-    }
+  const lines: Line[] | undefined = useLiveQuery(
+    async () => {
+      if (selectedStudyName == null) {
+        return undefined;
+      }
 
-    if (selectedChapterNames == null || selectedChapterNames.length === 0) {
-      return [];
-    }
+      if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+        return [];
+      }
 
-    const lines = await db.lines
-      .where("studyName")
-      .equalsIgnoreCase(selectedStudyName)
-      .and((line) => {
-        return selectedChapterNames.includes(line.chapterName);
-      })
-      .toArray();
-    return lines;
-  }, [selectedStudyName, selectedChapterNames]);
+      const lines = await db.lines
+        .where("studyName")
+        .equalsIgnoreCase(selectedStudyName)
+        .and((line) => {
+          return selectedChapterNames.includes(line.chapterName);
+        })
+        .toArray();
+      return lines;
+    },
+    [selectedStudyName, selectedChapterNames],
+    undefined,
+  );
 
   const selectStudy = useCallback((studyName: string) => {
     db.selectedStudyName.clear();
     db.selectedStudyName.add({ studyName });
   }, []);
+
+  // Get all attempts for the active chapters
+  // in the current study
+  const attempts: Attempt[] | undefined = useLiveQuery(
+    async () => {
+      if (selectedStudyName == null) {
+        return undefined;
+      }
+
+      if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+        return [];
+      }
+
+      const attempts = await db.attempts
+        .where("studyName")
+        .equalsIgnoreCase(selectedStudyName)
+        .and((attempt) => {
+          return selectedChapterNames.includes(attempt.chapterName);
+        })
+        .toArray();
+
+      return attempts;
+    },
+    [selectedStudyName, selectedChapterNames],
+    undefined,
+  );
 
   const deleteStudy = useCallback(
     (studyName: string) => {
@@ -202,28 +250,6 @@ export const useStudyData = (): StudyData => {
     },
     [selectStudy],
   );
-
-  // Get all attempts for the active chapters
-  // in the current study
-  const attempts: Attempt[] | undefined = useLiveQuery(async () => {
-    if (selectedStudyName == null) {
-      return undefined;
-    }
-
-    if (selectedChapterNames == null || selectedChapterNames.length === 0) {
-      return [];
-    }
-
-    const attempts = await db.attempts
-      .where("studyName")
-      .equalsIgnoreCase(selectedStudyName)
-      .and((attempt) => {
-        return selectedChapterNames.includes(attempt.chapterName);
-      })
-      .toArray();
-
-    return attempts;
-  }, [selectedStudyName, selectedChapterNames]);
 
   return {
     studies,

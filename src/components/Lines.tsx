@@ -5,7 +5,7 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { Token } from "@/utils/Tokenizer";
-import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo, useState } from "react";
 import {
   BASE_COLUMN_WIDTHS,
@@ -40,6 +40,10 @@ const Lines: React.FC<LinesProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
+    if (lines == undefined || chapters == undefined) {
+      return [];
+    }
+
     return lines.flatMap((line) => {
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
