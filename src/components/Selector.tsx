@@ -16,6 +16,9 @@ interface SelectorProps {
   error?: boolean;
   className?: string;
   onBlur?: () => void;
+  formatMultipleDisplay?: (selectedOptions: SelectOption[]) => string;
+  displayAllValues?: boolean;
+  renderDisplay?: (selectedOptions: SelectOption[]) => React.ReactNode;
 }
 
 const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
@@ -30,6 +33,9 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       error = false,
       className = "",
       onBlur,
+      formatMultipleDisplay,
+      displayAllValues,
+      renderDisplay,
     },
     ref,
   ) => {
@@ -80,12 +86,28 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       const selectedOptions = options.filter((opt) =>
         selectedValues.includes(opt.value),
       );
+
       if (selectedValues.length === 0) return placeholder;
       if (!multiSelect) return selectedOptions[0]?.label || placeholder;
+
+      if (renderDisplay) return renderDisplay(selectedOptions);
+      if (formatMultipleDisplay) return formatMultipleDisplay(selectedOptions);
+      if (displayAllValues) {
+        return selectedOptions.map((opt) => opt.label).join(", ");
+      }
+
       return selectedOptions.length === 1
         ? selectedOptions[0].label
         : `${selectedOptions.length} items selected`;
-    }, [options, selectedValues, multiSelect, placeholder]);
+    }, [
+      options,
+      selectedValues,
+      multiSelect,
+      placeholder,
+      renderDisplay,
+      formatMultipleDisplay,
+      displayAllValues,
+    ]);
 
     // Filter out disabled options for keyboard navigation
     const validOptions = options.filter((opt) => !opt.disabled);
