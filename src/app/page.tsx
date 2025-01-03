@@ -1,30 +1,21 @@
 "use client";
 
 import { Position } from "@/chess/Position";
-import { Attempts } from "@/components/Attempts";
 import Chessboard, { MoveExecutor } from "@/components/Chessboard";
-import Lines from "@/components/Lines";
-import { NavBar, Tab } from "@/components/NavBar";
+import { Tab } from "@/components/NavBar";
 import { executeLegalMoveIfIsCorrect, Review } from "@/components/Review";
-import { Studies } from "@/components/Studies";
-import { StudyChapterSelector } from "@/components/StudyChapterSelector";
+import { RightPanel } from "@/components/RightPanel";
 import { Engine } from "@/engine/Engine";
 import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import {
   ChessboardState,
   useChessboardState,
 } from "@/hooks/UseChessboardState";
-import useEngine, { EngineData } from "@/hooks/UseEngineData";
-import { ReviewState, useReviewState } from "@/hooks/UseReviewState";
+import useEngine from "@/hooks/UseEngineData";
+import { useReviewState } from "@/hooks/UseReviewState";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
 import { PieceSymbol } from "chess.js";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Square } from "react-chessboard/dist/chessboard/types";
 
 // Only run the engine on the client.
@@ -32,61 +23,6 @@ let engine: Engine | null = null;
 if (typeof window !== "undefined") {
   engine = new Engine(new Worker("/stockfish/stockfish.asm.js"), 20, 3, false);
 }
-
-interface RightPanelProps {
-  tab: Tab;
-  setTab: Dispatch<SetStateAction<Tab>>;
-  chessboardState: ChessboardState;
-  studyData: StudyData;
-  engineData: EngineData;
-  reviewState: ReviewState;
-}
-
-const RightPanel: React.FC<RightPanelProps> = ({
-  tab,
-  setTab,
-  chessboardState,
-  studyData,
-  engineData,
-  reviewState,
-}) => {
-  return (
-    <div className="w-full h-full flex flex-col bg-gray-800 rounded-lg">
-      <NavBar mode={tab} setMode={setTab} />
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-2">
-          {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
-          {tab === "REVIEW" && (
-            <Review
-              chessboardState={chessboardState}
-              studyData={studyData}
-              engineData={engineData}
-              reviewState={reviewState}
-            />
-          )}
-          {tab === "STUDIES" && <Studies studyData={studyData} />}
-          {tab === "LINES" && (
-            <Lines
-              lines={studyData.lines || []}
-              chapters={studyData.chapters || []}
-              attempts={studyData.attempts || []}
-              chessboardState={chessboardState}
-            />
-          )}
-
-          {tab === "ATTEMPTS" && (
-            <Attempts
-              lines={studyData.lines || []}
-              chapters={studyData.chapters || []}
-              attempts={studyData.attempts || []}
-              chessboardState={chessboardState}
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface HomeProps {
   params: Promise<{ id: string }>;
