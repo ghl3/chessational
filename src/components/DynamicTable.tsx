@@ -67,7 +67,7 @@ export const DynamicTable = <T,>({
       }}
     >
       <table className="w-full divide-y divide-gray-700 text-sm">
-        <thead className="bg-gray-800 sticky top-0 z-10">
+        <thead className="bg-gray-800 sticky top-0 z-[5]">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
