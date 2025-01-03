@@ -1,5 +1,6 @@
 import { Study } from "@/chess/Study";
 import { StudyData } from "@/hooks/UseStudyData";
+import Selector from "./Selector";
 
 interface StudySelectorProps {
   studies: Study[];
@@ -28,9 +29,6 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
     </div>
   );
 };
-
-import CheckboxDropdown, { Option } from "./CheckboxDropdown";
-import Selector from "./Selector";
 
 interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
   chapters: string[];

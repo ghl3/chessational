@@ -4,6 +4,7 @@ import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { getStats, LineStats } from "@/utils/LineStats";
+import { Token } from "@/utils/Tokenizer";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import React, { useMemo, useState } from "react";
 import {
@@ -12,7 +13,7 @@ import {
   DynamicTable,
 } from "./DynamicTable";
 import { makePositionChips } from "./PositionChip";
-import { SearchBar } from "./SearchBar";
+import { matchesQuery, SearchBar } from "./SearchBar";
 
 export interface LineRow {
   studyName: string;
@@ -39,22 +40,30 @@ const Lines: React.FC<LinesProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
-    return lines.map((line) => {
+    return lines.flatMap((line) => {
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
       );
       if (chapter == undefined) {
-        throw new Error(`Chapter ${line.chapterName} not found`);
+        console.log(`Chapter ${line.chapterName} not found`);
+        return [];
       }
-      return {
-        line: line,
-        chapter: chapter,
-      };
+      return [
+        {
+          line: line,
+          chapter: chapter,
+        },
+      ];
     });
   }, [lines, chapters]);
 
-  const [filteredLines, setFilteredLines] =
-    useState<LineAndChapter[]>(lineAndChapters);
+  const [searchTokens, setSearchTokens] = useState<Token[]>([]);
+
+  const filteredLines: LineAndChapter[] = useMemo(() => {
+    return lineAndChapters.filter((lineAndChapter) =>
+      matchesQuery(lineAndChapter.line, searchTokens),
+    );
+  }, [lineAndChapters, searchTokens]);
 
   const stats: Map<string, LineStats> = useMemo(() => {
     return getStats(attempts || []);
@@ -144,9 +153,9 @@ const Lines: React.FC<LinesProps> = ({
   return (
     <>
       <SearchBar
-        lines={lineAndChapters}
-        filteredLines={filteredLines}
-        setFilteredLines={setFilteredLines}
+        filteredLines={lineAndChapters}
+        tokens={searchTokens}
+        setTokens={setSearchTokens}
       />
       <DynamicTable
         columns={columns}

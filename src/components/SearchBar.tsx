@@ -5,13 +5,12 @@ import React, {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 
-const matchesQuery = (line: Line, tokens: Token[]): boolean => {
+export const matchesQuery = (line: Line, tokens: Token[]): boolean => {
   const positions = line.positions.flatMap((position) => {
     return position.lastMove ? [position.lastMove.san] : [];
   });
@@ -88,32 +87,23 @@ const mergeSuggestionWithQuery = (
 };
 
 interface SearchBarProps {
-  lines: LineAndChapter[];
   filteredLines: LineAndChapter[];
-  setFilteredLines: Dispatch<SetStateAction<LineAndChapter[]>>;
+  tokens: Token[];
+  setTokens: Dispatch<SetStateAction<Token[]>>;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
-  lines,
   filteredLines,
-  setFilteredLines,
+  tokens,
+  setTokens,
 }) => {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const tokens = useMemo(() => tokenizeQuery(query), [query]);
-
-  useEffect(() => {
-    const filtered =
-      query === ""
-        ? lines
-        : lines.filter((line) => matchesQuery(line.line, tokens));
-    setFilteredLines(filtered);
-  }, [query, lines, setFilteredLines, tokens]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
+    setTokens(tokenizeQuery(e.target.value));
     setIsOpen(true);
   };
 
@@ -124,7 +114,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleSuggestionSelect = useCallback(
     (suggestion: string) => {
-      setQuery((query) => mergeSuggestionWithQuery(query, tokens, suggestion));
+      const newQuery = mergeSuggestionWithQuery(query, tokens, suggestion);
+      setQuery(newQuery);
+      setTokens(tokenizeQuery(newQuery));
       setIsOpen(false);
     },
     [tokens, setQuery, setIsOpen],
