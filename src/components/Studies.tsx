@@ -44,8 +44,6 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
   const [isDeleteConfirmation, setIsDeleteConfirmation] = useState(false);
   const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
 
-  const title = selectedStudy ? selectedStudy.name : "Add Study";
-
   const fetchAndSetLoading = useCallback(
     async (studyId: string): Promise<StudyChapterAndLines> => {
       setIsLoading(true);

@@ -1,6 +1,29 @@
-import { PieceSymbol, Color } from "chess.js";
+import { Color, PieceSymbol } from "chess.js";
 
 export type Fen = string;
+
+export type FenComponents = {
+  board: string;
+  turn: string;
+  castling: string;
+  enPassant: string;
+  halfMoveClock: string;
+  fullMoveNumber: string;
+};
+
+export const fenToComponents = (fen: Fen): FenComponents => {
+  const [board, turn, castling, enPassant, halfMoveClock, fullMoveNumber] =
+    fen.split(" ");
+
+  return {
+    board,
+    turn,
+    castling,
+    enPassant,
+    halfMoveClock,
+    fullMoveNumber,
+  };
+};
 
 export const DEFAULT_FEN: Fen =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

@@ -1,17 +1,28 @@
 import { Chapter } from "@/chess/Chapter";
-import { Fen } from "@/chess/Fen";
+import { fenToComponents } from "@/chess/Fen";
 import { Line, createLineId } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { PositionNode as Node } from "@/chess/PositionTree";
 import { ChapterAndLines } from "@/chess/StudyChapterAndLines";
 
+type PositionKey = string;
+
+const createPositionKey = (position: Position): PositionKey => {
+  const fenComponents = fenToComponents(position.fen);
+
+  // We drop the halfMoveClock when making the key to increase the number
+  // of transpositions we respect.
+  // We keep the fullMoveNumber to avoid issues related to repeated positions.
+
+  return `${fenComponents.board} ${fenComponents.turn} ${fenComponents.castling} ${fenComponents.enPassant} ${fenComponents.fullMoveNumber}`;
+};
+
 const getTranspositions = (
   node: Node,
-  positionIndex: Map<Fen, Node[]>,
+  positionIndex: Map<PositionKey, Node[]>,
 ): Node[] => {
-  const fen: Fen = node.position.fen;
-
-  const transpositions = positionIndex.get(fen);
+  const key: PositionKey = createPositionKey(node.position);
+  const transpositions = positionIndex.get(key);
 
   if (transpositions === undefined) {
     return [];
@@ -20,17 +31,17 @@ const getTranspositions = (
   }
 };
 
-const createPositionIndex = (chapters: Chapter[]): Map<Fen, Node[]> => {
-  const positionIndex = new Map<Fen, Node[]>();
+const createPositionIndex = (chapters: Chapter[]): Map<PositionKey, Node[]> => {
+  const positionIndex = new Map<PositionKey, Node[]>();
 
   const addNodeAndChildrenToIndex = (node: Node) => {
-    const fen: Fen = node.position.fen;
+    const key: PositionKey = createPositionKey(node.position);
 
-    const existingNodes = positionIndex.get(fen);
+    const existingNodes = positionIndex.get(key);
     if (existingNodes) {
       existingNodes.push(node);
     } else {
-      positionIndex.set(fen, [node]);
+      positionIndex.set(key, [node]);
     }
 
     node.children.forEach(addNodeAndChildrenToIndex);
@@ -47,7 +58,7 @@ const getAllMoveLists = (
   node: Node,
   currentLine: Position[],
   isPlayerMove: boolean,
-  positionIndex: Map<Fen, Node[]>,
+  positionIndex: Map<PositionKey, Node[]>,
 ): Position[][] => {
   if (node.children.length === 0) {
     // If there are transpositions with children, iterate through them
@@ -85,7 +96,7 @@ const getAllMoveLists = (
 const getLinesFromChapter = (
   studyName: string,
   chapter: Chapter,
-  positionIndex: Map<Fen, Node[]>,
+  positionIndex: Map<PositionKey, Node[]>,
 ): Line[] => {
   const orientation = chapter.orientation;
   var node: Node = chapter.positionTree;
