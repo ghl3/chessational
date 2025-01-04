@@ -56,20 +56,56 @@ const pickLineRandom = (lines: Line[]): Line => {
   return lines[Math.floor(Math.random() * lines.length)];
 };
 
+const getLineForAttempt = (attempt: Attempt, lines: Line[]): Line | null => {
+  return lines.find((line) => line.lineId === attempt.lineId) || null;
+};
+
+const findLastAttempt = (attempts: Attempt[]): Attempt => {
+  // Don't assume the attmepts are sorted
+  return attempts.reduce((latest, attempt) => {
+    if (latest.timestamp < attempt.timestamp) {
+      return attempt;
+    } else {
+      return latest;
+    }
+  });
+};
+
+// Returns a random number between -0.2 and 0.2
+const makeNoise = (size: number = 0.2): number => {
+  return Math.random() * size * 2 - size;
+};
+
 const pickLineSpacedRepitition = (lines: Line[], attempts: Attempt[]): Line => {
   if (attempts.length === 0) {
     return pickLineRandom(lines);
   }
 
+  // If the most recent attempt was incorrect, deterministically return that line
+  const lastAttempt = findLastAttempt(attempts);
+  if (!lastAttempt.correct) {
+    return getLineForAttempt(lastAttempt, lines) || pickLineRandom(lines);
+  }
+
   const lineStats: Map<string, LineStats> = getStats(attempts);
 
-  const probabilities = [];
-  for (const line of lines) {
-    const stats = lineStats.get(line.lineId);
-    const probability = stats?.estimatedSuccessRate || 0.5;
-    const noise = Math.random() * 0.2 - 0.1;
-    probabilities.push(probability + noise);
-  }
+  const probabilities = lines.map((line) => {
+    const stats = lineStats.get(line.lineId) || null;
+
+    if (stats === null || stats.numAttempts === 0) {
+      return makeNoise();
+    } else {
+      return stats.estimatedSuccessRate + makeNoise();
+    }
+  });
+
+  //const probabilities = [];
+  //for (const line of lines) {
+  //  const stats = lineStats.get(line.lineId) || null;
+  //  const probability = stats?.estimatedSuccessRate || 0.5;
+  //  const noise = Math.random() * 0.2 - 0.1;
+  //  probabilities.push(probability + noise);
+  //}
 
   return pickElementWithMinWeight(lines, probabilities);
 };

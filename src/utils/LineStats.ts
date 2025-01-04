@@ -1,4 +1,3 @@
-import { cdf, pdf } from "@stdlib/stats-base-dists-beta";
 import { Attempt } from "../chess/Attempt";
 
 export type LineStats = {
@@ -38,25 +37,6 @@ const probabilityWithPrior = (
   }
 
   return (numerator + numeratorPrior) / (denominator + denominatorPrior);
-};
-
-const probabilityAboveThreshold = (
-  numerator: number,
-  denominator: number,
-  threshold: number,
-): number => {
-  if (denominator < numerator || numerator < 0 || denominator <= 0) {
-    throw new Error("Invalid input");
-  }
-
-  const alpha = numerator + 1;
-  const beta = denominator - numerator + 1;
-
-  // Calculate the CDF at the threshold
-  const cdfAtThreshold = cdf(threshold, alpha, beta);
-
-  // The probability that the true ratio is > threshold is 1 - CDF(threshold)
-  return 1 - cdfAtThreshold;
 };
 
 export const calculateProbability = (
