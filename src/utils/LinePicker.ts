@@ -61,7 +61,7 @@ const getLineForAttempt = (attempt: Attempt, lines: Line[]): Line | null => {
 };
 
 const findLastAttempt = (attempts: Attempt[]): Attempt => {
-  // Don't assume the attmepts are sorted
+  // Don't assume the attempts are sorted
   return attempts.reduce((latest, attempt) => {
     if (latest.timestamp < attempt.timestamp) {
       return attempt;
@@ -89,37 +89,28 @@ const pickLineSpacedRepitition = (lines: Line[], attempts: Attempt[]): Line => {
 
   const lineStats: Map<string, LineStats> = getStats(attempts);
 
-  const probabilities = lines.map((line) => {
+  const weights = lines.map((line) => {
     const stats = lineStats.get(line.lineId) || null;
-
     if (stats === null || stats.numAttempts === 0) {
-      return makeNoise();
+      return makeNoise(0.2);
     } else {
-      return stats.estimatedSuccessRate + makeNoise();
+      return stats.estimatedSuccessRate + makeNoise(0.2);
     }
   });
 
-  //const probabilities = [];
-  //for (const line of lines) {
-  //  const stats = lineStats.get(line.lineId) || null;
-  //  const probability = stats?.estimatedSuccessRate || 0.5;
-  //  const noise = Math.random() * 0.2 - 0.1;
-  //  probabilities.push(probability + noise);
-  //}
-
-  return pickElementWithMinWeight(lines, probabilities);
+  return pickElementWithMinWeight(lines, weights);
 };
 
 const pickLineWeighted = (lines: Line[]): Line => {
   const numLinesPerChapter = lines
-    .map((line) => line.chapterName) // Extract chapter names
+    .map((line) => line.chapterName)
     .reduce(
       (acc, chapterName) => {
         acc[chapterName] = (acc[chapterName] || 0) + 1;
         return acc;
       },
       {} as Record<string, number>,
-    ); // Initialize accumulator as a Record of string keys to number values
+    );
 
   // Pick a chapter weighted by the number of lines in the chapter
   const chapterNames = Object.keys(numLinesPerChapter);
