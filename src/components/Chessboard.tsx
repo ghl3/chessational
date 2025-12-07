@@ -131,8 +131,8 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   return (
     <div
-      className="flex flex-col items-center space-y-2"
-      style={{ width: `${chessboardSize}px`, height: "auto" }}
+      className="flex flex-col items-center gap-3"
+      style={{ width: `${chessboardSize}px` }}
     >
       <MaterialDiff
         pieceCount={pieceCount}
@@ -154,7 +154,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       />
       <MaterialDiff
         pieceCount={pieceCount}
-        color={chessboardState.orientation == WHITE ? WHITE : BLACK}
+        color={chessboardState.orientation === WHITE ? WHITE : BLACK}
         className="h-6"
       />
       <ChessboardButtons

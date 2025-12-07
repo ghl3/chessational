@@ -69,13 +69,13 @@ const ChapterInfo: React.FC<ChapterInfoProps> = ({ chapter, position }) => {
   const fullUrl = chapterUrl + "#" + lastMainLineMoveIndex;
 
   return (
-    <div className="p-4 rounded-md ">
+    <div className="bg-gray-700 rounded-lg p-4">
       {fullUrl ? (
         <a
           href={fullUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300"
+          className="text-blue-400 hover:text-blue-300 transition-colors"
         >
           {chapter.name}
         </a>

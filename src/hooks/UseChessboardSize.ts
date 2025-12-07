@@ -19,15 +19,19 @@ const CHESSBOARD_CONFIG = {
 export const useChessboardSize = () => {
   const [boardSize, setBoardSize] = useState(CHESSBOARD_CONFIG.DEFAULT_SIZE);
   const containerRef = useRef<HTMLDivElement>(null);
+  const currentSizeRef = useRef(boardSize);
 
   useEffect(() => {
     const updateSize = () => {
-      if (!containerRef.current) return;
+      const availableWidth = window.innerWidth;
+      // Reserve space for the right panel (700px) + gap (16px) + padding (32px) + minimal left margin (16px)
+      const widthLimit = availableWidth - 764; 
 
-      const container = containerRef.current;
-      const containerWidth = container.offsetWidth - 16;
-
-      let newSize = Math.floor(containerWidth * CHESSBOARD_CONFIG.WIDTH_RATIO);
+      // If width is small (mobile), we use full width minus padding
+      const isMobile = availableWidth < 1024; // lg breakpoint
+      let newSize = isMobile 
+        ? Math.floor((availableWidth - 32) * CHESSBOARD_CONFIG.WIDTH_RATIO)
+        : Math.floor(widthLimit);
 
       const availableHeight =
         window.innerHeight -
@@ -42,7 +46,8 @@ export const useChessboardSize = () => {
 
       newSize = Math.floor(newSize / 8) * 8;
 
-      if (Math.abs(newSize - boardSize) > CHESSBOARD_CONFIG.UPDATE_THRESHOLD) {
+      if (Math.abs(newSize - currentSizeRef.current) > CHESSBOARD_CONFIG.UPDATE_THRESHOLD) {
+        currentSizeRef.current = newSize;
         setBoardSize(newSize);
       }
     };
@@ -53,7 +58,7 @@ export const useChessboardSize = () => {
     return () => {
       window.removeEventListener("resize", updateSize);
     };
-  }, [boardSize]);
+  }, []);
 
-  return { boardSize, containerRef };
+  return { boardSize, containerRef: null }; // containerRef no longer needed but keeping signature
 };

@@ -30,43 +30,41 @@ export const NavBar: React.FC<{
   setMode: Dispatch<SetStateAction<Tab>>;
 }> = ({ mode, setMode }) => {
   return (
-    <div>
-      <nav className="flex flex-row bg-gray-800 text-white p-4 space-x-4" role="navigation" aria-label="Main navigation">
-        <ul className="flex justify-center space-x-4" role="list">
-          <NavEntry
-            name="Review"
-            tab="REVIEW"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Studies"
-            tab="STUDIES"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Lines"
-            tab="LINES"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          <NavEntry
-            name="Attempts"
-            tab="ATTEMPTS"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          {/*
-          <NavEntry
-            name="Tree"
-            tab="TREE"
-            currentMode={mode}
-            setTab={setMode}
-          />
-          */}
-        </ul>
-      </nav>
-    </div>
+    <nav className="flex flex-row bg-gray-800 text-white p-4 justify-center" role="navigation" aria-label="Main navigation">
+      <ul className="flex space-x-4" role="list">
+        <NavEntry
+          name="Review"
+          tab="REVIEW"
+          currentMode={mode}
+          setTab={setMode}
+        />
+        <NavEntry
+          name="Studies"
+          tab="STUDIES"
+          currentMode={mode}
+          setTab={setMode}
+        />
+        <NavEntry
+          name="Lines"
+          tab="LINES"
+          currentMode={mode}
+          setTab={setMode}
+        />
+        <NavEntry
+          name="Attempts"
+          tab="ATTEMPTS"
+          currentMode={mode}
+          setTab={setMode}
+        />
+        {/*
+        <NavEntry
+          name="Tree"
+          tab="TREE"
+          currentMode={mode}
+          setTab={setMode}
+        />
+        */}
+      </ul>
+    </nav>
   );
 };

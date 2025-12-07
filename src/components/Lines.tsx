@@ -107,40 +107,44 @@ const Lines: React.FC<LinesProps> = ({
       columnHelper.accessor((row) => row.studyName, {
         id: "studyName",
         header: "Study",
-        size: BASE_COLUMN_WIDTHS.study,
+        size: 100, // Reduced width
       }),
       columnHelper.accessor((row) => row.chapterName, {
         id: "chapterName",
         header: "Chapter",
-        size: BASE_COLUMN_WIDTHS.chapter,
+        size: 100, // Reduced width
       }),
       columnHelper.accessor((row) => row.line, {
         id: "line",
         header: "Line",
-        size: BASE_COLUMN_WIDTHS.line,
+        // Increase line width to give more space for moves
+        size: 400,
         cell: (props) => <ClickableLineFn value={props.getValue()} />,
       }),
       columnHelper.accessor((row) => row.numAttempts, {
         id: "numAttempts",
-        header: "Num Attempts",
-        size: BASE_COLUMN_WIDTHS.numAttempts,
+        header: "Attempts",
+        size: 70,
       }),
       columnHelper.accessor((row) => row.numCorrect, {
         id: "numCorrect",
-        header: "Num Correct",
-        size: BASE_COLUMN_WIDTHS.numCorrect,
+        header: "Correct",
+        size: 70,
       }),
       columnHelper.accessor((row) => row.latestAttempt, {
         id: "latestAttempt",
-        header: "Latest Attempt",
-        size: BASE_COLUMN_WIDTHS.latestAttempt,
-        cell: (info) => info.getValue()?.toLocaleString() ?? "",
+        header: "Last Attempt",
+        size: 100,
+        cell: (info) => info.getValue()?.toLocaleDateString() ?? "-",
       }),
       columnHelper.accessor((row) => row.estimatedSuccessRate, {
         id: "estimatedSuccessRate",
-        header: "Estimated Success Rate",
-        size: BASE_COLUMN_WIDTHS.estimatedSuccessRate,
-        cell: (info) => info.getValue()?.toFixed(3) ?? "",
+        header: "Success Rate",
+        size: 90,
+        cell: (info) => {
+          const val = info.getValue();
+          return val !== null ? `${(val * 100).toFixed(0)}%` : "-";
+        },
       }),
     ],
     [columnHelper],
@@ -148,25 +152,29 @@ const Lines: React.FC<LinesProps> = ({
 
   if (lines.length === 0) {
     return (
-      <div className="text-gray-800 dark:text-gray-200">
-        Select a chapter first
+      <div className="flex items-center justify-center min-h-[200px] text-gray-400 italic bg-gray-800 rounded-lg">
+        Select a chapter to view lines
       </div>
     );
   }
 
   return (
-    <>
-      <SearchBar
-        filteredLines={lineAndChapters}
-        tokens={searchTokens}
-        setTokens={setSearchTokens}
-      />
-      <DynamicTable
-        columns={columns}
-        data={tableData}
-        onRowClick={onRowClick}
-      />
-    </>
+    <div className="flex flex-col gap-3 h-full">
+      <div className="flex-none">
+        <SearchBar
+          filteredLines={lineAndChapters}
+          tokens={searchTokens}
+          setTokens={setSearchTokens}
+        />
+      </div>
+      <div className="flex-1 min-h-0">
+        <DynamicTable
+          columns={columns}
+          data={tableData}
+          onRowClick={onRowClick}
+        />
+      </div>
+    </div>
   );
 };
 

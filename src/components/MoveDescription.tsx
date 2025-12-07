@@ -66,13 +66,13 @@ export const MoveDescription: React.FC<MoveDescriptionProps> = ({
   );
 
   return (
-    <div className="flex flex-col space-y-2 p-4">
-      <p className="text-gray-400" style={{ minHeight: "1.5em" }}>
-        {lineStatusText}
-      </p>
-      <p className={moveResultColor} style={{ minHeight: "1.5em" }}>
-        {moveResultText}
-      </p>
+    <div className="flex flex-col gap-2 p-4 bg-gray-700 rounded-lg">
+      {lineStatusText && (
+        <p className="text-gray-300">{lineStatusText}</p>
+      )}
+      {moveResultText && (
+        <p className={`font-semibold ${moveResultColor}`}>{moveResultText}</p>
+      )}
     </div>
   );
 };

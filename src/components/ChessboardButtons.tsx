@@ -10,20 +10,21 @@ interface ChessboardButtonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const ChessboardButton: React.FC<{
-  label: string;
+  label: string | React.ReactNode;
   action: () => void;
   isDisabled: boolean;
   ariaLabel: string;
 }> = ({ label, action, isDisabled, ariaLabel }) => (
   <button
-    className={`py-2 px-4 text-white bg-gray-700 hover:bg-gray-600 ${
+    className={`py-2 px-4 text-white bg-gray-700 hover:bg-gray-600 rounded transition-colors ${
       isDisabled ? "opacity-50 cursor-not-allowed" : ""
     }`}
     onClick={action}
     disabled={isDisabled}
     aria-label={ariaLabel}
-    dangerouslySetInnerHTML={{ __html: label }}
-  />
+  >
+    {label}
+  </button>
 );
 
 const ChessboardButtons: React.FC<ChessboardButtonProps> = ({
@@ -39,27 +40,27 @@ const ChessboardButtons: React.FC<ChessboardButtonProps> = ({
   }
 
   return (
-    <div className="flex space-x-4">
+    <div className="flex gap-2">
       <ChessboardButton
-        label="&laquo;"
+        label="«"
         action={handleJumpToStart}
         isDisabled={isDisabled}
         ariaLabel="Jump to start"
       />
       <ChessboardButton
-        label="&larr;"
+        label="←"
         action={handleLeftClick}
         isDisabled={isDisabled}
         ariaLabel="Previous move"
       />
       <ChessboardButton
-        label="&rarr;"
+        label="→"
         action={handleRightClick}
         isDisabled={isDisabled}
         ariaLabel="Next move"
       />
       <ChessboardButton
-        label="&raquo;"
+        label="»"
         action={handleJumpToEnd}
         isDisabled={isDisabled}
         ariaLabel="Jump to end"

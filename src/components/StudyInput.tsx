@@ -39,6 +39,8 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
           error instanceof Error ? error.message : "Unknown error occurred";
         console.error("Failed to fetch study:", errorMessage, error);
         onFetchError(error);
+        // Re-throw the error so the promise chain properly rejects
+        throw error;
       }
     },
     [addStudyAndChapters, fetchStudy, onFetchError],
@@ -56,7 +58,11 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
-        fetchStudyData(studyUrl).then(onClose);
+        fetchStudyData(studyUrl)
+          .then(() => onClose())
+          .catch(() => {
+            // Error already handled in fetchStudyData
+          });
       }
     },
     [fetchStudyData, studyUrl, onClose],
@@ -79,46 +85,45 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
     }
     fetchStudyData(studyName)
       .then(() => onClose())
-      .catch((error) => {
+      .catch(() => {
         // Error already handled in fetchStudyData
-        onFetchError(error);
       });
   }, [studyUrl, fetchStudyData, onClose, onFetchError]);
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg text-white">Add New Study</h2>
+    <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-white">Add New Study</h2>
         <button
           onClick={onClose}
-          className="text-white text-2xl focus:outline-none"
+          className="text-gray-400 hover:text-white text-2xl transition-colors focus:outline-none"
           aria-label="Close dialog"
         >
-          &#xd7;
+          ×
         </button>
       </div>
-      <input
-        className="w-full p-2 mb-4 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
-        type="text"
-        placeholder="Enter Lichess Study URL"
-        value={studyUrl}
-        onChange={handleStudyUrlChange}
-        onKeyDown={handleKeyDown}
-        aria-label="Lichess Study URL input"
-      />
-      <button
-        className={`w-full p-2 text-white rounded ${
-          studyUrl
-            ? "bg-blue-500 hover:bg-blue-700"
-            : "bg-gray-500 cursor-not-allowed"
-        }`}
-        onClick={() => {
-          onStudySubmit();
-        }}
-        disabled={!studyUrl || studyUrl === ""}
-      >
-        Add Study
-      </button>
+      <div className="flex flex-col gap-4">
+        <input
+          className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          type="text"
+          placeholder="Enter Lichess Study URL"
+          value={studyUrl}
+          onChange={handleStudyUrlChange}
+          onKeyDown={handleKeyDown}
+          aria-label="Lichess Study URL input"
+        />
+        <button
+          className={`w-full px-4 py-2 text-white rounded-lg transition-colors ${
+            studyUrl
+              ? "bg-blue-500 hover:bg-blue-600"
+              : "bg-gray-600 cursor-not-allowed opacity-50"
+          }`}
+          onClick={onStudySubmit}
+          disabled={!studyUrl || studyUrl.trim() === ""}
+        >
+          Add Study
+        </button>
+      </div>
     </div>
   );
 };

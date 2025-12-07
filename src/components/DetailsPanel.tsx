@@ -56,8 +56,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-4 bg-gray-800 rounded-lg">
-      <div className="flex flex-wrap gap-4 p-2">
+    <div className="flex flex-col gap-4 bg-gray-800 rounded-lg p-4">
+      <div className="flex flex-wrap gap-4">
         <SwitchButton
           onChange={toggleShowChapter}
           checked={showChapter}
@@ -95,7 +95,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
         />
       </div>
 
-      <div className="space-y-4 overflow-y-auto">
+      <div className="flex flex-col gap-4">
         {showChapter && chapter && (
           <ChapterInfo chapter={chapter} position={currentPosition} />
         )}

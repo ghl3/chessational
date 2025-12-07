@@ -121,36 +121,31 @@ const Controls: React.FC<ControlProps> = ({
   hasLines,
 }) => {
   const hasActiveLine = lineStatus !== undefined;
-
   const lineIsComplete = lineStatus === "LINE_COMPLETE";
 
   return (
-    <div className="p-2 space-y-6">
-      <div className="flex flex-row justify-start space-x-4">
+    <div className="flex flex-wrap gap-4">
+      <ControlButton
+        onClick={onNewLine}
+        label="New Line"
+        size="large"
+        disabled={!hasLines}
+      />
+      {hasActiveLine && (
         <ControlButton
-          onClick={onNewLine}
-          label="New Line"
-          size={"large"}
-          disabled={!hasLines}
+          onClick={onRestartLine}
+          label="Restart Line"
+          size="large"
         />
-
-        {hasActiveLine ? (
-          <ControlButton
-            onClick={onRestartLine}
-            label="Restart Line"
-            size={"large"}
-          />
-        ) : null}
-
-        {hasActiveLine && !lineIsComplete ? (
-          <ControlButton
-            onClick={toggleShowSolution}
-            label="Show Solution"
-            size={"large"}
-            disabled={lineIsComplete}
-          />
-        ) : null}
-      </div>
+      )}
+      {hasActiveLine && !lineIsComplete && (
+        <ControlButton
+          onClick={toggleShowSolution}
+          label="Show Solution"
+          size="large"
+          disabled={lineIsComplete}
+        />
+      )}
     </div>
   );
 };
@@ -274,96 +269,68 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
   }, [arrows, chessboardState, reviewState]);
 
   // Show helpful message if no studies or lines are available
+  const EmptyState: React.FC<{
+    title: string;
+    message: string;
+    showButton?: boolean;
+  }> = ({ title, message, showButton }) => (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="bg-gray-700 rounded-lg p-6 max-w-md text-center">
+        <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
+        <p className="text-gray-300 mb-6">{message}</p>
+        {showButton && onNavigateToStudies && (
+          <button
+            onClick={onNavigateToStudies}
+            className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          >
+            Go to Studies Tab
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   if (!hasStudies) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="bg-gray-700 rounded-lg p-6 max-w-md">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            No Studies Available
-          </h3>
-          <p className="text-gray-300 mb-6">
-            You need to add a study before you can review lines. Go to the
-            Studies tab to add a Lichess study.
-          </p>
-          {onNavigateToStudies && (
-            <button
-              onClick={onNavigateToStudies}
-              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-            >
-              Go to Studies Tab
-            </button>
-          )}
-        </div>
-      </div>
+      <EmptyState
+        title="No Studies Available"
+        message="You need to add a study before you can review lines. Go to the Studies tab to add a Lichess study."
+        showButton={true}
+      />
     );
   }
 
   if (!hasSelectedStudy) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="bg-gray-700 rounded-lg p-6 max-w-md">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            No Study Selected
-          </h3>
-          <p className="text-gray-300 mb-6">
-            Please select a study from the dropdown above, or go to the Studies
-            tab to add a new study.
-          </p>
-          {onNavigateToStudies && (
-            <button
-              onClick={onNavigateToStudies}
-              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-            >
-              Go to Studies Tab
-            </button>
-          )}
-        </div>
-      </div>
+      <EmptyState
+        title="No Study Selected"
+        message="Please select a study from the dropdown above, or go to the Studies tab to add a new study."
+        showButton={true}
+      />
     );
   }
 
   if (!hasSelectedChapters) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="bg-gray-700 rounded-lg p-6 max-w-md">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            No Chapters Selected
-          </h3>
-          <p className="text-gray-300 mb-6">
-            Please select at least one chapter from the dropdown above to start
-            reviewing lines.
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        title="No Chapters Selected"
+        message="Please select at least one chapter from the dropdown above to start reviewing lines."
+      />
     );
   }
 
   if (!hasLines) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center">
-        <div className="bg-gray-700 rounded-lg p-6 max-w-md">
-          <h3 className="text-xl font-semibold text-white mb-4">
-            No Lines Available
-          </h3>
-          <p className="text-gray-300 mb-6">
-            The selected chapters don't have any lines to review. Try selecting
-            different chapters or add a new study.
-          </p>
-          {onNavigateToStudies && (
-            <button
-              onClick={onNavigateToStudies}
-              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-            >
-              Go to Studies Tab
-            </button>
-          )}
-        </div>
-      </div>
+      <EmptyState
+        title="No Lines Available"
+        message="The selected chapters don't have any lines to review. Try selecting different chapters or add a new study."
+        showButton={true}
+      />
     );
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <Controls
         lineStatus={reviewState.lineStatus}
         onNewLine={onNewLine}

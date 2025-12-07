@@ -34,15 +34,17 @@ const getDefaultTab = (studyData: StudyData): Tab => {
 };
 
 const Home: React.FC<HomeProps> = ({ params }) => {
-  const { boardSize, containerRef } = useChessboardSize();
+  const { boardSize } = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
   const studyData = useStudyData();
   const reviewState = useReviewState();
 
   const engineData = useEngine();
+  
+  // Initialize engine once on mount
   useEffect(() => {
-    if (engine) {
+    if (engine && !engineData.engine) {
       engineData.setEngine(engine);
     }
   }, [engineData]);
@@ -75,14 +77,14 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     [chessboardState, tab, reviewState],
   );
 
+  const calculatedPanelHeight = boardSize + 158;
+
   return (
-    <div className="w-full h-full flex flex-col">
-      <div className="w-full flex-1 flex flex-col lg:flex-row">
-        <div
-          ref={containerRef}
-          className="w-full lg:w-1/2 flex justify-center lg:justify-end px-2"
-        >
-          <div className="flex flex-col">
+    <div className="min-h-screen w-full flex flex-col bg-gray-900">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center">
+        {/* Chessboard Section - Left/Top */}
+        <div className="flex-shrink-0 flex items-start justify-center lg:h-full overflow-y-auto lg:overflow-visible">
+          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
             <Chessboard
               chessboardSize={boardSize}
               chessboardState={chessboardState}
@@ -91,7 +93,15 @@ const Home: React.FC<HomeProps> = ({ params }) => {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 pt-8 px-2">
+        {/* Right Panel Section - Right/Bottom */}
+        <div
+          className="w-full lg:w-[700px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:!h-[var(--panel-height)]"
+          style={
+            {
+              "--panel-height": `${calculatedPanelHeight}px`,
+            } as React.CSSProperties
+          }
+        >
           <RightPanel
             tab={tab}
             setTab={setTab}

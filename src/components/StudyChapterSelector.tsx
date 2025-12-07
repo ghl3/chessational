@@ -14,19 +14,17 @@ export const StudySelector: React.FC<StudySelectorProps> = ({
   selectStudy,
 }) => {
   return (
-    <div className="flex flex-col space-y-2">
-      <Selector
-        options={studies.map((study) => ({
-          value: study.name,
-          label: study.name,
-        }))}
-        selectedValues={selectedStudy ? [selectedStudy.name] : []}
-        onChange={(values) => selectStudy(values[0])}
-        placeholder="Select a study..."
-        multiSelect={false}
-        className="w-full"
-      />
-    </div>
+    <Selector
+      options={studies.map((study) => ({
+        value: study.name,
+        label: study.name,
+      }))}
+      selectedValues={selectedStudy ? [selectedStudy.name] : []}
+      onChange={(values) => selectStudy(values[0])}
+      placeholder="Select a study..."
+      multiSelect={false}
+      className="w-64"
+    />
   );
 };
 
@@ -89,20 +87,18 @@ export const StudyChapterSelector: React.FC<{
     : undefined;
 
   return (
-    <div className="flex flex-row bg-gray-800 text-white p-2 space-x-4">
-      <div className="flex justify-center space-x-4">
-        <StudySelector
-          studies={studyData.studies}
-          selectedStudy={studyData.selectedStudy || null}
-          selectStudy={studyData.selectStudy}
-        />
-        <ChapterSelector
-          chapters={chapterNames || []}
-          selectedChapters={selectedChapterNames || null}
-          selectChapter={studyData.addSelectedChapterName}
-          deselectChapter={studyData.removeSelectedChapterName}
-        />
-      </div>
+    <div className="flex flex-wrap gap-2 px-3 pt-3 mb-1">
+      <StudySelector
+        studies={studyData.studies}
+        selectedStudy={studyData.selectedStudy || null}
+        selectStudy={studyData.selectStudy}
+      />
+      <ChapterSelector
+        chapters={chapterNames || []}
+        selectedChapters={selectedChapterNames || null}
+        selectChapter={studyData.addSelectedChapterName}
+        deselectChapter={studyData.removeSelectedChapterName}
+      />
     </div>
   );
 };

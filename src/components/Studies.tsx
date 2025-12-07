@@ -14,15 +14,17 @@ interface StudiesProps {
 }
 
 const LoadingScreen: React.FC = () => (
-  <div className="flex items-center justify-center bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
-    <span className="text-white">Loading...</span>
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="bg-gray-700 rounded-lg p-6 text-center">
+      <span className="text-white">Loading...</span>
+    </div>
   </div>
 );
 
 const AddStudyButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button
-      className="w-1/4 p-2 text-white rounded bg-blue-500 hover:bg-blue-700"
+      className="px-4 py-2 text-white rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors"
       onClick={onClick}
     >
       Add Study
@@ -115,7 +117,7 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
       );
     } else {
       return (
-        <div className="flex flex-col items-center space-y-4 p-2">
+        <div className="flex flex-col items-center gap-4">
           <StudyCardList
             studies={studies}
             selectedStudy={selectedStudy || null}

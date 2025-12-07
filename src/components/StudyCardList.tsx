@@ -19,21 +19,16 @@ const StudyCardList: React.FC<StudyCardListProps> = ({
   refreshStudy,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {studies.map((study) => (
-        <div
+        <StudyCard
           key={study.name}
-          //onClick={() => selectStudy(study.name)}
-          className="cursor-pointer transition-opacity duration-300 ease-in-out"
-        >
-          <StudyCard
-            study={study}
-            selectStudy={selectStudy}
-            deleteStudy={deleteStudy}
-            refreshStudy={refreshStudy}
-            isSelected={selectedStudy?.name === study.name}
-          />
-        </div>
+          study={study}
+          selectStudy={selectStudy}
+          deleteStudy={deleteStudy}
+          refreshStudy={refreshStudy}
+          isSelected={selectedStudy?.name === study.name}
+        />
       ))}
     </div>
   );
