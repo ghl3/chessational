@@ -1,269 +1,191 @@
 import { Chapter } from "@/chess/Chapter";
-import { PositionNode } from "@/chess/PositionTree";
-import * as d3 from "d3-force";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import ForceGraph2D from "react-force-graph-2d";
+import { Position } from "@/chess/Position";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import Tree, { TreeNodeDatum } from "react-d3-tree";
+import { processNode, handleToggle, CustomNodeDatum, isNodeCollapsed, hasAnyChildren } from "./OpeningTreeUtils";
 
-interface BaseGraphNode {
-  id: string;
-  name: string;
-  positionNode: PositionNode;
-  isRoot?: boolean;
-  depth?: number;
-  // Force graph properties
-  x?: number;
-  y?: number;
-  vx?: number;
-  vy?: number;
-  fx?: number;
-  fy?: number;
+interface OpeningTreeProps {
+  chapters: Chapter[];
+  onNodeSelect: (position: Position) => void;
 }
 
-type GraphNode = BaseGraphNode;
+const containerStyles = {
+  width: "100%",
+  height: "100%",
+  background: "#111827", // gray-900
+};
 
-interface GraphLink {
-  source: string;
-  target: string;
-}
+// Double-click detection threshold in ms
+const DOUBLE_CLICK_THRESHOLD = 300;
 
-interface GraphData {
-  nodes: GraphNode[];
-  links: GraphLink[];
-}
+const OpeningTree: React.FC<OpeningTreeProps> = ({
+  chapters,
+  onNodeSelect,
+}) => {
+  const [treeData, setTreeData] = useState<CustomNodeDatum | undefined>(undefined);
+  
+  // Center the tree initially
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-  const fgRef = useRef<any>(null);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
-    new Set([chapter.positionTree.position.fen]),
-  );
-
-  // Reset expanded nodes when chapter changes
-  useEffect(() => {
-    setExpandedNodes(new Set([chapter.positionTree.position.fen]));
-  }, [chapter.positionTree.position.fen]);
-
-  const graphData = useMemo(() => {
-    const nodes: GraphNode[] = [];
-    const links: GraphLink[] = [];
-    const nodeMap = new Map<string, GraphNode>();
-
-    const addNode = (positionNode: PositionNode, isRoot = false, depth = 0) => {
-      const fen = positionNode.position.fen;
-      if (!nodeMap.has(fen)) {
-        const node: GraphNode = {
-          id: fen,
-          name: isRoot ? "Start" : positionNode.position.lastMove?.san || "",
-          positionNode,
-          isRoot,
-          depth,
-        };
-        nodes.push(node);
-        nodeMap.set(fen, node);
-      }
-      return nodeMap.get(fen)!;
-    };
-
-    const traverse = (
-      node: PositionNode,
-      parentId: string | null,
-      depth = 0,
-    ) => {
-      const currentNode = addNode(node, parentId === null, depth);
-
-      if (parentId) {
-        links.push({
-          source: parentId,
-          target: currentNode.id,
-        });
-      }
-
-      if (parentId === null || expandedNodes.has(node.position.fen)) {
-        node.children.forEach((child) =>
-          traverse(child, currentNode.id, depth + 1),
-        );
-      }
-    };
-
-    traverse(chapter.positionTree, null);
-    return { nodes, links };
-  }, [chapter, expandedNodes]);
+  // Double-click tracking - use refs to persist across renders
+  const lastClickTimeRef = useRef<number>(0);
+  const lastClickNodeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!fgRef.current) return;
-    const fg = fgRef.current;
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      setTranslate({ x: width / 2, y: 50 });
+    }
+  }, []);
 
-    // Configure link force - smoother distances
-    const forceLink = fg.d3Force("link");
-    if (forceLink) {
-      forceLink
-        .distance((link: any) => {
-          const source = link.source as GraphNode;
-          const target = link.target as GraphNode;
-          const depth = Math.max(
-            source.depth || 0,
-            target.depth || 0,
-          );
-          // More consistent spacing
-          return 150 + depth * 30;
-        })
-        .strength(1); // Stronger link force for more rigidity
+  useEffect(() => {
+    if (!chapters || chapters.length === 0) {
+      setTreeData(undefined);
+      return;
     }
 
-    // Gentler charge force
-    fg.d3Force(
-      "charge",
-      d3
-        .forceManyBody()
-        .strength(-300) // Reduced strength for less zigzag
-        .distanceMin(100) // Prevent nodes from getting too close
-        .distanceMax(500), // Limit long-range repulsion
-    );
+    // For now, take the first chapter. 
+    const chapter = chapters[0];
+    const root = chapter.positionTree;
 
-    // Stronger collision force for better spacing
-    fg.d3Force(
-      "collision",
-      d3
-        .forceCollide()
-        .radius((d: any) => {
-          const node = d as GraphNode;
-          return 50 + (node.depth || 0) * 5; // More consistent node spacing
-        })
-        .strength(0.8), // Strong enough to prevent overlap but not cause zigzag
-    );
+    setTreeData(processNode(root, 0, 0));
+  }, [chapters]);
 
-    // Stronger center force to keep layout balanced
-    fg.d3Force("center", d3.forceCenter().strength(0.15));
-
-    fg.d3ReheatSimulation();
-  }, [graphData]);
-
-  const handleNodeClick = useCallback((node: GraphNode) => {
-    setExpandedNodes((prev) => {
-      const next = new Set(prev);
-      if (next.has(node.id)) {
-        next.delete(node.id);
-      } else {
-        next.add(node.id);
-      }
-      return next;
+  // Toggle a node's expansion state
+  const toggleNode = useCallback((nodeId: string) => {
+    setTreeData((prevData) => {
+      if (!prevData) return prevData;
+      const newData = handleToggle(prevData, nodeId);
+      // Force a new reference to trigger re-render
+      return newData ? { ...(newData as CustomNodeDatum) } : undefined;
     });
   }, []);
 
-  const renderNode = useCallback(
-    (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      if (node.x === undefined || node.y === undefined) return;
+  // Handle node click - detect single vs double click
+  const handleNodeClick = useCallback((node: CustomNodeDatum) => {
+    const nodeId = node.nodeId;
+    const now = Date.now();
+    const timeSinceLastClick = now - lastClickTimeRef.current;
+    const isSameNode = lastClickNodeIdRef.current === nodeId;
 
-      const fontSize = 16 / globalScale;
-      const nodeSize = fontSize * 1.2;
-      const glowSize = 3;
-      const isWhiteMove =
-        !node.isRoot && node.positionNode.position.lastMove?.player === "w";
-
-      // Different styling for root node
-      const fillColor = node.isRoot
-        ? "#3b82f6"
-        : isWhiteMove
-        ? "#ffffff"
-        : "#303030";
-      const glowColor = node.isRoot
-        ? "#3b82f640"
-        : isWhiteMove
-        ? "#ffffff40"
-        : "#30303040";
-      const strokeColor = node.isRoot
-        ? "#3b82f644"
-        : isWhiteMove
-        ? "#ffffff44"
-        : "#30303044";
-      const textColor = node.isRoot
-        ? "#ffffff"
-        : isWhiteMove
-        ? "#000000"
-        : "#ffffff";
-
-      // Glow effect
-      const gradient = ctx.createRadialGradient(
-        node.x,
-        node.y,
-        nodeSize - glowSize,
-        node.x,
-        node.y,
-        nodeSize + glowSize,
-      );
-      gradient.addColorStop(0, glowColor);
-      gradient.addColorStop(1, "#00000000");
-
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, nodeSize + glowSize, 0, 2 * Math.PI);
-      ctx.fill();
-
-      // Main circle
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
-      ctx.fillStyle = fillColor;
-      ctx.fill();
-      ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Text
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = textColor;
-      ctx.font = `${fontSize}px Inter, Sans-Serif`;
-      ctx.fillText(node.name, node.x, node.y);
-
-      // Expansion indicator
-      if (
-        node.positionNode.children.length > 0 &&
-        !expandedNodes.has(node.id)
-      ) {
-        ctx.beginPath();
-        ctx.arc(node.x + nodeSize * 1.2, node.y, 4, 0, 2 * Math.PI);
-        ctx.fillStyle = "#666666";
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff22";
-        ctx.lineWidth = 1;
-        ctx.stroke();
+    if (isSameNode && timeSinceLastClick < DOUBLE_CLICK_THRESHOLD) {
+      // Double click detected!
+      lastClickTimeRef.current = 0;
+      lastClickNodeIdRef.current = null;
+      
+      // Toggle expansion if node has children (visible or hidden)
+      if (hasAnyChildren(node)) {
+        toggleNode(nodeId);
       }
-    },
-    [expandedNodes],
-  );
+    } else {
+      // First click or click on different node
+      lastClickTimeRef.current = now;
+      lastClickNodeIdRef.current = nodeId;
+      
+      // Select the position on single click
+      // Use a small delay to distinguish from double-click
+      setTimeout(() => {
+        // Only trigger if this is still the last clicked node and no double-click happened
+        if (lastClickNodeIdRef.current === nodeId && 
+            Date.now() - lastClickTimeRef.current >= DOUBLE_CLICK_THRESHOLD) {
+          if (node.position) {
+            onNodeSelect(node.position);
+          }
+        }
+      }, DOUBLE_CLICK_THRESHOLD);
+    }
+  }, [toggleNode, onNodeSelect]);
+
+  // Render custom node element
+  const renderCustomNodeElement = useCallback((props: {
+    nodeDatum: TreeNodeDatum;
+    toggleNode: () => void;
+  }) => {
+    const customNode = props.nodeDatum as unknown as CustomNodeDatum;
+    return (
+      <TreeNode 
+        nodeDatum={customNode}
+        onClick={handleNodeClick}
+      />
+    );
+  }, [handleNodeClick]);
 
   return (
-    <div className="w-full h-[600px] border border-gray-700 rounded-lg bg-gray-900">
-      <ForceGraph2D
-        ref={fgRef}
-        graphData={graphData}
-        nodeCanvasObject={renderNode}
-        nodePointerAreaPaint={(node: GraphNode, color, ctx, globalScale) => {
-          const fontSize = 16 / globalScale;
-          const nodeSize = fontSize * 1.2;
-          if (node.x !== undefined && node.y !== undefined) {
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
-            ctx.fillStyle = color;
-            ctx.fill();
-          }
-        }}
-        onNodeClick={(node) => handleNodeClick(node as GraphNode)}
-        backgroundColor="#111827"
-        linkColor={() => "#ffffff22"}
-        linkWidth={1.5}
-        d3VelocityDecay={0.3}
-        warmupTicks={100}
-        cooldownTicks={200}
-        d3AlphaMin={0.1}
-      />
+    <div 
+      ref={containerRef} 
+      style={containerStyles} 
+      className="border border-gray-700 rounded-lg overflow-hidden"
+    >
+      {treeData && (
+        <Tree
+          data={treeData}
+          translate={translate}
+          renderCustomNodeElement={renderCustomNodeElement}
+          orientation="horizontal"
+          pathFunc="diagonal"
+          collapsible={false} // We handle collapsing ourselves
+          separation={{ siblings: 0.5, nonSiblings: 0.8 }}
+          transitionDuration={300}
+          pathClassFunc={() => "rd3t-link"}
+          zoomable={true}
+        />
+      )}
     </div>
   );
 };
 
-export default OpeningGraph;
+// Tree node component
+const TreeNode: React.FC<{
+  nodeDatum: CustomNodeDatum;
+  onClick: (node: CustomNodeDatum) => void;
+}> = ({ nodeDatum, onClick }) => {
+  const isRoot = nodeDatum.attributes?.isRoot === true;
+  const isWhite = nodeDatum.position?.lastMove?.player === "w";
+  const hasChildren = hasAnyChildren(nodeDatum);
+  const collapsed = isNodeCollapsed(nodeDatum);
+
+  const size = 60;
+  const x = -size / 2;
+  const y = -size / 2;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onClick(nodeDatum);
+  };
+
+  let className =
+    "relative flex items-center justify-center w-full h-full rounded-full border-2 text-sm font-bold cursor-pointer select-none shadow-md transition-transform hover:scale-105";
+
+  if (isRoot) {
+    className += " bg-blue-600 text-white border-blue-400";
+  } else if (isWhite) {
+    className += " bg-white text-black border-gray-300";
+  } else {
+    // Black move
+    className += " bg-black text-white border-gray-600";
+  }
+
+  return (
+    <g>
+      <foreignObject width={size} height={size} x={x} y={y}>
+        <div
+          className={className}
+          onClick={handleClick}
+        >
+          {nodeDatum.name}
+          
+          {/* Expansion Badge - show when node has hidden children */}
+          {hasChildren && collapsed && (
+            <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-gray-900 shadow-sm z-10">
+              <span className="text-black text-[10px] font-bold leading-none">+</span>
+            </div>
+          )}
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+export default OpeningTree;

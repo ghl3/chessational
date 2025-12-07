@@ -121,3 +121,5 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
     </div>
   );
 });
+
+DetailsPanel.displayName = "DetailsPanel";

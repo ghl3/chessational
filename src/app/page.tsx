@@ -27,13 +27,17 @@ if (typeof window !== "undefined") {
 interface HomeProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  initialTab?: Tab;
 }
 
-const getDefaultTab = (studyData: StudyData): Tab => {
+const getDefaultTab = (studyData: StudyData, initialTab?: Tab): Tab => {
+  if (initialTab) {
+    return initialTab;
+  }
   return "REVIEW";
 };
 
-const Home: React.FC<HomeProps> = ({ params }) => {
+const Home: React.FC<HomeProps> = ({ params, initialTab }) => {
   const { boardSize, containerRef } = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
@@ -47,9 +51,10 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     if (engine && !engineData.engine) {
       engineData.setEngine(engine);
     }
-  }, [engineData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const [tab, setTab] = useState<Tab>(getDefaultTab(studyData));
+  const [tab, setTab] = useState<Tab>(getDefaultTab(studyData, initialTab));
 
   const onLegalMove: MoveExecutor = useCallback(
     (
@@ -77,13 +82,11 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     [chessboardState, tab, reviewState],
   );
 
-  const calculatedPanelHeight = boardSize + 158;
-
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-900">
       <div
         ref={containerRef}
-        className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center"
+        className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center overflow-hidden"
       >
         {/* Chessboard Section - Left/Top */}
         <div className="flex-shrink-0 flex items-start justify-center lg:h-full overflow-y-auto lg:overflow-visible">
@@ -97,14 +100,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
         </div>
 
         {/* Right Panel Section - Right/Bottom */}
-        <div
-          className="w-full lg:w-[45%] lg:min-w-[450px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:!h-[var(--panel-height)]"
-          style={
-            {
-              "--panel-height": `${calculatedPanelHeight}px`,
-            } as React.CSSProperties
-          }
-        >
+        <div className="w-full lg:w-[45%] lg:min-w-[450px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:h-full">
           <RightPanel
             tab={tab}
             setTab={setTab}

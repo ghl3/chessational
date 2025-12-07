@@ -16,7 +16,7 @@ const NavEntry: React.FC<{
         onClick={() => setTab(tab)}
         className="hover:text-blue-300 transition duration-300"
         aria-label={`Switch to ${name} tab`}
-        aria-pressed={active}
+        aria-selected={active}
         role="tab"
       >
         {name}
@@ -31,7 +31,7 @@ export const NavBar: React.FC<{
 }> = ({ mode, setMode }) => {
   return (
     <nav className="flex flex-row bg-gray-800 text-white p-4 justify-center" role="navigation" aria-label="Main navigation">
-      <ul className="flex space-x-4" role="list">
+      <ul className="flex space-x-4" role="tablist">
         <NavEntry
           name="Review"
           tab="REVIEW"
@@ -56,14 +56,12 @@ export const NavBar: React.FC<{
           currentMode={mode}
           setTab={setMode}
         />
-        {/*
         <NavEntry
           name="Tree"
           tab="TREE"
           currentMode={mode}
           setTab={setMode}
         />
-        */}
       </ul>
     </nav>
   );

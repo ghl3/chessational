@@ -6,6 +6,7 @@ import { Dispatch, SetStateAction, useMemo, memo } from "react";
 import { Attempts } from "./Attempts";
 import Lines from "./Lines";
 import { NavBar, Tab } from "./NavBar";
+import OpeningTree from "./OpeningTree";
 import { Review } from "./Review";
 import { Studies } from "./Studies";
 import { StudyChapterSelector } from "./StudyChapterSelector";
@@ -87,7 +88,20 @@ export const RightPanel: React.FC<RightPanelProps> = memo(({
             />
           </div>
         )}
+
+        {tab === "TREE" && (
+          <div className="absolute inset-0 p-3 flex flex-col">
+            <OpeningTree
+              chapters={chapters || []}
+              onNodeSelect={(position) => {
+                chessboardState.setNextPosition(position, true);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 });
+
+RightPanel.displayName = "RightPanel";
