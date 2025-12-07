@@ -1,66 +1,83 @@
-import { Dispatch, SetStateAction } from "react";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export type Tab = "REVIEW" | "STUDIES" | "LINES" | "ATTEMPTS" | "TREE";
 
+// Map tabs to their URL paths
+const TAB_PATHS: Record<Tab, string> = {
+  REVIEW: "/",
+  STUDIES: "/studies",
+  LINES: "/lines",
+  ATTEMPTS: "/attempts",
+  TREE: "/tree",
+};
+
+// Map paths to tabs for reverse lookup
+const PATH_TO_TAB: Record<string, Tab> = {
+  "/": "REVIEW",
+  "/studies": "STUDIES",
+  "/lines": "LINES",
+  "/attempts": "ATTEMPTS",
+  "/tree": "TREE",
+};
+
 const NavEntry: React.FC<{
   name: string;
-  tab: Tab;
-  currentMode: Tab;
-  setTab: Dispatch<SetStateAction<Tab>>;
-}> = ({ name, tab, setTab, currentMode }) => {
-  const active = tab === currentMode;
+  href: string;
+  isActive: boolean;
+}> = ({ name, href, isActive }) => {
   return (
-    <li className={active ? "border-b-2 border-blue-500" : ""}>
-      <button
-        key={name}
-        onClick={() => setTab(tab)}
+    <li className={isActive ? "border-b-2 border-blue-500" : ""}>
+      <Link
+        href={href}
         className="hover:text-blue-300 transition duration-300"
         aria-label={`Switch to ${name} tab`}
-        aria-selected={active}
+        aria-selected={isActive}
         role="tab"
       >
         {name}
-      </button>
+      </Link>
     </li>
   );
 };
 
-export const NavBar: React.FC<{
-  mode: Tab;
-  setMode: Dispatch<SetStateAction<Tab>>;
-}> = ({ mode, setMode }) => {
+export const NavBar: React.FC = () => {
+  const pathname = usePathname();
+  const currentTab = PATH_TO_TAB[pathname] || "REVIEW";
+
   return (
-    <nav className="flex flex-row bg-gray-800 text-white p-4 justify-center" role="navigation" aria-label="Main navigation">
+    <nav
+      className="flex flex-row bg-gray-800 text-white p-4 justify-center"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <ul className="flex space-x-4" role="tablist">
         <NavEntry
           name="Review"
-          tab="REVIEW"
-          currentMode={mode}
-          setTab={setMode}
+          href={TAB_PATHS.REVIEW}
+          isActive={currentTab === "REVIEW"}
         />
         <NavEntry
           name="Studies"
-          tab="STUDIES"
-          currentMode={mode}
-          setTab={setMode}
+          href={TAB_PATHS.STUDIES}
+          isActive={currentTab === "STUDIES"}
         />
         <NavEntry
           name="Lines"
-          tab="LINES"
-          currentMode={mode}
-          setTab={setMode}
+          href={TAB_PATHS.LINES}
+          isActive={currentTab === "LINES"}
         />
         <NavEntry
           name="Attempts"
-          tab="ATTEMPTS"
-          currentMode={mode}
-          setTab={setMode}
+          href={TAB_PATHS.ATTEMPTS}
+          isActive={currentTab === "ATTEMPTS"}
         />
         <NavEntry
           name="Tree"
-          tab="TREE"
-          currentMode={mode}
-          setTab={setMode}
+          href={TAB_PATHS.TREE}
+          isActive={currentTab === "TREE"}
         />
       </ul>
     </nav>
