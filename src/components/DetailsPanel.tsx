@@ -25,7 +25,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
 }) => {
   const comments = useMemo(
     () => currentPosition?.comments || [],
-    [currentPosition?.comments],
+    [currentPosition],
   );
 
   const [showPgn, setShowPgn] = useState<boolean>(false);
