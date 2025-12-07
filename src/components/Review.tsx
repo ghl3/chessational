@@ -227,7 +227,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
   }, [chessboardState, reviewState]);
 
   const arrows = useMemo(() => {
-    if (reviewState?.lineAndChapter?.line?.positions === null || reviewState?.lineAndChapter === null) {
+    if (reviewState.lineAndChapter === null) {
       return [];
     }
 
