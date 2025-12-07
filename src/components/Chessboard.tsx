@@ -6,9 +6,16 @@ import { ChessboardState } from "@/hooks/UseChessboardState";
 import { BLACK, DEFAULT_POSITION, PieceSymbol, Square, WHITE } from "chess.js";
 import React, { HTMLAttributes, useCallback, useMemo } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
-import type { Arrow as RCArrow, PieceDropHandlerArgs } from "react-chessboard";
 import ChessboardButtons from "./ChessboardButtons";
 import { MaterialDiff } from "./MaterialDiff";
+
+// Types for react-chessboard v5
+type RCArrow = { startSquare: string; endSquare: string; color: string };
+type PieceDropArgs = {
+  piece: { pieceType: string; color: string };
+  sourceSquare: string;
+  targetSquare: string;
+};
 
 export interface Arrow {
   from: Square;
@@ -94,7 +101,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
   }, [chessboardState.arrows]);
 
   const onPieceDrop = useCallback(
-    ({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean => {
+    ({ piece, sourceSquare, targetSquare }: PieceDropArgs): boolean => {
       if (targetSquare === null) {
         return false;
       }
