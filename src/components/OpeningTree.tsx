@@ -18,24 +18,41 @@ const containerStyles = {
 // Double-click detection threshold in ms
 const DOUBLE_CLICK_THRESHOLD = 300;
 
+// Initial zoom level - zoomed out significantly to show more of the tree
+const INITIAL_ZOOM = 0.4;
+
+// Type for the onUpdate callback
+interface TreeUpdateTarget {
+  node: TreeNodeDatum | null;
+  zoom: number;
+  translate: { x: number; y: number };
+}
+
 const OpeningTree: React.FC<OpeningTreeProps> = ({
   chapters,
   onNodeSelect,
 }) => {
   const [treeData, setTreeData] = useState<CustomNodeDatum | undefined>(undefined);
   
-  // Center the tree initially
+  // Controlled zoom and translate state - preserves user's view across data updates
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(INITIAL_ZOOM);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Track if this is the initial render (before user has interacted)
+  const hasInitializedRef = useRef(false);
 
   // Double-click tracking - use refs to persist across renders
   const lastClickTimeRef = useRef<number>(0);
   const lastClickNodeIdRef = useRef<string | null>(null);
 
+  // Set initial translate based on container size
   useEffect(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      setTranslate({ x: width / 2, y: 50 });
+    if (containerRef.current && !hasInitializedRef.current) {
+      const { height } = containerRef.current.getBoundingClientRect();
+      // Position tree starting from the left side, centered vertically
+      setTranslate({ x: 60, y: height / 2 });
+      hasInitializedRef.current = true;
     }
   }, []);
 
@@ -51,6 +68,23 @@ const OpeningTree: React.FC<OpeningTreeProps> = ({
 
     setTreeData(processNode(root, 0, 0));
   }, [chapters]);
+
+  // Handle tree updates (user panning/zooming) - sync to our controlled state
+  const handleTreeUpdate = useCallback((update: TreeUpdateTarget) => {
+    // Only update if values actually changed (avoid unnecessary re-renders)
+    setTranslate((prev) => {
+      if (prev.x !== update.translate.x || prev.y !== update.translate.y) {
+        return update.translate;
+      }
+      return prev;
+    });
+    setZoom((prev) => {
+      if (prev !== update.zoom) {
+        return update.zoom;
+      }
+      return prev;
+    });
+  }, []);
 
   // Toggle a node's expansion state
   const toggleNode = useCallback((nodeId: string) => {
@@ -121,14 +155,19 @@ const OpeningTree: React.FC<OpeningTreeProps> = ({
         <Tree
           data={treeData}
           translate={translate}
+          zoom={zoom}
+          scaleExtent={{ min: 0.1, max: 2 }}
+          onUpdate={handleTreeUpdate}
           renderCustomNodeElement={renderCustomNodeElement}
           orientation="horizontal"
           pathFunc="diagonal"
-          collapsible={false} // We handle collapsing ourselves
+          collapsible={false}
+          shouldCollapseNeighborNodes={false}
           separation={{ siblings: 0.5, nonSiblings: 0.8 }}
-          transitionDuration={300}
+          transitionDuration={0}
           pathClassFunc={() => "rd3t-link"}
           zoomable={true}
+          draggable={true}
         />
       )}
     </div>
@@ -145,9 +184,11 @@ const TreeNode: React.FC<{
   const hasChildren = hasAnyChildren(nodeDatum);
   const collapsed = isNodeCollapsed(nodeDatum);
 
-  const size = 60;
-  const x = -size / 2;
-  const y = -size / 2;
+  // Node visual size
+  const nodeSize = 60;
+  // foreignObject size (larger to accommodate hover scale effect)
+  const containerSize = 80;
+  const offset = -containerSize / 2;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -156,7 +197,7 @@ const TreeNode: React.FC<{
   };
 
   let className =
-    "relative flex items-center justify-center w-full h-full rounded-full border-2 text-sm font-bold cursor-pointer select-none shadow-md transition-transform hover:scale-105";
+    "flex items-center justify-center rounded-full border-2 text-sm font-bold cursor-pointer select-none shadow-md transition-transform hover:scale-110";
 
   if (isRoot) {
     className += " bg-blue-600 text-white border-blue-400";
@@ -169,19 +210,28 @@ const TreeNode: React.FC<{
 
   return (
     <g>
-      <foreignObject width={size} height={size} x={x} y={y}>
-        <div
-          className={className}
-          onClick={handleClick}
-        >
-          {nodeDatum.name}
-          
-          {/* Expansion Badge - show when node has hidden children */}
-          {hasChildren && collapsed && (
-            <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-gray-900 shadow-sm z-10">
-              <span className="text-black text-[10px] font-bold leading-none">+</span>
-            </div>
-          )}
+      <foreignObject 
+        width={containerSize} 
+        height={containerSize} 
+        x={offset} 
+        y={offset}
+        style={{ overflow: "visible" }}
+      >
+        <div className="w-full h-full flex items-center justify-center">
+          <div
+            className={`relative ${className}`}
+            style={{ width: nodeSize, height: nodeSize }}
+            onClick={handleClick}
+          >
+            {nodeDatum.name}
+            
+            {/* Expansion Badge - show when node has hidden children */}
+            {hasChildren && collapsed && (
+              <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-gray-900 shadow-sm z-10">
+                <span className="text-black text-[10px] font-bold leading-none">+</span>
+              </div>
+            )}
+          </div>
         </div>
       </foreignObject>
     </g>

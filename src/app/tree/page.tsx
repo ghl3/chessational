@@ -1,15 +1,10 @@
 "use client";
 
-import Home from "../page";
+import { MainApp } from "@/components/MainApp";
 
-const TreePage = ({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) => {
-  return <Home params={params} searchParams={searchParams} initialTab="TREE" />;
+// Tree page - opens with the Tree tab selected
+const TreePage = () => {
+  return <MainApp initialTab="TREE" />;
 };
 
 export default TreePage;
