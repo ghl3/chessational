@@ -34,7 +34,7 @@ const getDefaultTab = (studyData: StudyData): Tab => {
 };
 
 const Home: React.FC<HomeProps> = ({ params }) => {
-  const { boardSize } = useChessboardSize();
+  const { boardSize, containerRef } = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
 
   const studyData = useStudyData();
@@ -81,7 +81,10 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gray-900">
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center">
+      <div
+        ref={containerRef}
+        className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center"
+      >
         {/* Chessboard Section - Left/Top */}
         <div className="flex-shrink-0 flex items-start justify-center lg:h-full overflow-y-auto lg:overflow-visible">
           <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
@@ -95,7 +98,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
 
         {/* Right Panel Section - Right/Bottom */}
         <div
-          className="w-full lg:w-[700px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:!h-[var(--panel-height)]"
+          className="w-full lg:w-[45%] lg:min-w-[450px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:!h-[var(--panel-height)]"
           style={
             {
               "--panel-height": `${calculatedPanelHeight}px`,
