@@ -12,7 +12,7 @@ import { default as React, useCallback, useMemo } from "react";
 import { db } from "../app/db";
 import { ControlButton } from "./ControlButton";
 import { DetailsPanel } from "./DetailsPanel";
-import { MoveDescription } from "./MoveDescription";
+import { StatusBanner } from "./StatusBanner";
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -339,12 +339,11 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
         hasLines={hasLines}
       />
 
-      {position && (
-        <MoveDescription
-          status={reviewState.lineStatus}
-          result={reviewState.lineMoveResult || undefined}
-        />
-      )}
+      <StatusBanner
+        lineStatus={reviewState.lineStatus}
+        moveResult={reviewState.lineMoveResult || undefined}
+        orientation={chessboardState.orientation}
+      />
 
       <DetailsPanel
         chapter={reviewState.lineAndChapter?.chapter || undefined}
