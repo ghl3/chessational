@@ -21,7 +21,7 @@ export const PositionDescription: React.FC<PositionDescriptionProps> = ({
         <span className="text-gray-400 text-sm italic mb-2">Moves:</span>
         <div className="flex flex-wrap gap-2 max-w-full overflow-x-auto p-2 bg-gray-600">
           {positions
-            .filter((position) => position.lastMove != null)
+            .filter((position) => position.lastMove !== null)
             .map((position, index) => (
               <PositionChip
                 key={`move-${index}`}

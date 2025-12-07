@@ -58,7 +58,7 @@ const Home: React.FC<HomeProps> = ({ params }) => {
     ): boolean => {
       // The user is in 'Quiz' mode until the end of the line, where
       // they enter 'Explore' mode.
-      if (tab === "REVIEW" && reviewState.lineStatus != "LINE_COMPLETE") {
+      if (tab === "REVIEW" && reviewState.lineStatus !== "LINE_COMPLETE") {
         return executeLegalMoveIfIsCorrect(
           chessboardState,
           reviewState,

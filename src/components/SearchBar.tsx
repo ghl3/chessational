@@ -16,7 +16,7 @@ export const matchesQuery = (line: Line, tokens: Token[]): boolean => {
   });
 
   return tokens
-    .filter((token) => token.type == "move")
+    .filter((token) => token.type === "move")
     .every((token) => {
       return positions.some((position) => position.includes(token.token));
     });
@@ -29,7 +29,7 @@ const makeSuggestions = (
   const moves = new Set<string>();
 
   const partialToken = tokens.find((token) => token.type === "partial");
-  if (partialToken == undefined) {
+  if (partialToken === undefined) {
     return [];
   }
 
@@ -74,7 +74,7 @@ const mergeSuggestionWithQuery = (
   suggestion: string,
 ): string => {
   const partialToken = tokens.find((token) => token.type === "partial");
-  if (partialToken == undefined) {
+  if (partialToken === undefined) {
     return query;
   }
 

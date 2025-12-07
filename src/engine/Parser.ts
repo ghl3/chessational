@@ -97,13 +97,13 @@ export class EventParser {
       .replaceAll('"', "")
       .split(/\s+/);
 
-    let info_map: { [key: string]: any } = { type: "INFO" };
+    let info_map: Partial<InfoMessage> & { [key: string]: unknown } = { type: "INFO" };
 
     let currently_processing: string | null = null;
     let current_tokens: string[] = [];
 
     for (const token of tokens) {
-      if (currently_processing != null) {
+      if (currently_processing !== null) {
         if (!keywords.includes(token)) {
           current_tokens.push(token);
           continue;

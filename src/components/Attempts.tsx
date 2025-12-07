@@ -32,7 +32,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
-    if (lines == undefined || chapters == undefined) {
+    if (lines === undefined || chapters === undefined) {
       return [];
     }
 
@@ -40,8 +40,8 @@ export const Attempts: React.FC<AttemptsProps> = ({
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
       );
-      if (chapter == undefined) {
-        console.log(`Chapter ${line.chapterName} not found`);
+      if (chapter === undefined) {
+        // Chapter not found - skip this line
         return [];
       }
       return [
@@ -62,7 +62,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
 
         // Handle old attempts with lines that are now missing
         const lineElements: React.JSX.Element[] =
-          lineAndChapter != null
+          lineAndChapter !== undefined && lineAndChapter !== null
             ? makePositionChips(lineAndChapter, chessboardState)
             : [<div key={attempt.lineId}>{attempt.lineId}</div>];
 
@@ -76,10 +76,10 @@ export const Attempts: React.FC<AttemptsProps> = ({
         } as AttemptRow;
       })
       ?.sort((a, b) => {
-        if (a.attemptDate == null) {
+        if (a.attemptDate === null) {
           return 1;
         }
-        if (b.attemptDate == null) {
+        if (b.attemptDate === null) {
           return -1;
         }
         return b.attemptDate.getTime() - a.attemptDate.getTime();

@@ -6,7 +6,7 @@ export type MoveSelectionStrategy =
   | "DETERMINISTIC"
   | "RANDOM"
   | "WEIGHTED"
-  | "SPACED_REPITITION";
+  | "SPACED_REPETITION";
 
 const weightedPick = <T>(elements: T[], weights: number[]): T => {
   if (elements.length !== weights.length) {
@@ -76,7 +76,7 @@ const makeNoise = (size: number = 0.2): number => {
   return Math.random() * size * 2 - size;
 };
 
-const pickLineSpacedRepitition = (lines: Line[], attempts: Attempt[]): Line => {
+const pickLineSpacedRepetition = (lines: Line[], attempts: Attempt[]): Line => {
   if (attempts.length === 0) {
     return pickLineRandom(lines);
   }
@@ -138,8 +138,8 @@ export const pickLine = (
     return pickLineRandom(lines);
   } else if (strategy === "WEIGHTED") {
     return pickLineWeighted(lines);
-  } else if (strategy === "SPACED_REPITITION") {
-    return pickLineSpacedRepitition(lines, attempts || []);
+  } else if (strategy === "SPACED_REPETITION") {
+    return pickLineSpacedRepetition(lines, attempts || []);
   } else {
     throw new Error("Invalid strategy");
   }

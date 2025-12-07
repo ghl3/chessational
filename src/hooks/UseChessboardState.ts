@@ -149,7 +149,7 @@ export const useChessboardState = (): ChessboardState => {
         promotion: promotion,
       });
 
-      if (moveResult == null) {
+      if (moveResult === null) {
         return null;
       } else {
         const move: Move = moveResultToMove(moveResult);
@@ -158,7 +158,7 @@ export const useChessboardState = (): ChessboardState => {
         return [move, position];
       }
     } catch (error) {
-      console.log("Invalid Move:", error);
+      // Invalid move attempted - return null to indicate failure
       return null;
     }
   };
@@ -180,7 +180,7 @@ export const useChessboardState = (): ChessboardState => {
 
   const getFen = useCallback((): Fen | null => {
     const position = getPosition();
-    if (position == null) {
+    if (position === null) {
       return null;
     } else {
       return position.fen;

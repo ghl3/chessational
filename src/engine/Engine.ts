@@ -6,11 +6,11 @@ import { Evaluation } from "./Evaluation";
 import { EventParser, InfoMessage } from "./Parser";
 
 interface WebWorker {
-  onmessage: ((ev: MessageEvent<any>) => any) | null;
-  postMessage: (x: any) => any;
+  onmessage: ((ev: MessageEvent<string>) => void) | null;
+  postMessage: (x: string) => void;
 }
 
-type PositionResolver = (evaluation: EvaluatedPosition) => any;
+type PositionResolver = (evaluation: EvaluatedPosition) => void;
 
 export type PieceMove = {
   color: Color;
@@ -95,6 +95,8 @@ export class Engine {
 
   _log = (message: string) => {
     if (this.debug) {
+      // Debug logging only when debug mode is enabled
+      // eslint-disable-next-line no-console
       console.log(message);
     }
   };
@@ -120,7 +122,7 @@ export class Engine {
     for (const { move, evaluation } of bestMoves) {
       const chessObj = new Chess(fen);
       const m = chessObj.move(move);
-      if (m == null) {
+      if (m === null) {
         throw new Error("Invalid move");
       } else {
         bestMovesDecorated.push({ move: m, evaluation: evaluation });
@@ -134,7 +136,7 @@ export class Engine {
     };
   };
 
-  _handleEvent = (e: MessageEvent<any>) => {
+  _handleEvent = (e: MessageEvent<string>) => {
     const msg = e.data;
     const parsed = EventParser.parse(msg);
     this._log("Engine -- Received Message: " + msg);
@@ -150,7 +152,7 @@ export class Engine {
 
       const moveAndEval: MoveAndEvaluation | null =
         Engine.buildMoveAndEvaluationFromInfo(parsed, color);
-      if (moveAndEval == null) {
+      if (moveAndEval === null) {
         throw new Error(`Invalid Parsed Move: ${parsed}`);
       } else {
         this.movesAndEvals.push(moveAndEval);
@@ -273,7 +275,9 @@ export class Engine {
 
         // (score * color_factor) is higher for better positions for the current player.
         // We include an additional -1 to make the sort descending.
-        -1 * x?.evaluation?.score * color_factor || Number.MAX_VALUE,
+        x?.evaluation?.score !== null && x?.evaluation?.score !== undefined
+          ? -1 * x.evaluation.score * color_factor
+          : Number.MAX_VALUE,
 
         // Sort by "mate in x" for opponent, where higher x is better.
         // We include the -1 to reverse the sort so higher numbers come first.
@@ -325,7 +329,7 @@ export class Engine {
     // (not the color).  We convert these to be relative to the color
     // (such that positive is favorable to white and negative is
     // favorable to black).
-    if (info?.score?.cp != null) {
+    if (info?.score?.cp !== null && info?.score?.cp !== undefined) {
       const s: number = color === "w" ? info.score.cp : -1 * info.score.cp;
       return { score: s, depth: info?.depth };
     } else if (info?.score?.mate !== undefined) {

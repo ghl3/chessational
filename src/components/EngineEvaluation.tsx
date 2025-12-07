@@ -25,16 +25,13 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
       engineData.runEngine &&
       position &&
       position.fen &&
-      positionEvaluation == null &&
+      positionEvaluation === null &&
       engineData.engine
     ) {
-      console.log("Evaluating Position: ", position.fen);
       engineData.engine.cancel();
-      engineData.engine
-        .evaluatePosition(position.fen)
-        .then((evaluatedPosition) => {
-          console.log("Evaluated position: ", position.fen);
-        });
+      engineData.engine.evaluatePosition(position.fen).catch((error) => {
+        console.error("Failed to evaluate position:", error);
+      });
     }
   }, [engineData.engine, engineData.runEngine, position, positionEvaluation]);
 
@@ -44,7 +41,7 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
     }
 
     return Array.from(positionEvaluation.best_moves)
-      .filter((x) => x.evaluation?.score != null)
+      .filter((x) => x.evaluation?.score !== null)
       .sort((a, b) => {
         const scoreA = a?.evaluation?.score || 0;
         const scoreB = b?.evaluation?.score || 0;

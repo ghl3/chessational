@@ -40,7 +40,7 @@ const Lines: React.FC<LinesProps> = ({
   chessboardState,
 }) => {
   const lineAndChapters = useMemo(() => {
-    if (lines == undefined || chapters == undefined) {
+    if (lines === undefined || chapters === undefined) {
       return [];
     }
 
@@ -48,8 +48,8 @@ const Lines: React.FC<LinesProps> = ({
       const chapter = chapters.find(
         (chapter) => chapter.name === line.chapterName,
       );
-      if (chapter == undefined) {
-        console.log(`Chapter ${line.chapterName} not found`);
+      if (chapter === undefined) {
+        // Chapter not found - skip this line
         return [];
       }
       return [

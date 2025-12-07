@@ -53,13 +53,13 @@ const getOrientation = (headers: { [key: string]: string }): Color | null => {
   const orientation = headers.Orientation;
   if (orientation) {
     if (
-      orientation.toLowerCase() == "white" ||
-      orientation.toLowerCase() == "w"
+      orientation.toLowerCase() === "white" ||
+      orientation.toLowerCase() === "w"
     ) {
       return WHITE;
     } else if (
-      orientation.toLowerCase() == "black" ||
-      orientation.toLowerCase() == "b"
+      orientation.toLowerCase() === "black" ||
+      orientation.toLowerCase() === "b"
     ) {
       return BLACK;
     } else {

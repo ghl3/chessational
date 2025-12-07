@@ -38,10 +38,15 @@ interface GraphData {
 }
 
 const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(
     new Set([chapter.positionTree.position.fen]),
   );
+
+  // Reset expanded nodes when chapter changes
+  useEffect(() => {
+    setExpandedNodes(new Set([chapter.positionTree.position.fen]));
+  }, [chapter.positionTree.position.fen]);
 
   const graphData = useMemo(() => {
     const nodes: GraphNode[] = [];
@@ -97,10 +102,12 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     const forceLink = fg.d3Force("link");
     if (forceLink) {
       forceLink
-        .distance((link: { source: GraphNode; target: GraphNode }) => {
+        .distance((link: any) => {
+          const source = link.source as GraphNode;
+          const target = link.target as GraphNode;
           const depth = Math.max(
-            link.source.depth || 0,
-            link.target.depth || 0,
+            source.depth || 0,
+            target.depth || 0,
           );
           // More consistent spacing
           return 150 + depth * 30;
@@ -150,7 +157,7 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
 
   const renderNode = useCallback(
     (node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      if (!node?.x || !node?.y) return;
+      if (node.x === undefined || node.y === undefined) return;
 
       const fontSize = 16 / globalScale;
       const nodeSize = fontSize * 1.2;
@@ -234,21 +241,19 @@ const OpeningGraph: React.FC<{ chapter: Chapter }> = ({ chapter }) => {
     <div className="w-full h-[600px] border border-gray-700 rounded-lg bg-gray-900">
       <ForceGraph2D
         ref={fgRef}
-        graphData={graphData as any} // TODO: Fix this type
+        graphData={graphData}
         nodeCanvasObject={renderNode}
-        nodePointerAreaPaint={(node: any, color, ctx, globalScale) => {
-          const n = node as GraphNode;
+        nodePointerAreaPaint={(node: GraphNode, color, ctx, globalScale) => {
           const fontSize = 16 / globalScale;
           const nodeSize = fontSize * 1.2;
-          ctx.beginPath();
-          ctx.arc(n.x!, n.y!, nodeSize, 0, 2 * Math.PI);
-          ctx.fillStyle = color;
-          ctx.fill();
+          if (node.x !== undefined && node.y !== undefined) {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+          }
         }}
         onNodeClick={(node) => handleNodeClick(node as GraphNode)}
-        dagMode="lr"
-        dagLevelDistance={200}
-        nodeRelSize={10}
         backgroundColor="#111827"
         linkColor={() => "#ffffff22"}
         linkWidth={1.5}

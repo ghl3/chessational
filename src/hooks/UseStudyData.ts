@@ -50,7 +50,7 @@ export const useStudyData = (): StudyData => {
 
   const selectedStudy: Study | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName == undefined) {
+      if (selectedStudyName === undefined) {
         return undefined;
       }
       const study = await db.studies
@@ -66,14 +66,14 @@ export const useStudyData = (): StudyData => {
   // All chapters from the currently selected study
   const chapters: Chapter[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null || selectedStudyName === undefined) {
         return [];
       }
-      const chatpers = await db.chapters
+      const chapters = await db.chapters
         .where("studyName")
         .equalsIgnoreCase(selectedStudyName)
         .sortBy("chapterIndex");
-      return chatpers;
+      return chapters;
     },
     [selectedStudyName],
     undefined,
@@ -81,7 +81,7 @@ export const useStudyData = (): StudyData => {
 
   const selectedChapterNames: string[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null || selectedStudyName === undefined) {
         return undefined;
       }
       const selectedChapterNames = await db.selectedChapterNames
@@ -105,11 +105,11 @@ export const useStudyData = (): StudyData => {
   // the selected chapters.
   const lines: Line[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null || selectedStudyName === undefined) {
         return undefined;
       }
 
-      if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+      if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
         return [];
       }
 
@@ -135,11 +135,11 @@ export const useStudyData = (): StudyData => {
   // in the current study
   const attempts: Attempt[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null || selectedStudyName === undefined) {
         return undefined;
       }
 
-      if (selectedChapterNames == null || selectedChapterNames.length === 0) {
+      if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
         return [];
       }
 
@@ -172,7 +172,7 @@ export const useStudyData = (): StudyData => {
           .map((study) => study.name)
           .filter((sn) => sn !== studyName)[0];
 
-        if (nextSelectedStudyName != null) {
+        if (nextSelectedStudyName !== null) {
           db.selectedStudyName.put({ studyName: nextSelectedStudyName });
         }
       }
@@ -182,11 +182,11 @@ export const useStudyData = (): StudyData => {
 
   const addSelectedChapterName = useCallback(
     (chapterName: string) => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null || selectedStudyName === undefined) {
         throw new Error("No study selected");
       }
 
-      if (selectedChapterNames == null) {
+      if (selectedChapterNames === null || selectedChapterNames === undefined) {
         throw new Error("No chapters selected");
       }
 
@@ -204,7 +204,7 @@ export const useStudyData = (): StudyData => {
 
   const removeSelectedChapterName = useCallback(
     (chapterName: string) => {
-      if (selectedStudyName == null) {
+      if (selectedStudyName === null) {
         throw new Error("No study selected");
       }
 

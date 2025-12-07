@@ -14,11 +14,11 @@ const findPosition = (
   position: Position,
   moves: Move[],
 ): Move[] | null => {
-  if (positionNode.position.fen == position.fen) {
+  if (positionNode.position.fen === position.fen) {
     return moves;
   } else {
     for (let child of positionNode.children) {
-      if (child.position.lastMove == null) {
+      if (child.position.lastMove === null) {
         throw new Error("Position node has no last move");
       }
       const newMoves: Move[] = [...moves, child.position.lastMove];
@@ -44,9 +44,9 @@ const getLastMainLineMoveIndex = (
   var moveIndex = 0;
 
   for (const move of moves) {
-    if (currentPosition.children.length == 0) {
+    if (currentPosition.children.length === 0) {
       return moveIndex;
-    } else if (currentPosition.children[0].position.lastMove == move) {
+    } else if (currentPosition.children[0].position.lastMove === move) {
       currentPosition = currentPosition.children[0];
       moveIndex++;
     } else {
@@ -65,7 +65,7 @@ const ChapterInfo: React.FC<ChapterInfoProps> = ({ chapter, position }) => {
   // If the current position isn't a part of the main line, we link
   // the last move in the main line that led to this position.
   const lastMainLineMoveIndex =
-    position != null ? getLastMainLineMoveIndex(chapter, position) : null;
+    position !== null && position !== undefined ? getLastMainLineMoveIndex(chapter, position) : null;
   const fullUrl = chapterUrl + "#" + lastMainLineMoveIndex;
 
   return (

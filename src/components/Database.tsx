@@ -26,7 +26,7 @@ export const Database: React.FC<DatabaseProps> = ({
           setLoading(false);
         })
         .catch((error) => {
-          console.error(error);
+          console.error("Failed to fetch database for position:", error);
           setLoading(false);
         });
     }

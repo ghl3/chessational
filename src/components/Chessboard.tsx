@@ -51,7 +51,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   const handleRightClick = useCallback(() => {
     if (
-      chessboardState.currentPositionIndex + 1 ==
+      chessboardState.currentPositionIndex + 1 ===
       chessboardState.positions.length
     ) {
       return;
@@ -93,7 +93,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
     (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
       const originalPiece: PieceSymbol | null =
         chessboardState.getPieceAtSquare(sourceSquare);
-      if (originalPiece == null) {
+      if (originalPiece === null) {
         throw new Error("originalPiece is null");
       }
 
@@ -110,7 +110,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
         promoteToPiece,
       );
 
-      if (moveAndPosition == null) {
+      if (moveAndPosition === null) {
         return false;
       }
 
@@ -136,7 +136,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
     >
       <MaterialDiff
         pieceCount={pieceCount}
-        color={chessboardState.orientation == WHITE ? BLACK : WHITE}
+        color={chessboardState.orientation === WHITE ? BLACK : WHITE}
         className="h-6"
       />
       <ReactChessboard
@@ -145,7 +145,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
         boardWidth={chessboardSize}
         areArrowsAllowed={true}
         boardOrientation={
-          chessboardState.orientation == WHITE ? "white" : "black"
+          chessboardState.orientation === WHITE ? "white" : "black"
         }
         onPieceDrop={onPieceDrop}
         customArrows={convertedArrows}

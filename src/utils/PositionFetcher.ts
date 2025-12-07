@@ -31,7 +31,7 @@ export const getOrFetchAndCacheDatabase = async (
   positionTable: Table<{ fen: Fen; database: LichessDatabase }>,
 ): Promise<LichessDatabase> => {
   const existingPosition = await positionTable.get({ fen: fen });
-  if (existingPosition != undefined) {
+  if (existingPosition !== undefined) {
     return existingPosition.database;
   }
 

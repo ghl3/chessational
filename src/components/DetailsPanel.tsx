@@ -4,7 +4,7 @@ import { Database } from "@/components/Database";
 import { EngineEvaluation } from "@/components/EngineEvaluation";
 
 import { EngineData } from "@/hooks/UseEngineData";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo, memo } from "react";
 import ChapterInfo from "./ChapterInfo";
 import CommentArea from "./CommentArea";
 import { PositionDescription } from "./PositionDescription";
@@ -17,13 +17,16 @@ export interface DetailsPanelProps {
   engineData: EngineData;
 }
 
-export const DetailsPanel: React.FC<DetailsPanelProps> = ({
+export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
   chapter,
   currentPosition,
   positions,
   engineData,
 }) => {
-  const comments = currentPosition?.comments || [];
+  const comments = useMemo(
+    () => currentPosition?.comments || [],
+    [currentPosition?.comments],
+  );
 
   const [showPgn, setShowPgn] = useState<boolean>(false);
   const [showEngine, setShowEngine] = useState<boolean>(false);
@@ -117,4 +120,4 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       </div>
     </div>
   );
-};
+});

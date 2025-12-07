@@ -7,7 +7,6 @@ const movePattern =
   /^([NBRQK])?([a-h])?([1-8])?x?([a-h][1-8])(=[NBRQK])?[+#]?$/;
 
 const parseToToken = (tokenString: string): Token => {
-  console.log("tokenString: ", tokenString);
   if (
     movePattern.test(tokenString) ||
     tokenString === "O-O" ||

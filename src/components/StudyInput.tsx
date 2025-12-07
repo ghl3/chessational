@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
   onClose: () => void;
-  onFetchError: (error: any) => void;
+  onFetchError: (error: unknown) => void;
   addStudyAndChapters: (study: StudyChapterAndLines) => void;
 }
 
@@ -23,15 +23,6 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
   addStudyAndChapters,
 }) => {
   const [studyUrl, setStudyUrl] = useState("");
-  /*
-  // TODO: Don't re-add the same study
-  const addStudy = useCallback(
-    (study: Study) => {
-      setStudies((prevStudies) => [...prevStudies, study]);
-    },
-    [setStudies],
-  );
-  */
 
   const fetchStudyData = useCallback(
     async (studyUrl: string) => {
@@ -42,13 +33,12 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         }
 
         addStudyAndChapters(study);
-        //selectStudy(study.study.name);
-        // Default all the chapters to selected
-        //setSelectedChapterNames(study.chapters.map((chapter) => chapter.name));
         setStudyUrl("");
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        console.error("Failed to fetch study:", errorMessage, error);
         onFetchError(error);
-        console.error("Failed to get study:", error);
       }
     },
     [addStudyAndChapters, fetchStudy, onFetchError],
@@ -74,15 +64,26 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
 
   // Handle when the user presses enter
   const onStudySubmit = useCallback(() => {
-    if (!studyUrl || studyUrl === "") {
-      throw new Error("Study URL is empty");
+    if (!studyUrl || studyUrl.trim() === "") {
+      onFetchError(new Error("Study URL cannot be empty"));
+      return;
     }
     const studyName = extractStudyName(studyUrl);
     if (studyName === null) {
-      throw new Error("Please enter a valid Lichess study URL");
+      onFetchError(
+        new Error(
+          "Invalid URL format. Please enter a valid Lichess study URL (e.g., https://lichess.org/study/ABC123)",
+        ),
+      );
+      return;
     }
-    fetchStudyData(studyName).then(onClose);
-  }, [studyUrl, fetchStudyData, onClose]);
+    fetchStudyData(studyName)
+      .then(() => onClose())
+      .catch((error) => {
+        // Error already handled in fetchStudyData
+        onFetchError(error);
+      });
+  }, [studyUrl, fetchStudyData, onClose, onFetchError]);
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-md w-full">
@@ -91,6 +92,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         <button
           onClick={onClose}
           className="text-white text-2xl focus:outline-none"
+          aria-label="Close dialog"
         >
           &#xd7;
         </button>
@@ -102,6 +104,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         value={studyUrl}
         onChange={handleStudyUrlChange}
         onKeyDown={handleKeyDown}
+        aria-label="Lichess Study URL input"
       />
       <button
         className={`w-full p-2 text-white rounded ${

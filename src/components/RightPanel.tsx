@@ -2,7 +2,7 @@ import { ChessboardState } from "@/hooks/UseChessboardState";
 import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useMemo, memo } from "react";
 import { Attempts } from "./Attempts";
 import Lines from "./Lines";
 import { NavBar, Tab } from "./NavBar";
@@ -19,7 +19,7 @@ interface RightPanelProps {
   reviewState: ReviewState;
 }
 
-export const RightPanel: React.FC<RightPanelProps> = ({
+export const RightPanel: React.FC<RightPanelProps> = memo(({
   tab,
   setTab,
   chessboardState,
@@ -27,35 +27,41 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   engineData,
   reviewState,
 }) => {
+  const lines = useMemo(() => studyData.lines || [], [studyData.lines]);
+  const chapters = useMemo(() => studyData.chapters || [], [studyData.chapters]);
+  const attempts = useMemo(() => studyData.attempts || [], [studyData.attempts]);
+  const showChapterSelector = useMemo(() => tab !== "STUDIES", [tab]);
+
   return (
     <div className="w-full h-full flex flex-col bg-gray-800 rounded-lg">
       <NavBar mode={tab} setMode={setTab} />
       <div className="flex-1 overflow-y-auto">
         <div className="p-2">
-          {tab !== "STUDIES" && <StudyChapterSelector studyData={studyData} />}
+          {showChapterSelector && <StudyChapterSelector studyData={studyData} />}
           {tab === "REVIEW" && (
             <Review
               chessboardState={chessboardState}
               studyData={studyData}
               engineData={engineData}
               reviewState={reviewState}
+              onNavigateToStudies={() => setTab("STUDIES")}
             />
           )}
           {tab === "STUDIES" && <Studies studyData={studyData} />}
           {tab === "LINES" && (
             <Lines
-              lines={studyData.lines || []}
-              chapters={studyData.chapters || []}
-              attempts={studyData.attempts || []}
+              lines={lines}
+              chapters={chapters}
+              attempts={attempts}
               chessboardState={chessboardState}
             />
           )}
 
           {tab === "ATTEMPTS" && (
             <Attempts
-              lines={studyData.lines || []}
-              chapters={studyData.chapters || []}
-              attempts={studyData.attempts || []}
+              lines={lines}
+              chapters={chapters}
+              attempts={attempts}
               chessboardState={chessboardState}
             />
           )}
@@ -63,4 +69,4 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       </div>
     </div>
   );
-};
+});
