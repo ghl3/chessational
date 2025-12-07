@@ -1,7 +1,7 @@
-import { Square, PieceSymbol, Color, Move as MoveResult } from "chess.js";
+import { Square, PieceSymbol, Color, Move as MoveResult, WHITE, BLACK } from "chess.js";
 
 export const getOppositeColor = (color: Color): Color => {
-  return color === "w" ? "b" : "w";
+  return color === WHITE ? BLACK : WHITE;
 };
 
 export const moveResultToMove = (moveResult: MoveResult): Move => {

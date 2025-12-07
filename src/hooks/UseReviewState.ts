@@ -2,6 +2,7 @@ import { getLineStatus, LineStatus } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { LineMoveResult } from "@/components/MoveDescription";
+import { BLACK } from "chess.js";
 import {
   Dispatch,
   SetStateAction,
@@ -89,17 +90,21 @@ export const useReviewState = (): ReviewState => {
       const { line } = lineAndChapter;
 
       setCurrentLineAndChapter(lineAndChapter);
+      
+      // Set orientation first, then positions
       chessboardState.setOrientation(line.orientation);
 
-      // Initialize the first position
+      // Initialize the first position (starting position)
       chessboardState.setNextPosition(line.positions[0], true);
-      setCurrentLineIndex((lineIndex: number) => lineIndex + 1);
+      setCurrentLineIndex(0);
 
-      // If we are black, we first have to do white's move
-      if (line.orientation == "b") {
-        const firstPosition: Position = line.positions[1];
-        chessboardState.setNextPosition(firstPosition, false);
-        setCurrentLineIndex((lineIndex) => lineIndex + 1);
+      // If we are black, we first have to show white's move
+      if (line.orientation === BLACK) {
+        if (line.positions.length > 1) {
+          const firstPosition: Position = line.positions[1];
+          chessboardState.setNextPosition(firstPosition, false);
+          setCurrentLineIndex(1);
+        }
       }
     },
     [setCurrentLineAndChapter, setCurrentLineIndex],

@@ -3,10 +3,10 @@ import { convertToPieceSymbol, getPromoteToPiece } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
-import { BLACK, DEFAULT_POSITION, PieceSymbol, WHITE } from "chess.js";
-import React, { HTMLAttributes, useCallback, useState } from "react";
+import { BLACK, DEFAULT_POSITION, PieceSymbol, Square, WHITE } from "chess.js";
+import React, { HTMLAttributes, useCallback, useMemo } from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
-import { Square } from "react-chessboard/dist/chessboard/types";
+import type { Arrow as RCArrow, PieceDropHandlerArgs } from "react-chessboard";
 import ChessboardButtons from "./ChessboardButtons";
 import { MaterialDiff } from "./MaterialDiff";
 
@@ -83,30 +83,39 @@ const Chessboard: React.FC<ChessboardProps> = ({
 
   const pieceCount: PieceCount = getPieceCounts(fen);
 
-  const convertedArrows =
-    chessboardState.arrows &&
-    chessboardState.arrows.map((arrow) => {
-      return [arrow.from, arrow.to, arrow?.color];
-    });
+  // Convert arrows to react-chessboard v5 format
+  const convertedArrows: RCArrow[] = useMemo(() => {
+    if (!chessboardState.arrows) return [];
+    return chessboardState.arrows.map((arrow) => ({
+      startSquare: arrow.from,
+      endSquare: arrow.to,
+      color: arrow.color || "rgb(0, 128, 0)",
+    }));
+  }, [chessboardState.arrows]);
 
   const onPieceDrop = useCallback(
-    (sourceSquare: Square, targetSquare: Square, piece: string): boolean => {
+    ({ piece, sourceSquare, targetSquare }: PieceDropHandlerArgs): boolean => {
+      if (targetSquare === null) {
+        return false;
+      }
+
       const originalPiece: PieceSymbol | null =
-        chessboardState.getPieceAtSquare(sourceSquare);
+        chessboardState.getPieceAtSquare(sourceSquare as Square);
       if (originalPiece === null) {
-        throw new Error("originalPiece is null");
+        console.error("originalPiece is null for square:", sourceSquare);
+        return false;
       }
 
       const promoteToPiece = getPromoteToPiece(
-        sourceSquare,
-        targetSquare,
+        sourceSquare as Square,
+        targetSquare as Square,
         originalPiece,
-        convertToPieceSymbol(piece),
+        convertToPieceSymbol(piece.pieceType),
       );
 
       const moveAndPosition = chessboardState.createMoveOrNull(
-        sourceSquare,
-        targetSquare,
+        sourceSquare as Square,
+        targetSquare as Square,
         promoteToPiece,
       );
 
@@ -121,13 +130,17 @@ const Chessboard: React.FC<ChessboardProps> = ({
       // (which will likely update the board state).
       return onLegalMove(
         newPosition,
-        sourceSquare,
-        targetSquare,
+        sourceSquare as Square,
+        targetSquare as Square,
         promoteToPiece,
       );
     },
     [chessboardState, onLegalMove],
   );
+
+  // Compute board orientation string
+  const boardOrientation: "white" | "black" =
+    chessboardState.orientation === WHITE ? "white" : "black";
 
   return (
     <div
@@ -139,19 +152,18 @@ const Chessboard: React.FC<ChessboardProps> = ({
         color={chessboardState.orientation === WHITE ? BLACK : WHITE}
         className="h-6"
       />
-      <ReactChessboard
-        position={fen}
-        customDarkSquareStyle={{ backgroundColor: "#34495e" }}
-        boardWidth={chessboardSize}
-        areArrowsAllowed={true}
-        boardOrientation={
-          chessboardState.orientation === WHITE ? "white" : "black"
-        }
-        onPieceDrop={onPieceDrop}
-        customArrows={convertedArrows}
-        customArrowColor="rgb(0, 128, 0)"
-        promotionDialogVariant="default"
-      />
+      <div style={{ width: chessboardSize, height: chessboardSize }}>
+        <ReactChessboard
+          options={{
+            position: fen,
+            boardOrientation: boardOrientation,
+            darkSquareStyle: { backgroundColor: "#34495e" },
+            allowDrawingArrows: true,
+            arrows: convertedArrows,
+            onPieceDrop: onPieceDrop,
+          }}
+        />
+      </div>
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation === WHITE ? WHITE : BLACK}

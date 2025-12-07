@@ -2,9 +2,8 @@ import { Fen } from "@/chess/Fen";
 import { Move, moveResultToMove } from "@/chess/Move";
 import { Position, createPosition } from "@/chess/Position";
 import { Arrow } from "@/components/Chessboard";
-import { Chess, Color, Move as MoveResult, PieceSymbol, WHITE } from "chess.js";
+import { Chess, Color, Move as MoveResult, PieceSymbol, Square, WHITE } from "chess.js";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { Square } from "react-chessboard/dist/chessboard/types";
 
 // A Chessboard consists of:
 // - A list of positions
@@ -165,7 +164,7 @@ export const useChessboardState = (): ChessboardState => {
 
   const getPieceAtSquare = (square: Square): PieceSymbol | null => {
     const piece = gameObject.current.get(square);
-    return piece.type;
+    return piece?.type ?? null;
   };
 
   const getPosition = useCallback((): Position | null => {

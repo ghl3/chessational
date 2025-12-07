@@ -16,7 +16,7 @@ const ChessboardButton: React.FC<{
   ariaLabel: string;
 }> = ({ label, action, isDisabled, ariaLabel }) => (
   <button
-    className={`py-2 px-4 text-white bg-gray-700 hover:bg-gray-600 rounded transition-colors ${
+    className={`py-2 px-4 text-white bg-gray-700 hover:bg-gray-600 rounded-sm transition-colors ${
       isDisabled ? "opacity-50 cursor-not-allowed" : ""
     }`}
     onClick={action}

@@ -4,6 +4,7 @@ import { Line, createLineId } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { PositionNode as Node } from "@/chess/PositionTree";
 import { ChapterAndLines } from "@/chess/StudyChapterAndLines";
+import { WHITE } from "chess.js";
 
 type PositionKey = string;
 
@@ -100,7 +101,7 @@ const getLinesFromChapter = (
 ): Line[] => {
   const orientation = chapter.orientation;
   var node: Node = chapter.positionTree;
-  const playerHasFirstMove = orientation === "w";
+  const playerHasFirstMove = orientation === WHITE;
 
   const positionLists: Position[][] = getAllMoveLists(
     node,

@@ -36,7 +36,7 @@ const baseClasses = `
   inline-flex items-center justify-center
   font-normal rounded-md
   transition-colors duration-200
-  focus:outline-none focus:ring-2 focus:ring-offset-2
+  focus:outline-hidden focus:ring-2 focus:ring-offset-2
   disabled:opacity-50 disabled:pointer-events-none
   select-none
 `;

@@ -173,7 +173,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       >
         <div
           className={`
-          w-full p-2 text-white rounded
+          w-full p-2 text-white rounded-sm
           flex justify-between items-center
           transition-colors duration-200
           ${
@@ -208,7 +208,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
 
         {isOpen && (
           <div
-            className="absolute left-0 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto"
+            className="absolute left-0 w-full mt-1 bg-white border border-gray-300 rounded-sm shadow-lg max-h-60 overflow-auto"
             style={{ zIndex: 20 }}
             role="listbox"
             aria-multiselectable={multiSelect}
@@ -267,7 +267,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
             {multiSelect && options.length > 1 && (
               <div className="flex justify-between p-2 border-t border-gray-200">
                 <button
-                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-700 transition-colors duration-200"
+                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded-sm hover:bg-blue-700 transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onChange(
@@ -280,7 +280,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
                   Select All
                 </button>
                 <button
-                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-700 transition-colors duration-200"
+                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded-sm hover:bg-blue-700 transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onChange([]);

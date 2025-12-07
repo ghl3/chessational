@@ -96,7 +96,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
         <h2 className="text-xl font-semibold text-white">Add New Study</h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white text-2xl transition-colors focus:outline-none"
+          className="text-gray-400 hover:text-white text-2xl transition-colors focus:outline-hidden"
           aria-label="Close dialog"
         >
           ×
@@ -104,7 +104,7 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
       </div>
       <div className="flex flex-col gap-4">
         <input
-          className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           type="text"
           placeholder="Enter Lichess Study URL"
           value={studyUrl}

@@ -1,5 +1,6 @@
 import { Chapter } from "@/chess/Chapter";
 import { Position } from "@/chess/Position";
+import { WHITE } from "chess.js";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import Tree, { TreeNodeDatum } from "react-d3-tree";
 import { processNode, handleToggle, CustomNodeDatum, isNodeCollapsed, hasAnyChildren } from "./OpeningTreeUtils";
@@ -180,7 +181,7 @@ const TreeNode: React.FC<{
   onClick: (node: CustomNodeDatum) => void;
 }> = ({ nodeDatum, onClick }) => {
   const isRoot = nodeDatum.attributes?.isRoot === true;
-  const isWhite = nodeDatum.position?.lastMove?.player === "w";
+  const isWhite = nodeDatum.position?.lastMove?.player === WHITE;
   const hasChildren = hasAnyChildren(nodeDatum);
   const collapsed = isNodeCollapsed(nodeDatum);
 
@@ -227,7 +228,7 @@ const TreeNode: React.FC<{
             
             {/* Expansion Badge - show when node has hidden children */}
             {hasChildren && collapsed && (
-              <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-gray-900 shadow-sm z-10">
+              <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center border-2 border-gray-900 shadow-xs z-10">
                 <span className="text-black text-[10px] font-bold leading-none">+</span>
               </div>
             )}

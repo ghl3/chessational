@@ -1,4 +1,4 @@
-import { Chess, Color } from "chess.js";
+import { Chess, Color, WHITE } from "chess.js";
 import { Fen, FenUtil } from "../chess/Fen";
 import { makeComparator } from "./Comparator";
 import { EvaluatedPosition, MoveAndEvaluation } from "./EvaluatedPosition";
@@ -95,8 +95,6 @@ export class Engine {
 
   _log = (message: string) => {
     if (this.debug) {
-      // Debug logging only when debug mode is enabled
-      // eslint-disable-next-line no-console
       console.log(message);
     }
   };
@@ -254,7 +252,7 @@ export class Engine {
       return [];
     }
 
-    const color_factor = color === "w" ? 1 : -1;
+    const color_factor = color === WHITE ? 1 : -1;
 
     // TODO: Dedupe
     // Example:
@@ -330,7 +328,7 @@ export class Engine {
     // (such that positive is favorable to white and negative is
     // favorable to black).
     if (info?.score?.cp !== null && info?.score?.cp !== undefined) {
-      const s: number = color === "w" ? info.score.cp : -1 * info.score.cp;
+      const s: number = color === WHITE ? info.score.cp : -1 * info.score.cp;
       return { score: s, depth: info?.depth };
     } else if (info?.score?.mate !== undefined) {
       const mate_in = Math.abs(info.score.mate);

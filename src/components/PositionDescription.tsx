@@ -19,7 +19,7 @@ export const PositionDescription: React.FC<PositionDescriptionProps> = ({
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-2">
         <span className="text-gray-400 text-sm">Moves:</span>
-        <div className="flex flex-wrap gap-2 p-3 bg-gray-700 rounded">
+        <div className="flex flex-wrap gap-2 p-3 bg-gray-700 rounded-sm">
           {positions
             .filter((position) => position.lastMove !== null)
             .map((position, index) => (
@@ -37,7 +37,7 @@ export const PositionDescription: React.FC<PositionDescriptionProps> = ({
         <input
           type="text"
           readOnly
-          className="flex-1 bg-gray-700 text-gray-100 px-3 py-2 rounded border border-gray-600"
+          className="flex-1 bg-gray-700 text-gray-100 px-3 py-2 rounded-sm border border-gray-600"
           value={currentPosition?.fen}
         />
       </div>

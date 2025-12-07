@@ -13,7 +13,7 @@ export const StudyRefreshButton: React.FC<StudyRefreshButtonProps> = ({
 }) => {
   return (
     <button
-      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:outline-none focus:ring-blue-300"
+      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:outline-hidden focus:ring-blue-300"
       onClick={async () => refreshStudy(study)}
     >
       Refresh Study

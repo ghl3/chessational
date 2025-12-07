@@ -75,7 +75,7 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
     <div className="relative">
       <div
         ref={buttonRef}
-        className="border rounded cursor-pointer flex justify-between items-center whitespace-nowrap hover:bg-gray-700"
+        className="border rounded-sm cursor-pointer flex justify-between items-center whitespace-nowrap hover:bg-gray-700"
         onClick={toggleDropdown}
       >
         <span>{text}</span>
@@ -96,12 +96,12 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
         <div
           ref={dropdownRef}
           style={{ minWidth: `${buttonWidth}px` }}
-          className="absolute z-10 border border-gray-400 rounded p-2 bg-black w-auto"
+          className="absolute z-10 border border-gray-400 rounded-sm p-2 bg-black w-auto"
         >
           {options.map((option) => (
             <div
               key={option.value}
-              className="whitespace-nowrap hover:bg-gray-700 p-1 rounded"
+              className="whitespace-nowrap hover:bg-gray-700 p-1 rounded-sm"
             >
               <input
                 type="checkbox"
@@ -123,13 +123,13 @@ const CheckboxDropdown: React.FC<CheckboxDropdownProps> = ({
           ))}
           <div className="flex justify-between mt-2">
             <button
-              className="border rounded p-2 hover:bg-gray-700"
+              className="border rounded-sm p-2 hover:bg-gray-700"
               onClick={selectAll}
             >
               Select All
             </button>
             <button
-              className="border rounded p-2 hover:bg-gray-700"
+              className="border rounded-sm p-2 hover:bg-gray-700"
               onClick={clearAll}
             >
               Clear All

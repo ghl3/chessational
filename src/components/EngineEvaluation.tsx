@@ -1,6 +1,7 @@
 import { Position } from "@/chess/Position";
 import { EvaluationUtil } from "@/engine/Evaluation";
 import { EngineData } from "@/hooks/UseEngineData";
+import { WHITE } from "chess.js";
 import { useEffect, useMemo } from "react";
 import Table from "./Table";
 
@@ -47,7 +48,7 @@ export const EngineEvaluation: React.FC<EngineEvaluationProps> = ({
         const scoreB = b?.evaluation?.score || 0;
         // For white, we sort in descending order (b-a)
         // and for black, we sort in ascending order (a-b)
-        return positionEvaluation.color === "w"
+        return positionEvaluation.color === WHITE
           ? scoreB - scoreA
           : scoreA - scoreB;
       })

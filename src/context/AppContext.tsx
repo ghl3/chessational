@@ -11,8 +11,7 @@ import { Engine } from "@/engine/Engine";
 import { Position } from "@/chess/Position";
 import { executeLegalMoveIfIsCorrect } from "@/components/Review";
 import { MoveExecutor } from "@/components/Chessboard";
-import { PieceSymbol } from "chess.js";
-import { Square } from "react-chessboard/dist/chessboard/types";
+import { PieceSymbol, Square } from "chess.js";
 
 // Only run the engine on the client
 let engine: Engine | null = null;
@@ -26,7 +25,7 @@ export interface AppContextType {
   engineData: EngineData;
   reviewState: ReviewState;
   boardSize: number;
-  containerRef: RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement | null>;
   onLegalMove: MoveExecutor;
 }
 

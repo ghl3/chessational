@@ -131,7 +131,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         onChange={handleInputChange}
         onFocus={() => setIsOpen(true)}
         onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100 placeholder-gray-400"
+        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-gray-100 placeholder-gray-400"
         placeholder="Search chess lines..."
       />
       {isOpen && suggestions.length > 0 && (

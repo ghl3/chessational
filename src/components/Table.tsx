@@ -1,7 +1,7 @@
 interface TableProps {
   title: string;
   headers: string[];
-  rows: JSX.Element[][]; // Array of rows, each row is an array of JSX elements
+  rows: React.JSX.Element[][]; // Array of rows, each row is an array of JSX elements
   loading: boolean;
   minRows?: number; // optional minRows prop
 }
@@ -48,7 +48,7 @@ const Table: React.FC<TableProps> = ({
   };
 
   return (
-    <div className="p-4 rounded">
+    <div className="p-4 rounded-sm">
       <div className="text-lg font-semibold mb-2">{title}</div>
 
       {loading ? (

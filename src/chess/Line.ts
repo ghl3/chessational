@@ -21,11 +21,9 @@ export type LineStatus = "WHITE_TO_MOVE" | "BLACK_TO_MOVE" | "LINE_COMPLETE";
 export const getLineStatus = (line: Line, index: number): LineStatus => {
   if (index === line.positions.length - 1) {
     return "LINE_COMPLETE";
-  } else if (index % 2 === 0) {
-    return "WHITE_TO_MOVE";
-  } else {
-    return "BLACK_TO_MOVE";
   }
+  // Even indices = white to move (matches FEN turn), odd indices = black to move
+  return index % 2 === 0 ? "WHITE_TO_MOVE" : "BLACK_TO_MOVE";
 };
 
 export const lineToSan = (line: Line): string[] => {
