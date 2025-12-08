@@ -10,7 +10,7 @@ import { pickLine } from "@/utils/LinePicker";
 import { PieceSymbol, Square } from "chess.js";
 import { default as React, useCallback, useMemo } from "react";
 import { db } from "../app/db";
-import { ControlButton } from "./ControlButton";
+import { Button } from "./Button";
 import { DetailsPanel } from "./DetailsPanel";
 import { StatusBanner } from "./StatusBanner";
 
@@ -124,28 +124,27 @@ const Controls: React.FC<ControlProps> = ({
   const lineIsComplete = lineStatus === "LINE_COMPLETE";
 
   return (
-    <div className="flex flex-wrap gap-4">
-      <ControlButton
+    <div className="flex flex-wrap gap-3">
+      <Button
         onClick={onNewLine}
         label="New Line"
         size="large"
         disabled={!hasLines}
       />
-      {hasActiveLine && (
-        <ControlButton
-          onClick={onRestartLine}
-          label="Restart Line"
-          size="large"
-        />
-      )}
-      {hasActiveLine && !lineIsComplete && (
-        <ControlButton
-          onClick={toggleShowSolution}
-          label="Show Solution"
-          size="large"
-          disabled={lineIsComplete}
-        />
-      )}
+      <Button
+        onClick={onRestartLine}
+        label="Restart Line"
+        size="large"
+        disabled={!hasActiveLine}
+        className={!hasActiveLine ? "invisible" : ""}
+      />
+      <Button
+        onClick={toggleShowSolution}
+        label="Show Solution"
+        size="large"
+        disabled={!hasActiveLine || lineIsComplete}
+        className={!hasActiveLine ? "invisible" : ""}
+      />
     </div>
   );
 };

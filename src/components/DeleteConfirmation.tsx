@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "./Button";
 
 interface DeleteConfirmationProps {
   onConfirmDeleteYes: () => void;
@@ -11,20 +12,22 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
 }) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-sm p-4">
-        <h2 className="text-lg font-bold mb-4 text-black">Confirm Delete</h2>
-        <button
-          className="bg-blue-500 text-white rounded-sm px-4 py-2 mr-2"
-          onClick={onConfirmDeleteYes}
-        >
-          Yes
-        </button>
-        <button
-          className="bg-gray-300 text-black rounded-sm px-4 py-2"
-          onClick={onConfirmDeleteNo}
-        >
-          No
-        </button>
+      <div className="bg-gray-800 rounded-lg p-6">
+        <h2 className="text-lg font-bold mb-4 text-white">Confirm Delete</h2>
+        <div className="flex gap-3">
+          <Button
+            label="Yes, Delete"
+            variant="danger"
+            size="medium"
+            onClick={onConfirmDeleteYes}
+          />
+          <Button
+            label="Cancel"
+            variant="secondary"
+            size="medium"
+            onClick={onConfirmDeleteNo}
+          />
+        </div>
       </div>
     </div>
   );

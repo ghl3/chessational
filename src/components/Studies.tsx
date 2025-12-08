@@ -5,6 +5,7 @@ import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { StudyData } from "@/hooks/UseStudyData";
 import { fetchStudy } from "@/utils/StudyFetcher";
 import React, { useCallback, useState } from "react";
+import { Button } from "./Button";
 import DeleteConfirmation from "./DeleteConfirmation";
 import StudyCardList from "./StudyCardList";
 import StudyInput from "./StudyInput";
@@ -20,17 +21,6 @@ const LoadingScreen: React.FC = () => (
     </div>
   </div>
 );
-
-const AddStudyButton = ({ onClick }: { onClick: () => void }) => {
-  return (
-    <button
-      className="px-4 py-2 text-white rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors"
-      onClick={onClick}
-    >
-      Add Study
-    </button>
-  );
-};
 
 export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
   const {
@@ -125,7 +115,12 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
             deleteStudy={showDeleteConfirmation}
             refreshStudy={refreshStudy}
           />
-          <AddStudyButton onClick={() => setIsStudyInput(true)} />
+          <Button
+            label="Add Study"
+            variant="primary"
+            size="medium"
+            onClick={() => setIsStudyInput(true)}
+          />
         </div>
       );
     }

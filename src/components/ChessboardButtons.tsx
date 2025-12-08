@@ -1,6 +1,7 @@
 import React, { HTMLAttributes } from "react";
+import { Button } from "./Button";
 
-interface ChessboardButtonProps extends HTMLAttributes<HTMLDivElement> {
+interface ChessboardButtonsProps extends HTMLAttributes<HTMLDivElement> {
   isDisabled: boolean;
   handleJumpToStart: () => void;
   handleLeftClick: () => void;
@@ -9,25 +10,7 @@ interface ChessboardButtonProps extends HTMLAttributes<HTMLDivElement> {
   handleFlipBoard: () => void;
 }
 
-const ChessboardButton: React.FC<{
-  label: string | React.ReactNode;
-  action: () => void;
-  isDisabled: boolean;
-  ariaLabel: string;
-}> = ({ label, action, isDisabled, ariaLabel }) => (
-  <button
-    className={`py-2 px-4 text-white bg-gray-700 hover:bg-gray-600 rounded-sm transition-colors ${
-      isDisabled ? "opacity-50 cursor-not-allowed" : ""
-    }`}
-    onClick={action}
-    disabled={isDisabled}
-    aria-label={ariaLabel}
-  >
-    {label}
-  </button>
-);
-
-const ChessboardButtons: React.FC<ChessboardButtonProps> = ({
+const ChessboardButtons: React.FC<ChessboardButtonsProps> = ({
   isDisabled,
   handleJumpToStart,
   handleLeftClick,
@@ -41,35 +24,45 @@ const ChessboardButtons: React.FC<ChessboardButtonProps> = ({
 
   return (
     <div className="flex gap-2">
-      <ChessboardButton
+      <Button
         label="«"
-        action={handleJumpToStart}
-        isDisabled={isDisabled}
-        ariaLabel="Jump to start"
+        variant="secondary"
+        size="small"
+        onClick={handleJumpToStart}
+        disabled={isDisabled}
+        aria-label="Jump to start"
       />
-      <ChessboardButton
+      <Button
         label="←"
-        action={handleLeftClick}
-        isDisabled={isDisabled}
-        ariaLabel="Previous move"
+        variant="secondary"
+        size="small"
+        onClick={handleLeftClick}
+        disabled={isDisabled}
+        aria-label="Previous move"
       />
-      <ChessboardButton
+      <Button
         label="→"
-        action={handleRightClick}
-        isDisabled={isDisabled}
-        ariaLabel="Next move"
+        variant="secondary"
+        size="small"
+        onClick={handleRightClick}
+        disabled={isDisabled}
+        aria-label="Next move"
       />
-      <ChessboardButton
+      <Button
         label="»"
-        action={handleJumpToEnd}
-        isDisabled={isDisabled}
-        ariaLabel="Jump to end"
+        variant="secondary"
+        size="small"
+        onClick={handleJumpToEnd}
+        disabled={isDisabled}
+        aria-label="Jump to end"
       />
-      <ChessboardButton
-        label="Flip Board"
-        action={handleFlipBoard}
-        isDisabled={isDisabled}
-        ariaLabel="Flip board orientation"
+      <Button
+        label="Flip"
+        variant="secondary"
+        size="small"
+        onClick={handleFlipBoard}
+        disabled={isDisabled}
+        aria-label="Flip board orientation"
       />
     </div>
   );

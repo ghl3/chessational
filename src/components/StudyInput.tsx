@@ -2,6 +2,7 @@
 
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { useCallback, useState } from "react";
+import { Button } from "./Button";
 
 interface StudyAdderProps extends React.HTMLAttributes<HTMLDivElement> {
   fetchStudy: (studyId: string) => Promise<StudyChapterAndLines>;
@@ -112,17 +113,14 @@ export const StudyAdder: React.FC<StudyAdderProps> = ({
           onKeyDown={handleKeyDown}
           aria-label="Lichess Study URL input"
         />
-        <button
-          className={`w-full px-4 py-2 text-white rounded-lg transition-colors ${
-            studyUrl
-              ? "bg-blue-500 hover:bg-blue-600"
-              : "bg-gray-600 cursor-not-allowed opacity-50"
-          }`}
+        <Button
+          label="Add Study"
+          variant="primary"
+          size="medium"
+          fullWidth
           onClick={onStudySubmit}
           disabled={!studyUrl || studyUrl.trim() === ""}
-        >
-          Add Study
-        </button>
+        />
       </div>
     </div>
   );

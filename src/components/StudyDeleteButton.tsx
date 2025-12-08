@@ -1,6 +1,7 @@
 import { Study } from "@/chess/Study";
+import { Button } from "./Button";
 
-interface StudyDeleteButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+interface StudyDeleteButtonProps {
   study: Study;
   deleteStudy: (studyName: string) => void;
 }
@@ -10,12 +11,12 @@ export const StudyDeleteButton: React.FC<StudyDeleteButtonProps> = ({
   deleteStudy,
 }) => {
   return (
-    <button
+    <Button
+      label="Delete"
+      variant="danger"
+      size="small"
       onClick={() => deleteStudy(study.name)}
-      className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 focus:ring-4 focus:outline-hidden focus:ring-red-300"
-    >
-      Delete
-    </button>
+    />
   );
 };
 

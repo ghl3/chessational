@@ -1,8 +1,9 @@
 "use client";
 
 import { Study } from "@/chess/Study";
+import { Button } from "./Button";
 
-interface StudyRefreshButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+interface StudyRefreshButtonProps {
   study: Study;
   refreshStudy: (study: Study) => void;
 }
@@ -12,11 +13,11 @@ export const StudyRefreshButton: React.FC<StudyRefreshButtonProps> = ({
   refreshStudy,
 }) => {
   return (
-    <button
-      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:outline-hidden focus:ring-blue-300"
-      onClick={async () => refreshStudy(study)}
-    >
-      Refresh Study
-    </button>
+    <Button
+      label="Refresh"
+      variant="primary"
+      size="small"
+      onClick={() => refreshStudy(study)}
+    />
   );
 };
