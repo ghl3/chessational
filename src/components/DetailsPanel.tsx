@@ -55,9 +55,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
     setShowComments((showComments) => !showComments);
   }, []);
 
+  const hasExpandedContent = showChapter || showEngine || showPgn || showDatabase || (showComments && comments.length > 0);
+
   return (
-    <div className="flex flex-col gap-4 bg-gray-800 rounded-lg p-4">
-      <div className="flex flex-wrap gap-4">
+    <div className="flex flex-col gap-3 rounded-lg border border-gray-700 p-3">
+      <div className="flex flex-wrap gap-3">
         <SwitchButton
           onChange={toggleShowChapter}
           checked={showChapter}
@@ -95,29 +97,31 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = memo(({
         />
       </div>
 
-      <div className="flex flex-col gap-4">
-        {showChapter && chapter && (
-          <ChapterInfo chapter={chapter} position={currentPosition} />
-        )}
-        {showEngine && currentPosition && (
-          <EngineEvaluation
-            position={currentPosition}
-            engineData={engineData}
-          />
-        )}
-        {showPgn && currentPosition && (
-          <PositionDescription
-            currentPosition={currentPosition}
-            positions={positions}
-          />
-        )}
-        {showDatabase && currentPosition && (
-          <Database position={currentPosition} />
-        )}
-        {showComments && comments && comments.length > 0 && (
-          <CommentArea comments={comments} />
-        )}
-      </div>
+      {hasExpandedContent && (
+        <div className="flex flex-col gap-3 pt-2 border-t border-gray-700">
+          {showChapter && chapter && (
+            <ChapterInfo chapter={chapter} position={currentPosition} />
+          )}
+          {showEngine && currentPosition && (
+            <EngineEvaluation
+              position={currentPosition}
+              engineData={engineData}
+            />
+          )}
+          {showPgn && currentPosition && (
+            <PositionDescription
+              currentPosition={currentPosition}
+              positions={positions}
+            />
+          )}
+          {showDatabase && currentPosition && (
+            <Database position={currentPosition} />
+          )}
+          {showComments && comments && comments.length > 0 && (
+            <CommentArea comments={comments} />
+          )}
+        </div>
+      )}
     </div>
   );
 });

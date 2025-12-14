@@ -141,14 +141,18 @@ export const Attempts: React.FC<AttemptsProps> = ({
   );
 
   return (
-    <div className="flex flex-col flex-1 gap-4">
-      <DetailsPanel
-        chapter={reviewState.lineAndChapter?.chapter}
-        currentPosition={chessboardState.getCurrentPosition() ?? undefined}
-        positions={chessboardState.positions}
-        engineData={engineData}
-      />
-      <DynamicTable columns={columns} data={attemptRows} />
+    <div className="flex-1 min-h-0 flex flex-col gap-3">
+      <div className="flex-none">
+        <DetailsPanel
+          chapter={reviewState.lineAndChapter?.chapter}
+          currentPosition={chessboardState.getCurrentPosition() ?? undefined}
+          positions={chessboardState.positions}
+          engineData={engineData}
+        />
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <DynamicTable columns={columns} data={attemptRows} />
+      </div>
     </div>
   );
 };

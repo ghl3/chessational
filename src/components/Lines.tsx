@@ -170,20 +170,22 @@ const Lines: React.FC<LinesProps> = ({
 
   if (lines.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[200px] text-gray-400 italic bg-gray-800 rounded-lg">
+      <div className="flex items-center justify-center min-h-[200px] text-gray-400 italic">
         Select a chapter to view lines
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3 h-full">
-      <DetailsPanel
-        chapter={reviewState.lineAndChapter?.chapter}
-        currentPosition={chessboardState.getCurrentPosition() ?? undefined}
-        positions={chessboardState.positions}
-        engineData={engineData}
-      />
+    <div className="flex-1 min-h-0 flex flex-col gap-3">
+      <div className="flex-none">
+        <DetailsPanel
+          chapter={reviewState.lineAndChapter?.chapter}
+          currentPosition={chessboardState.getCurrentPosition() ?? undefined}
+          positions={chessboardState.positions}
+          engineData={engineData}
+        />
+      </div>
       <div className="flex-none">
         <SearchBar
           filteredLines={lineAndChapters}
@@ -191,7 +193,7 @@ const Lines: React.FC<LinesProps> = ({
           setTokens={setSearchTokens}
         />
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <DynamicTable
           columns={columns}
           data={tableData}

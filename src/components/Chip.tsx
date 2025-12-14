@@ -17,7 +17,7 @@ const Chip: React.FC<ChipProps> = ({
   isRemovable = false,
   size = "text-sm",
 }) => {
-  const baseClasses = `inline-flex items-center px-3 py-1 rounded-full font-medium transition-colors duration-200 ease-in-out ${size}`;
+  const baseClasses = `inline-flex items-center px-1.5 py-0.5 rounded font-medium transition-colors duration-200 ease-in-out ${size}`;
 
   return (
     <span

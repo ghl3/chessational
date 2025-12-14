@@ -5,7 +5,7 @@ import { NavBar } from "@/components/NavBar";
 import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 import { AppProvider, useAppContext } from "@/context/AppContext";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useRef, useState, useLayoutEffect } from "react";
 
 // Inner layout that has access to context
 const TabsLayoutInner: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -15,15 +15,35 @@ const TabsLayoutInner: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Determine if we should show the chapter selector (all tabs except studies)
   const showChapterSelector = pathname !== "/studies";
 
+  // Use a ref to measure the actual chessboard container dimensions
+  const chessboardWrapperRef = useRef<HTMLDivElement>(null);
+  const [rightPanelSize, setRightPanelSize] = useState<{ width: number; height: number } | null>(null);
+
+  // Measure the chessboard container and sync the right panel dimensions
+  useLayoutEffect(() => {
+    const updateSize = () => {
+      if (chessboardWrapperRef.current) {
+        setRightPanelSize({
+          width: chessboardWrapperRef.current.offsetWidth,
+          height: chessboardWrapperRef.current.offsetHeight,
+        });
+      }
+    };
+    
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, [boardSize]);
+
   return (
-    <div className="min-h-screen w-full flex flex-col bg-gray-900">
+    <div className="h-screen w-full flex flex-col bg-gray-900 overflow-hidden">
       <div
         ref={containerRef}
-        className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center overflow-hidden"
+        className="flex-1 flex flex-col lg:flex-row gap-4 p-4 min-h-0 justify-center items-start"
       >
         {/* Chessboard Section - Left/Top */}
-        <div className="flex-shrink-0 flex items-start justify-center lg:h-full overflow-y-auto lg:overflow-visible">
-          <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
+        <div className="flex-shrink-0">
+          <div ref={chessboardWrapperRef} className="bg-gray-800 rounded-lg p-4 shadow-lg">
             <Chessboard
               chessboardSize={boardSize}
               chessboardState={chessboardState}
@@ -32,9 +52,12 @@ const TabsLayoutInner: React.FC<{ children: ReactNode }> = ({ children }) => {
           </div>
         </div>
 
-        {/* Right Panel Section - Right/Bottom */}
-        <div className="w-full lg:w-[45%] lg:min-w-[450px] flex-shrink-0 flex flex-col min-h-0 !h-auto lg:h-full">
-          <div className="w-full h-full flex flex-col bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        {/* Right Panel Section - Right/Bottom - matches chessboard container size exactly */}
+        <div 
+          className="w-full lg:w-auto flex flex-col flex-shrink-0"
+          style={rightPanelSize ? { width: `${rightPanelSize.width}px`, height: `${rightPanelSize.height}px` } : undefined}
+        >
+          <div className="h-full flex flex-col bg-gray-800 rounded-lg shadow-lg overflow-hidden">
             {/* Navigation - Fixed at top */}
             <div className="flex-none">
               <NavBar />
@@ -42,16 +65,14 @@ const TabsLayoutInner: React.FC<{ children: ReactNode }> = ({ children }) => {
 
             {/* Chapter Selector - Fixed below nav for relevant tabs */}
             {showChapterSelector && (
-              <div className="flex-none">
+              <div className="flex-none border-b border-gray-700">
                 <StudyChapterSelector studyData={studyData} />
               </div>
             )}
 
-            {/* Main Content Area - Scrollable per tab requirement */}
-            <div className="flex-1 min-h-0 flex flex-col relative">
-              <div className="absolute inset-0 overflow-y-auto p-3">
-                {children}
-              </div>
+            {/* Main Content Area - Fill remaining space, children handle scrolling */}
+            <div className="flex-1 min-h-0 p-4 flex flex-col">
+              {children}
             </div>
           </div>
         </div>
