@@ -330,6 +330,13 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
+      <DetailsPanel
+        chapter={reviewState.lineAndChapter?.chapter || undefined}
+        currentPosition={position || undefined}
+        positions={chessboardState.positions}
+        engineData={engineData}
+      />
+
       <Controls
         lineStatus={reviewState.lineStatus}
         onNewLine={onNewLine}
@@ -342,13 +349,6 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
         lineStatus={reviewState.lineStatus}
         moveResult={reviewState.lineMoveResult || undefined}
         orientation={chessboardState.orientation}
-      />
-
-      <DetailsPanel
-        chapter={reviewState.lineAndChapter?.chapter || undefined}
-        currentPosition={position || undefined}
-        positions={chessboardState.positions}
-        engineData={engineData}
       />
     </div>
   );

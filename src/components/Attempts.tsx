@@ -1,9 +1,13 @@
 import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
+import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
+import { EngineData } from "@/hooks/UseEngineData";
+import { ReviewState } from "@/hooks/UseReviewState";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { DetailsPanel } from "./DetailsPanel";
 import DynamicTable, {
   BASE_COLUMN_WIDTHS,
   ClickableLineFn,
@@ -23,6 +27,8 @@ interface AttemptsProps {
   chapters: Chapter[];
   attempts: Attempt[];
   chessboardState: ChessboardState;
+  engineData: EngineData;
+  reviewState: ReviewState;
 }
 
 export const Attempts: React.FC<AttemptsProps> = ({
@@ -30,7 +36,16 @@ export const Attempts: React.FC<AttemptsProps> = ({
   chapters,
   attempts,
   chessboardState,
+  engineData,
+  reviewState,
 }) => {
+  const handleLineSelect = useCallback(
+    (lineAndChapter: LineAndChapter) => {
+      reviewState.setLineAndChapter(lineAndChapter, chessboardState);
+    },
+    [reviewState, chessboardState],
+  );
+
   const lineAndChapters = useMemo(() => {
     if (lines === undefined || chapters === undefined) {
       return [];
@@ -63,7 +78,11 @@ export const Attempts: React.FC<AttemptsProps> = ({
         // Handle old attempts with lines that are now missing
         const lineElements: React.JSX.Element[] =
           lineAndChapter !== undefined && lineAndChapter !== null
-            ? makePositionChips(lineAndChapter, chessboardState)
+            ? makePositionChips(
+                lineAndChapter,
+                chessboardState,
+                handleLineSelect,
+              )
             : [<div key={attempt.lineId}>{attempt.lineId}</div>];
 
         return {
@@ -84,7 +103,7 @@ export const Attempts: React.FC<AttemptsProps> = ({
         }
         return b.attemptDate.getTime() - a.attemptDate.getTime();
       });
-  }, [attempts, lineAndChapters, chessboardState]);
+  }, [attempts, lineAndChapters, chessboardState, handleLineSelect]);
 
   const columnHelper = createColumnHelper<AttemptRow>();
   const columns = useMemo(
@@ -122,7 +141,13 @@ export const Attempts: React.FC<AttemptsProps> = ({
   );
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 gap-4">
+      <DetailsPanel
+        chapter={reviewState.lineAndChapter?.chapter}
+        currentPosition={chessboardState.getCurrentPosition() ?? undefined}
+        positions={chessboardState.positions}
+        engineData={engineData}
+      />
       <DynamicTable columns={columns} data={attemptRows} />
     </div>
   );

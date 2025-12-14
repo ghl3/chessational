@@ -5,7 +5,7 @@ import { useAppContext } from "@/context/AppContext";
 import { useMemo } from "react";
 
 const LinesPage = () => {
-  const { studyData, chessboardState } = useAppContext();
+  const { studyData, chessboardState, engineData, reviewState } = useAppContext();
 
   const lines = useMemo(() => studyData.lines || [], [studyData.lines]);
   const chapters = useMemo(() => studyData.chapters || [], [studyData.chapters]);
@@ -17,6 +17,8 @@ const LinesPage = () => {
       chapters={chapters}
       attempts={attempts}
       chessboardState={chessboardState}
+      engineData={engineData}
+      reviewState={reviewState}
     />
   );
 };

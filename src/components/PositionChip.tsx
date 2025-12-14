@@ -59,6 +59,7 @@ export const PositionChip: React.FC<{
 export const makePositionChips = (
   lineAndChapter: LineAndChapter,
   chessboardState: ChessboardState,
+  onChipClick?: (lineAndChapter: LineAndChapter) => void,
 ): React.JSX.Element[] => {
   if (lineAndChapter.line.positions.length === 0) {
     return [];
@@ -72,6 +73,7 @@ export const makePositionChips = (
         lineAndChapter.line.positions,
         index + 1, // Add one because we skipped the first position
       );
+      onChipClick?.(lineAndChapter);
     };
     const key = `${lineAndChapter.line.lineId}-${index}`;
     return (

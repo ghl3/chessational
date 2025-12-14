@@ -3,10 +3,13 @@ import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
+import { EngineData } from "@/hooks/UseEngineData";
+import { ReviewState } from "@/hooks/UseReviewState";
 import { getStats, LineStats } from "@/utils/LineStats";
 import { Token } from "@/utils/Tokenizer";
 import { createColumnHelper } from "@tanstack/react-table";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { DetailsPanel } from "./DetailsPanel";
 import {
   BASE_COLUMN_WIDTHS,
   ClickableLineFn,
@@ -31,6 +34,8 @@ interface LinesProps {
   chapters: Chapter[];
   attempts: Attempt[];
   chessboardState: ChessboardState;
+  engineData: EngineData;
+  reviewState: ReviewState;
 }
 
 const Lines: React.FC<LinesProps> = ({
@@ -38,7 +43,16 @@ const Lines: React.FC<LinesProps> = ({
   chapters,
   attempts,
   chessboardState,
+  engineData,
+  reviewState,
 }) => {
+  const handleLineSelect = useCallback(
+    (lineAndChapter: LineAndChapter) => {
+      reviewState.setLineAndChapter(lineAndChapter, chessboardState);
+    },
+    [reviewState, chessboardState],
+  );
+
   const lineAndChapters = useMemo(() => {
     if (lines === undefined || chapters === undefined) {
       return [];
@@ -85,7 +99,7 @@ const Lines: React.FC<LinesProps> = ({
         lineAndChapter: lineAndChapter,
         studyName: lineAndChapter.line.studyName,
         chapterName: lineAndChapter.line.chapterName,
-        line: makePositionChips(lineAndChapter, chessboardState),
+        line: makePositionChips(lineAndChapter, chessboardState, handleLineSelect),
         numAttempts: stat?.numAttempts || 0,
         numCorrect: stat?.numCorrect || 0,
         latestAttempt: stat?.latestAttempt || null,
@@ -94,12 +108,16 @@ const Lines: React.FC<LinesProps> = ({
     }
 
     return rows;
-  }, [filteredLines, chessboardState, stats]);
+  }, [filteredLines, chessboardState, stats, handleLineSelect]);
 
-  const onRowClick = (row: LineRow) => {
-    chessboardState.setOrientation(row.lineAndChapter.chapter.orientation);
-    chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
-  };
+  const onRowClick = useCallback(
+    (row: LineRow) => {
+      chessboardState.setOrientation(row.lineAndChapter.chapter.orientation);
+      chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
+      handleLineSelect(row.lineAndChapter);
+    },
+    [chessboardState, handleLineSelect],
+  );
 
   const columnHelper = createColumnHelper<LineRow>();
   const columns = useMemo(
@@ -160,6 +178,12 @@ const Lines: React.FC<LinesProps> = ({
 
   return (
     <div className="flex flex-col gap-3 h-full">
+      <DetailsPanel
+        chapter={reviewState.lineAndChapter?.chapter}
+        currentPosition={chessboardState.getCurrentPosition() ?? undefined}
+        positions={chessboardState.positions}
+        engineData={engineData}
+      />
       <div className="flex-none">
         <SearchBar
           filteredLines={lineAndChapters}
