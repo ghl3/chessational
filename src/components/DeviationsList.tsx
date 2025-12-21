@@ -34,7 +34,7 @@ export const DeviationsSummary: React.FC<DeviationsSummaryProps> = ({
         <div className="text-xs text-gray-400">Games Analyzed</div>
       </div>
       <div className="text-center">
-        <div className="text-lg font-bold text-red-400">
+        <div className="text-lg font-bold text-red-400/80">
           {playerDeviations}
         </div>
         <div className="text-xs text-gray-400">Your Deviations</div>
@@ -94,7 +94,7 @@ const DeviationItem: React.FC<{
         p-3 rounded-lg cursor-pointer transition-colors border
         ${
           isSelected
-            ? "bg-red-900/30 border-red-500"
+            ? "bg-rose-900/30 border-rose-500"
             : "bg-gray-800/50 border-gray-700 hover:bg-gray-700/50"
         }
       `}
@@ -112,30 +112,30 @@ const DeviationItem: React.FC<{
 
       {/* Move comparison: Played vs Expected */}
       <div className="space-y-2 mb-2">
-        {/* Played moves (incorrect - red) */}
+        {/* Played moves (incorrect - rose) */}
         <div className="flex items-start gap-2">
-          <span className="text-xs text-red-400 w-16 shrink-0 pt-1">✗ Played:</span>
+          <span className="text-xs text-rose-400 w-16 shrink-0 pt-1">✗ Played:</span>
           <div className="flex flex-wrap gap-1">
             {deviations.map((d, i) => (
               <span 
                 key={i} 
-                className="font-mono font-bold text-red-400 text-sm bg-red-900/20 px-2 py-0.5 rounded"
+                className="font-mono font-bold text-rose-400 text-sm bg-rose-900/20 px-2 py-0.5 rounded"
                 title={`${d.occurrences}× played`}
               >
                 {d.playedMove.san}
-                <span className="text-red-600 text-xs ml-1">({d.occurrences})</span>
+                <span className="text-rose-600 text-xs ml-1">({d.occurrences})</span>
               </span>
             ))}
           </div>
         </div>
         
-        {/* Expected moves (correct - green) */}
+        {/* Expected moves (correct - emerald) */}
         {firstDev.expectedMoves.length > 0 && (
           <div className="flex items-start gap-2">
-            <span className="text-xs text-green-400 w-16 shrink-0 pt-1">✓ Correct:</span>
+            <span className="text-xs text-emerald-400 w-16 shrink-0 pt-1">✓ Correct:</span>
             <div className="flex flex-wrap gap-1">
               {firstDev.expectedMoves.map((m, i) => (
-                <span key={i} className="font-mono font-medium text-green-400 text-sm bg-green-900/20 px-2 py-0.5 rounded">
+                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/20 px-2 py-0.5 rounded">
                   {m.san}
                 </span>
               ))}
@@ -147,8 +147,8 @@ const DeviationItem: React.FC<{
       {/* Stats row */}
       <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-700/50">
         <div className="flex items-center gap-3">
-          <span className="text-green-400">W: {winPct.toFixed(0)}%</span>
-          <span className="text-red-400">L: {lossPct.toFixed(0)}%</span>
+          <span className="text-teal-400/90">W: {winPct.toFixed(0)}%</span>
+          <span className="text-red-400/70">L: {lossPct.toFixed(0)}%</span>
         </div>
         <span className="text-gray-500 italic">
           Click to view
@@ -241,13 +241,13 @@ const GapItem: React.FC<{
           </div>
         </div>
         
-        {/* What was prepared (green) */}
+        {/* What was prepared (emerald) */}
         {firstDev.expectedMoves.length > 0 && (
           <div className="flex items-start gap-2">
-            <span className="text-xs text-green-400 w-20 shrink-0 pt-1">✓ Prepared:</span>
+            <span className="text-xs text-emerald-400 w-20 shrink-0 pt-1">✓ Prepared:</span>
             <div className="flex flex-wrap gap-1">
               {firstDev.expectedMoves.map((m, i) => (
-                <span key={i} className="font-mono font-medium text-green-400 text-sm bg-green-900/20 px-2 py-0.5 rounded">
+                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/20 px-2 py-0.5 rounded">
                   {m.san}
                 </span>
               ))}
@@ -259,8 +259,8 @@ const GapItem: React.FC<{
       {/* Stats row */}
       <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-700/50">
         <div className="flex items-center gap-3">
-          <span className="text-green-400">W: {winPct.toFixed(0)}%</span>
-          <span className="text-red-400">L: {lossPct.toFixed(0)}%</span>
+          <span className="text-teal-400/90">W: {winPct.toFixed(0)}%</span>
+          <span className="text-red-400/70">L: {lossPct.toFixed(0)}%</span>
         </div>
         <span className="text-gray-500 italic">
           Click to view position

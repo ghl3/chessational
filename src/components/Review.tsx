@@ -128,20 +128,23 @@ const Controls: React.FC<ControlProps> = ({
       <Button
         onClick={onNewLine}
         label="New Line"
-        size="large"
+        variant="primary"
+        size="medium"
         disabled={!hasLines}
       />
       <Button
         onClick={onRestartLine}
         label="Restart Line"
-        size="large"
+        variant="secondary"
+        size="medium"
         disabled={!hasActiveLine}
         className={!hasActiveLine ? "invisible" : ""}
       />
       <Button
         onClick={toggleShowSolution}
         label="Show Solution"
-        size="large"
+        variant="secondary"
+        size="medium"
         disabled={!hasActiveLine || lineIsComplete}
         className={!hasActiveLine ? "invisible" : ""}
       />
@@ -282,7 +285,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
             onClick={onNavigateToStudies}
             className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
           >
-            Go to Studies Tab
+            Go to Repertoire
           </button>
         )}
       </div>
@@ -293,7 +296,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     return (
       <EmptyState
         title="No Studies Available"
-        message="You need to add a study before you can review lines. Go to the Studies tab to add a Lichess study."
+        message="You need to add a study before you can review lines. Go to the Repertoire tab to add a Lichess study."
         showButton={true}
       />
     );
@@ -303,7 +306,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     return (
       <EmptyState
         title="No Study Selected"
-        message="Please select a study from the dropdown above, or go to the Studies tab to add a new study."
+        message="Please select a study from the dropdown above, or go to the Repertoire tab to add a new study."
         showButton={true}
       />
     );
@@ -322,7 +325,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     return (
       <EmptyState
         title="No Lines Available"
-        message="The selected chapters don't have any lines to review. Try selecting different chapters or add a new study."
+        message="The selected chapters don't have any lines to review. Try selecting different chapters or add a new study in the Repertoire tab."
         showButton={true}
       />
     );

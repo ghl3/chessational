@@ -23,7 +23,7 @@ const TabButton: React.FC<{
   onClick: () => void;
   badge?: number;
   badgeColor?: string;
-}> = ({ label, isActive, onClick, badge, badgeColor = "bg-red-500" }) => {
+}> = ({ label, isActive, onClick, badge, badgeColor = "bg-rose-500" }) => {
   return (
     <button
       className={`
@@ -97,7 +97,7 @@ export const FlippablePanel: React.FC<FlippablePanelProps> = ({
           isActive={currentView === "deviations"}
           onClick={() => handleViewChange("deviations")}
           badge={deviationsCount}
-          badgeColor="bg-red-500"
+          badgeColor="bg-rose-500"
         />
         <TabButton
           label="Gaps"

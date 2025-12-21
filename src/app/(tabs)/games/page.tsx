@@ -59,8 +59,8 @@ const ErrorState: React.FC<{ error: string; onRetry: () => void }> = ({
   return (
     <div className="flex items-center justify-center py-12">
       <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 max-w-md text-center">
-        <div className="text-red-400 text-4xl mb-3">⚠</div>
-        <h3 className="text-red-400 font-semibold mb-2">Error Loading Games</h3>
+        <div className="text-rose-400 text-4xl mb-3">⚠</div>
+        <h3 className="text-rose-400 font-semibold mb-2">Error Loading Games</h3>
         <p className="text-gray-400 text-sm mb-4">{error}</p>
         <button
           onClick={onRetry}
@@ -108,7 +108,7 @@ const GamesHeader: React.FC<{
         {hasRepertoire && !isCompared && (
           <button
             onClick={onCompare}
-            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded transition-colors"
           >
             Compare to Repertoire
           </button>

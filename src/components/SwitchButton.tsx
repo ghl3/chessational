@@ -67,22 +67,22 @@ const variantClasses: Record<
   }
 > = {
   primary: {
-    active: "bg-blue-500",
+    active: "bg-blue-600",
     inactive: "bg-gray-600",
     dot: "bg-white",
   },
   success: {
-    active: "bg-green-500",
+    active: "bg-emerald-600",
     inactive: "bg-gray-600",
     dot: "bg-white",
   },
   danger: {
-    active: "bg-red-500",
+    active: "bg-rose-600",
     inactive: "bg-gray-600",
     dot: "bg-white",
   },
   warning: {
-    active: "bg-yellow-500",
+    active: "bg-amber-500",
     inactive: "bg-gray-600",
     dot: "bg-white",
   },
@@ -169,7 +169,7 @@ export const SwitchButton = React.forwardRef<
           block rounded-full transition-colors duration-200
           ${switchSize}
           ${checked ? active : inactive}
-          ${error ? "ring-2 ring-red-500" : ""}
+          ${error ? "ring-2 ring-rose-500" : ""}
           ${disabled ? "opacity-50" : ""}
           ${!disabled ? "cursor-pointer" : ""}
         `.trim()}
@@ -216,7 +216,7 @@ export const SwitchButton = React.forwardRef<
         className={`
         ${labelSize}
         ${disabled ? "text-gray-400" : "text-white"}
-        ${error ? "text-red-500" : ""}
+        ${error ? "text-rose-500" : ""}
         ${!disabled ? "cursor-pointer" : ""}
       `.trim()}
         onClick={handleClick}

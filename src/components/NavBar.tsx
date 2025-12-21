@@ -3,25 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type Tab = "REVIEW" | "STUDIES" | "LINES" | "ATTEMPTS" | "TREE" | "GAMES";
+export type Tab = "REPERTOIRE" | "PRACTICE" | "GAMES";
 
 // Map tabs to their URL paths
 const TAB_PATHS: Record<Tab, string> = {
-  REVIEW: "/",
-  STUDIES: "/studies",
-  LINES: "/lines",
-  ATTEMPTS: "/attempts",
-  TREE: "/tree",
+  REPERTOIRE: "/repertoire",
+  PRACTICE: "/practice",
   GAMES: "/games",
 };
 
 // Map paths to tabs for reverse lookup
 const PATH_TO_TAB: Record<string, Tab> = {
-  "/": "REVIEW",
-  "/studies": "STUDIES",
-  "/lines": "LINES",
-  "/attempts": "ATTEMPTS",
-  "/tree": "TREE",
+  "/": "PRACTICE", // Root redirects to practice
+  "/repertoire": "REPERTOIRE",
+  "/practice": "PRACTICE",
   "/games": "GAMES",
 };
 
@@ -31,10 +26,16 @@ const NavEntry: React.FC<{
   isActive: boolean;
 }> = ({ name, href, isActive }) => {
   return (
-    <li className={isActive ? "border-b-2 border-blue-500" : ""}>
+    <li>
       <Link
         href={href}
-        className="hover:text-blue-300 transition duration-300"
+        className={`
+          px-4 py-2 rounded-lg font-medium transition-colors duration-200
+          ${isActive 
+            ? "bg-blue-600/80 text-white" 
+            : "text-gray-300 hover:text-white hover:bg-gray-700"
+          }
+        `}
         aria-label={`Switch to ${name} tab`}
         aria-selected={isActive}
         role="tab"
@@ -47,39 +48,24 @@ const NavEntry: React.FC<{
 
 export const NavBar: React.FC = () => {
   const pathname = usePathname();
-  const currentTab = PATH_TO_TAB[pathname] || "REVIEW";
+  const currentTab = PATH_TO_TAB[pathname] || "PRACTICE";
 
   return (
     <nav
-      className="flex flex-row bg-gray-800 text-white p-4 justify-center"
+      className="flex flex-row text-white justify-center"
       role="navigation"
       aria-label="Main navigation"
     >
-      <ul className="flex space-x-4" role="tablist">
+      <ul className="flex space-x-2" role="tablist">
         <NavEntry
-          name="Review"
-          href={TAB_PATHS.REVIEW}
-          isActive={currentTab === "REVIEW"}
+          name="Repertoire"
+          href={TAB_PATHS.REPERTOIRE}
+          isActive={currentTab === "REPERTOIRE"}
         />
         <NavEntry
-          name="Studies"
-          href={TAB_PATHS.STUDIES}
-          isActive={currentTab === "STUDIES"}
-        />
-        <NavEntry
-          name="Lines"
-          href={TAB_PATHS.LINES}
-          isActive={currentTab === "LINES"}
-        />
-        <NavEntry
-          name="Attempts"
-          href={TAB_PATHS.ATTEMPTS}
-          isActive={currentTab === "ATTEMPTS"}
-        />
-        <NavEntry
-          name="Tree"
-          href={TAB_PATHS.TREE}
-          isActive={currentTab === "TREE"}
+          name="Practice"
+          href={TAB_PATHS.PRACTICE}
+          isActive={currentTab === "PRACTICE"}
         />
         <NavEntry
           name="Games"

@@ -41,21 +41,21 @@ const ResultBar: React.FC<{ stats: GameStats }> = ({ stats }) => {
   return (
     <div className="flex items-center gap-2">
       <div className="flex h-3 w-24 rounded overflow-hidden bg-gray-700">
-        {/* Win (green) */}
+        {/* Win (teal - subtle green) */}
         <div
-          className="bg-green-500 h-full"
+          className="bg-teal-600/80 h-full"
           style={{ width: `${winPct}%` }}
           title={`Wins: ${winPct.toFixed(1)}%`}
         />
         {/* Draw (gray) */}
         <div
-          className="bg-gray-400 h-full"
+          className="bg-gray-500 h-full"
           style={{ width: `${drawPct}%` }}
           title={`Draws: ${drawPct.toFixed(1)}%`}
         />
-        {/* Loss (red) */}
+        {/* Loss (muted coral/red) */}
         <div
-          className="bg-red-500 h-full"
+          className="bg-red-400/70 h-full"
           style={{ width: `${lossPct}%` }}
           title={`Losses: ${lossPct.toFixed(1)}%`}
         />
@@ -75,7 +75,7 @@ const RepertoireBadge: React.FC<{ inRepertoire: boolean }> = ({
 }) => {
   if (inRepertoire) {
     return (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-900 text-green-300">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-900 text-emerald-300">
         Rep
       </span>
     );

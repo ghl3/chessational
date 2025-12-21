@@ -13,12 +13,12 @@ const colorClasses: Record<ChipColor, Record<ChipVariant, string>> = {
     dark: "bg-blue-700 text-blue-100 hover:bg-blue-800",
   },
   green: {
-    light: "bg-green-100 text-green-800 hover:bg-green-200",
-    dark: "bg-green-700 text-green-100 hover:bg-green-800",
+    light: "bg-emerald-100 text-emerald-800 hover:bg-emerald-200",
+    dark: "bg-emerald-700 text-emerald-100 hover:bg-emerald-800",
   },
   red: {
-    light: "bg-red-100 text-red-800 hover:bg-red-200",
-    dark: "bg-red-700 text-red-100 hover:bg-red-800",
+    light: "bg-rose-100 text-rose-800 hover:bg-rose-200",
+    dark: "bg-rose-700 text-rose-100 hover:bg-rose-800",
   },
 };
 

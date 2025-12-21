@@ -173,16 +173,17 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       >
         <div
           className={`
-          w-full p-2 text-white rounded-sm
+          w-full p-2 rounded-lg
           flex justify-between items-center
           transition-colors duration-200
+          border
           ${
             disabled
-              ? "bg-blue-300 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-700 cursor-pointer"
+              ? "bg-gray-700 text-gray-500 cursor-not-allowed border-gray-600"
+              : "bg-gray-800 text-gray-200 hover:text-white hover:bg-gray-700 cursor-pointer border-blue-600/60 hover:border-blue-500"
           }
-          ${error ? "border-2 border-red-500" : ""}
-          ${isOpen ? "ring-2 ring-blue-400" : ""}
+          ${error ? "border-2 border-rose-500" : ""}
+          ${isOpen ? "border-blue-500 text-white bg-gray-700" : ""}
         `}
           onClick={() => !disabled && setIsOpen(!isOpen)}
           role="button"
@@ -208,7 +209,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
 
         {isOpen && (
           <div
-            className="absolute left-0 w-full mt-1 bg-white border border-gray-300 rounded-sm shadow-lg max-h-60 overflow-auto"
+            className="absolute left-0 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto"
             style={{ zIndex: 20 }}
             role="listbox"
             aria-multiselectable={multiSelect}
@@ -223,20 +224,20 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
                   if (index !== -1) optionsRef.current[index] = el;
                 }}
                 className={`
-                p-2 cursor-pointer
+                p-2 cursor-pointer transition-colors
                 ${
                   option.disabled
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "hover:bg-blue-200 hover:ring-2 hover:ring-blue-400 hover:ring-inset"
+                    ? "bg-gray-900 text-gray-500 cursor-not-allowed"
+                    : "hover:bg-gray-700"
                 }
                 ${
                   !option.disabled &&
                   focusedIndex ===
                     validOptions.findIndex((opt) => opt.value === option.value)
-                    ? "bg-blue-200 ring-2 ring-blue-400 ring-inset"
+                    ? "bg-gray-700 text-white"
                     : selectedValues.includes(option.value)
-                    ? "bg-blue-50"
-                    : ""
+                    ? "bg-gray-700/50 text-white"
+                    : "text-gray-300"
                 }
               `}
                 onClick={() => handleOptionClick(option.value, option.disabled)}
@@ -249,14 +250,14 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
                     checked={selectedValues.includes(option.value)}
                     onChange={() => {}}
                     disabled={option.disabled}
-                    className="mr-2"
+                    className="mr-2 accent-blue-500"
                     aria-hidden="true"
                     tabIndex={-1}
                   />
                 )}
                 <span
                   className={
-                    option.disabled ? "text-gray-400" : "text-gray-900"
+                    option.disabled ? "text-gray-500" : ""
                   }
                 >
                   {option.label}
@@ -265,9 +266,9 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
             ))}
 
             {multiSelect && options.length > 1 && (
-              <div className="flex justify-between p-2 border-t border-gray-200">
+              <div className="flex justify-between p-2 border-t border-gray-700">
                 <button
-                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded-sm hover:bg-blue-700 transition-colors duration-200"
+                  className="px-3 py-1 text-sm text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onChange(
@@ -280,7 +281,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
                   Select All
                 </button>
                 <button
-                  className="px-3 py-1 text-sm text-white bg-blue-500 rounded-sm hover:bg-blue-700 transition-colors duration-200"
+                  className="px-3 py-1 text-sm text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onChange([]);

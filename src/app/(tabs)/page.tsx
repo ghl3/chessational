@@ -1,27 +1,23 @@
 "use client";
 
-import { Review } from "@/components/Review";
-import { useAppContext } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useEffect } from "react";
 
-const ReviewPage = () => {
-  const { chessboardState, studyData, engineData, reviewState } = useAppContext();
+/**
+ * Home page - redirects to the Practice page
+ */
+const HomePage = () => {
   const router = useRouter();
 
-  const navigateToStudies = useCallback(() => {
-    router.push("/studies");
+  useEffect(() => {
+    router.replace("/practice");
   }, [router]);
 
   return (
-    <Review
-      chessboardState={chessboardState}
-      studyData={studyData}
-      engineData={engineData}
-      reviewState={reviewState}
-      onNavigateToStudies={navigateToStudies}
-    />
+    <div className="flex items-center justify-center min-h-[200px]">
+      <div className="text-gray-400">Redirecting to Practice...</div>
+    </div>
   );
 };
 
-export default ReviewPage;
+export default HomePage;

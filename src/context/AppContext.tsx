@@ -67,8 +67,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children, currentTab }
       promoteToPiece?: PieceSymbol,
     ): boolean => {
       // The user is in 'Quiz' mode until the end of the line, where
-      // they enter 'Explore' mode.
-      if (currentTab === "/" && reviewState.lineStatus !== "LINE_COMPLETE") {
+      // they enter 'Explore' mode. Quiz mode is active on the Practice page.
+      if (currentTab === "/practice" && reviewState.lineStatus !== "LINE_COMPLETE") {
         return executeLegalMoveIfIsCorrect(
           chessboardState,
           reviewState,

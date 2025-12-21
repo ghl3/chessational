@@ -38,9 +38,9 @@ const getMoveResultText = (result: LineMoveResult | null): string => {
 const getMoveResultColor = (result: LineMoveResult | null): string => {
   switch (result) {
     case "CORRECT":
-      return "text-green-400";
+      return "text-emerald-400";
     case "INCORRECT":
-      return "text-red-400";
+      return "text-rose-400";
     default:
       return "text-gray-400";
   }

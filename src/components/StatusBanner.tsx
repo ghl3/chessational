@@ -194,9 +194,9 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
       case "your-turn":
         return `${baseStyles} bg-blue-900/50 border-2 border-blue-400 text-blue-100 status-banner-pulse`;
       case "correct":
-        return `${baseStyles} bg-green-900/60 border-2 border-green-400 text-green-100 ${showFlash ? "status-banner-flash" : ""}`;
+        return `${baseStyles} bg-emerald-900/60 border-2 border-emerald-400 text-emerald-100 ${showFlash ? "status-banner-flash" : ""}`;
       case "incorrect":
-        return `${baseStyles} bg-red-900/50 border-2 border-red-400 text-red-100`;
+        return `${baseStyles} bg-rose-900/50 border-2 border-rose-400 text-rose-100`;
       case "complete":
         return `${baseStyles} bg-emerald-900/50 border-2 border-emerald-400 text-emerald-100 ${showFlash ? "status-banner-flash-green" : ""}`;
       default:

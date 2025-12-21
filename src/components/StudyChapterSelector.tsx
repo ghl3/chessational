@@ -87,7 +87,7 @@ export const StudyChapterSelector: React.FC<{
     : undefined;
 
   return (
-    <div className="flex flex-wrap gap-2 p-3">
+    <div className="flex flex-wrap gap-2 px-3 pt-3 mb-1">
       <StudySelector
         studies={studyData.studies}
         selectedStudy={studyData.selectedStudy || null}
