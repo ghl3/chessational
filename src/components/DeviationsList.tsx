@@ -355,12 +355,6 @@ export const GapsList: React.FC<DeviationsListProps> = ({
 
   return (
     <div className="space-y-2 overflow-auto">
-      <div className="bg-amber-900/20 border border-amber-700/50 rounded-lg p-3 mb-3">
-        <p className="text-xs text-amber-200">
-          <strong>Gaps in your repertoire:</strong> Opponent moves you faced but hadn&apos;t prepared for. 
-          Shows what you <span className="text-green-400">did prepare</span> vs <span className="text-amber-400">unprepared moves</span>.
-        </p>
-      </div>
       {sortedGroups.map(([fen, devsAtPosition]) => (
         <GapItem
           key={`gap-${fen}`}
