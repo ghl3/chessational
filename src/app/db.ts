@@ -8,6 +8,17 @@ import { Study } from "@/chess/Study";
 import { ChessComGame } from "@/chess/ChessComGame";
 import Dexie, { Table } from "dexie";
 
+/**
+ * Stored config for games search caching
+ */
+export interface GamesSearchConfig {
+  id: number; // Always 1 - we only store one config
+  username: string;
+  startDate: number; // Unix timestamp
+  endDate: number; // Unix timestamp
+  timeClasses: string[];
+}
+
 export class OpeningsDb extends Dexie {
   studies!: Table<Study>;
   chapters!: Table<Chapter>;
@@ -17,6 +28,7 @@ export class OpeningsDb extends Dexie {
   positions!: Table<{ fen: Fen; database: LichessDatabase }>;
   attempts!: Table<Attempt>;
   chesscomGames!: Table<ChessComGame>;
+  gamesSearchConfig!: Table<GamesSearchConfig>;
 
   constructor() {
     super("OpeningsDb");
@@ -35,6 +47,9 @@ export class OpeningsDb extends Dexie {
     });
     this.version(4).stores({
       chesscomGames: "gameId, username, date",
+    });
+    this.version(5).stores({
+      gamesSearchConfig: "id",
     });
   }
 }

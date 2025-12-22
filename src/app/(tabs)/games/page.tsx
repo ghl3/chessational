@@ -38,12 +38,12 @@ const EmptyState: React.FC<{
 /**
  * Loading indicator
  */
-const LoadingState: React.FC = () => {
+const LoadingState: React.FC<{ message?: string }> = ({ message }) => {
   return (
     <div className="flex items-center justify-center py-12">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-        <p className="text-gray-400">Loading games from Chess.com...</p>
+        <p className="text-gray-400">{message || "Loading games from Chess.com..."}</p>
         <p className="text-gray-500 text-sm mt-1">This may take a moment</p>
       </div>
     </div>
@@ -197,6 +197,7 @@ const GamesPage: React.FC = () => {
   const {
     config,
     isLoading,
+    isLoadingCache,
     error,
     games,
     whiteGames,
@@ -354,19 +355,20 @@ const GamesPage: React.FC = () => {
     // 1. Games have been loaded (games.length > 0)
     // 2. Repertoire is available (chapters exist)
     // 3. Haven't already compared (comparisonResult is null)
-    // 4. Not currently loading
+    // 4. Not currently loading (either from network or cache)
     if (
       games.length > 0 &&
       studyData.chapters &&
       studyData.chapters.length > 0 &&
       comparisonResult === null &&
-      !isLoading
+      !isLoading &&
+      !isLoadingCache
     ) {
       console.log("Auto-comparing to repertoire...");
       compareToRepertoire(studyData.chapters);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [games.length, studyData.chapters?.length, isLoading]);
+  }, [games.length, studyData.chapters?.length, isLoading, isLoadingCache]);
 
   // Memoized values
   const hasRepertoire = useMemo(
@@ -398,6 +400,10 @@ const GamesPage: React.FC = () => {
   }, [setCurrentColor, chessboardState, navigateToPosition]);
 
   // Render based on state
+  if (isLoadingCache) {
+    return <LoadingState message="Checking for cached games..." />;
+  }
+
   if (isLoading) {
     return <LoadingState />;
   }

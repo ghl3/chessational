@@ -91,7 +91,7 @@ const DeviationItem: React.FC<{
   return (
     <div
       className={`
-        p-3 rounded-lg cursor-pointer transition-colors border
+        p-2.5 rounded-lg cursor-pointer transition-colors border
         ${
           isSelected
             ? "bg-rose-900/30 border-rose-500"
@@ -100,42 +100,48 @@ const DeviationItem: React.FC<{
       `}
       onClick={() => onClick(firstDev)}
     >
-      {/* Header with move number */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-400 text-xs font-medium">
+      {/* Study/Chapter source (if available) */}
+      {firstDev.studyName && (
+        <div className="text-xs text-blue-400/80 mb-1.5 truncate" title={`${firstDev.studyName} / ${firstDev.chapterName}`}>
+          {firstDev.studyName} {firstDev.chapterName && `› ${firstDev.chapterName}`}
+        </div>
+      )}
+
+      {/* Header with move number and occurrences */}
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-gray-300 text-sm font-medium">
           {formatMoveContext(firstDev.moveNumber)}
         </span>
         <span className="text-xs text-gray-500">
-          {totalOccurrences}× total
+          {totalOccurrences}×
         </span>
       </div>
 
-      {/* Move comparison: Played vs Expected */}
-      <div className="space-y-2 mb-2">
-        {/* Played moves (incorrect - rose) */}
-        <div className="flex items-start gap-2">
-          <span className="text-xs text-rose-400 w-16 shrink-0 pt-1">✗ Played:</span>
+      {/* Move comparison: Deviation vs Expected - more compact */}
+      <div className="flex items-center gap-3 mb-1.5">
+        {/* Deviation moves (rose) */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-rose-400/80">Played:</span>
           <div className="flex flex-wrap gap-1">
             {deviations.map((d, i) => (
               <span 
                 key={i} 
-                className="font-mono font-bold text-rose-400 text-sm bg-rose-900/20 px-2 py-0.5 rounded"
+                className="font-mono font-bold text-rose-400 text-sm bg-rose-900/30 px-1.5 py-0.5 rounded"
                 title={`${d.occurrences}× played`}
               >
                 {d.playedMove.san}
-                <span className="text-rose-600 text-xs ml-1">({d.occurrences})</span>
               </span>
             ))}
           </div>
         </div>
         
-        {/* Expected moves (correct - emerald) */}
+        {/* Expected moves (emerald) */}
         {firstDev.expectedMoves.length > 0 && (
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-emerald-400 w-16 shrink-0 pt-1">✓ Correct:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-emerald-400/80">Correct:</span>
             <div className="flex flex-wrap gap-1">
               {firstDev.expectedMoves.map((m, i) => (
-                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/20 px-2 py-0.5 rounded">
+                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/30 px-1.5 py-0.5 rounded">
                   {m.san}
                 </span>
               ))}
@@ -144,15 +150,10 @@ const DeviationItem: React.FC<{
         )}
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-700/50">
-        <div className="flex items-center gap-3">
-          <span className="text-teal-400/90">W: {winPct.toFixed(0)}%</span>
-          <span className="text-red-400/70">L: {lossPct.toFixed(0)}%</span>
-        </div>
-        <span className="text-gray-500 italic">
-          Click to view
-        </span>
+      {/* Stats row - compact */}
+      <div className="flex items-center gap-3 text-xs text-gray-500">
+        <span className="text-teal-400/80">W: {winPct.toFixed(0)}%</span>
+        <span className="text-red-400/60">L: {lossPct.toFixed(0)}%</span>
       </div>
     </div>
   );
@@ -204,7 +205,7 @@ const GapItem: React.FC<{
   return (
     <div
       className={`
-        p-3 rounded-lg cursor-pointer transition-colors border
+        p-2.5 rounded-lg cursor-pointer transition-colors border
         ${
           isSelected
             ? "bg-amber-900/30 border-amber-500"
@@ -213,41 +214,48 @@ const GapItem: React.FC<{
       `}
       onClick={() => onClick(firstDev)}
     >
-      {/* Header with move number */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-400 text-xs font-medium">
+      {/* Study/Chapter source (if available) */}
+      {firstDev.studyName && (
+        <div className="text-xs text-blue-400/80 mb-1.5 truncate" title={`${firstDev.studyName} / ${firstDev.chapterName}`}>
+          {firstDev.studyName} {firstDev.chapterName && `› ${firstDev.chapterName}`}
+        </div>
+      )}
+
+      {/* Header with move number and occurrences */}
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-gray-300 text-sm font-medium">
           {formatMoveContext(firstDev.moveNumber)}
         </span>
         <span className="text-xs text-gray-500">
-          {totalOccurrences}× total
+          {totalOccurrences}×
         </span>
       </div>
 
-      {/* Unprepared moves (what opponent played that we didn't prepare for) */}
-      <div className="space-y-2 mb-2">
-        <div className="flex items-start gap-2">
-          <span className="text-xs text-amber-400 w-20 shrink-0 pt-1">⚠ Unprepared:</span>
+      {/* Move comparison: Gap vs Prepared - more compact */}
+      <div className="flex items-center gap-3 mb-1.5">
+        {/* Gap moves (amber) */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-amber-400/80">Gap:</span>
           <div className="flex flex-wrap gap-1">
             {deviations.map((d, i) => (
               <span 
                 key={i} 
-                className="font-mono font-bold text-amber-400 text-sm bg-amber-900/20 px-2 py-0.5 rounded"
-                title={`${d.occurrences}× played`}
+                className="font-mono font-bold text-amber-400 text-sm bg-amber-900/30 px-1.5 py-0.5 rounded"
+                title={`${d.occurrences}× played by opponent`}
               >
                 {d.playedMove.san}
-                <span className="text-amber-600 text-xs ml-1">({d.occurrences})</span>
               </span>
             ))}
           </div>
         </div>
         
-        {/* What was prepared (emerald) */}
+        {/* Prepared moves (emerald) */}
         {firstDev.expectedMoves.length > 0 && (
-          <div className="flex items-start gap-2">
-            <span className="text-xs text-emerald-400 w-20 shrink-0 pt-1">✓ Prepared:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-emerald-400/80">Prepared:</span>
             <div className="flex flex-wrap gap-1">
               {firstDev.expectedMoves.map((m, i) => (
-                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/20 px-2 py-0.5 rounded">
+                <span key={i} className="font-mono font-medium text-emerald-400 text-sm bg-emerald-900/30 px-1.5 py-0.5 rounded">
                   {m.san}
                 </span>
               ))}
@@ -256,15 +264,10 @@ const GapItem: React.FC<{
         )}
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-700/50">
-        <div className="flex items-center gap-3">
-          <span className="text-teal-400/90">W: {winPct.toFixed(0)}%</span>
-          <span className="text-red-400/70">L: {lossPct.toFixed(0)}%</span>
-        </div>
-        <span className="text-gray-500 italic">
-          Click to view position
-        </span>
+      {/* Stats row - compact */}
+      <div className="flex items-center gap-3 text-xs text-gray-500">
+        <span className="text-teal-400/80">W: {winPct.toFixed(0)}%</span>
+        <span className="text-red-400/60">L: {lossPct.toFixed(0)}%</span>
       </div>
     </div>
   );

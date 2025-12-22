@@ -3,6 +3,7 @@ import { PositionNode, PositionTree } from "@/chess/PositionTree";
 import { Fen } from "@/chess/Fen";
 import { Move } from "@/chess/Move";
 import { Color, WHITE, BLACK } from "chess.js";
+import { Chapter } from "@/chess/Chapter";
 
 /**
  * A deviation from the repertoire
@@ -22,6 +23,9 @@ export interface Deviation {
   occurrences: number;
   // Move number (half-move)
   moveNumber: number;
+  // Source study/chapter for the expected moves (if applicable)
+  studyName?: string;
+  chapterName?: string;
 }
 
 /**
@@ -263,6 +267,86 @@ const getAllExpectedMoves = (
 };
 
 /**
+ * Result of getting expected moves with chapter info
+ */
+interface ExpectedMovesWithSource {
+  moves: Move[];
+  studyName?: string;
+  chapterName?: string;
+}
+
+/**
+ * Get all expected moves from chapters at a position, with source chapter info
+ */
+const getAllExpectedMovesFromChapters = (
+  gameFen: Fen,
+  chapters: Chapter[]
+): ExpectedMovesWithSource => {
+  const movesMap = new Map<string, Move>();
+  let sourceStudy: string | undefined;
+  let sourceChapter: string | undefined;
+  
+  for (const chapter of chapters) {
+    const repertoireNode = findInRepertoire(chapter.positionTree, gameFen);
+    if (repertoireNode) {
+      const chapterMoves = getExpectedMoves(repertoireNode);
+      if (chapterMoves.length > 0) {
+        // Track the first chapter with expected moves as the source
+        if (!sourceChapter) {
+          sourceStudy = chapter.studyName;
+          sourceChapter = chapter.name;
+        }
+        
+        for (const move of chapterMoves) {
+          const key = `${move.from}-${move.to}`;
+          if (!movesMap.has(key)) {
+            movesMap.set(key, move);
+          }
+        }
+      }
+    }
+  }
+  
+  return {
+    moves: Array.from(movesMap.values()),
+    studyName: sourceStudy,
+    chapterName: sourceChapter,
+  };
+};
+
+/**
+ * Check if a move is covered by ANY of the chapters
+ */
+const isMoveInAnyChapter = (
+  gameFen: Fen,
+  move: Move,
+  chapters: Chapter[]
+): boolean => {
+  for (const chapter of chapters) {
+    const repertoireNode = findInRepertoire(chapter.positionTree, gameFen);
+    if (repertoireNode && isMoveInRepertoire(repertoireNode, move)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * Check if position exists in any chapter
+ */
+const isPositionInAnyChapter = (
+  fen: Fen,
+  chapters: Chapter[]
+): boolean => {
+  for (const chapter of chapters) {
+    if (findInRepertoire(chapter.positionTree, fen)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
  * Check if position exists in any repertoire tree
  */
 const isPositionInAnyRepertoire = (
@@ -356,8 +440,86 @@ const walkAndCompareMultiple = (
 };
 
 /**
+ * Walk the game tree comparing against chapters (with source tracking)
+ */
+const walkAndCompareWithChapters = (
+  gameNode: GamePositionNode,
+  chapters: Chapter[],
+  playerColor: Color,
+  deviations: Map<string, Deviation>,
+  moveNumber: number
+): void => {
+  // Check if this position exists in any chapter
+  const inAnyChapter = isPositionInAnyChapter(gameNode.position.fen, chapters);
+  gameNode.inRepertoire = inAnyChapter;
+
+  // Process children
+  for (const child of gameNode.children) {
+    if (child.move === null) continue;
+
+    // Check if this move exists in ANY chapter
+    const isInRepertoire = isMoveInAnyChapter(
+      gameNode.position.fen,
+      child.move,
+      chapters
+    );
+
+    // TRANSPOSITION CHECK
+    const resultingPositionInRepertoire = isPositionInAnyChapter(
+      child.position.fen,
+      chapters
+    );
+
+    // Mark as in repertoire if either the move is there OR it transposes
+    child.inRepertoire = isInRepertoire || resultingPositionInRepertoire;
+
+    // Get expected moves with source chapter info
+    const { moves: expectedMoves, studyName, chapterName } = getAllExpectedMovesFromChapters(
+      gameNode.position.fen,
+      chapters
+    );
+
+    // Record deviation if applicable
+    if (!isInRepertoire && inAnyChapter && expectedMoves.length > 0 && !resultingPositionInRepertoire) {
+      const deviationKey = `${normalizeFen(gameNode.position.fen)}-${child.move.san}`;
+      const existingDeviation = deviations.get(deviationKey);
+
+      if (existingDeviation) {
+        existingDeviation.occurrences += child.stats.gameCount;
+        existingDeviation.stats.gameCount += child.stats.gameCount;
+        existingDeviation.stats.wins += child.stats.wins;
+        existingDeviation.stats.draws += child.stats.draws;
+        existingDeviation.stats.losses += child.stats.losses;
+      } else {
+        deviations.set(deviationKey, {
+          fen: gameNode.position.fen,
+          playedMove: child.move,
+          expectedMoves: expectedMoves,
+          deviatedBy: getDeviator(moveNumber + 1, playerColor),
+          stats: { ...child.stats },
+          occurrences: child.stats.gameCount,
+          moveNumber: moveNumber + 1,
+          studyName,
+          chapterName,
+        });
+      }
+    }
+
+    // Recurse into children
+    walkAndCompareWithChapters(
+      child,
+      chapters,
+      playerColor,
+      deviations,
+      moveNumber + 1
+    );
+  }
+};
+
+/**
  * Compare against multiple repertoire chapters - a move is only a deviation
  * if it's NOT covered by ANY chapter
+ * @deprecated Use compareToChapters instead for chapter source tracking
  */
 export const compareToRepertoireChapters = (
   gameTree: GamePositionTree,
@@ -368,6 +530,51 @@ export const compareToRepertoireChapters = (
   
   // Walk the game tree comparing against ALL repertoires together
   walkAndCompareMultiple(gameTree, repertoireTrees, playerColor, deviations, 0);
+
+  // Convert to array and sort by occurrences
+  const deviationArray = Array.from(deviations.values()).sort(
+    (a, b) => b.occurrences - a.occurrences
+  );
+
+  // Calculate summary
+  const playerDeviations = deviationArray.filter((d) => d.deviatedBy === "player");
+  const opponentDeviations = deviationArray.filter((d) => d.deviatedBy === "opponent");
+  const totalDeviationOccurrences = deviationArray.reduce(
+    (sum, d) => sum + d.occurrences,
+    0
+  );
+
+  return {
+    deviations: deviationArray,
+    markedTree: gameTree,
+    summary: {
+      totalGames: gameTree.stats.gameCount,
+      gamesWithDeviations: Math.min(
+        totalDeviationOccurrences,
+        gameTree.stats.gameCount
+      ),
+      playerDeviations: playerDeviations.reduce((sum, d) => sum + d.occurrences, 0),
+      opponentDeviations: opponentDeviations.reduce(
+        (sum, d) => sum + d.occurrences,
+        0
+      ),
+      mostCommonDeviation: deviationArray.length > 0 ? deviationArray[0] : null,
+    },
+  };
+};
+
+/**
+ * Compare against chapters with source tracking
+ */
+export const compareToChapters = (
+  gameTree: GamePositionTree,
+  chapters: Chapter[],
+  playerColor: Color
+): ComparisonResult => {
+  const deviations = new Map<string, Deviation>();
+  
+  // Walk the game tree comparing against chapters (with source tracking)
+  walkAndCompareWithChapters(gameTree, chapters, playerColor, deviations, 0);
 
   // Convert to array and sort by occurrences
   const deviationArray = Array.from(deviations.values()).sort(
