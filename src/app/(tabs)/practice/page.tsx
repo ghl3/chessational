@@ -6,6 +6,7 @@ import { useAppContext } from "@/context/AppContext";
 import { SubTabPanel, SubTab } from "@/components/SubTabPanel";
 import { Review } from "@/components/Review";
 import { Attempts } from "@/components/Attempts";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 
 const PracticePage: React.FC = () => {
   const { chessboardState, studyData, engineData, reviewState } = useAppContext();
@@ -27,13 +28,16 @@ const PracticePage: React.FC = () => {
         id: "quiz",
         label: "Quiz",
         content: (
-          <Review
-            chessboardState={chessboardState}
-            studyData={studyData}
-            engineData={engineData}
-            reviewState={reviewState}
-            onNavigateToStudies={navigateToStudies}
-          />
+          <div className="flex flex-col gap-3">
+            <StudyChapterSelector studyData={studyData} />
+            <Review
+              chessboardState={chessboardState}
+              studyData={studyData}
+              engineData={engineData}
+              reviewState={reviewState}
+              onNavigateToStudies={navigateToStudies}
+            />
+          </div>
         ),
       },
       {
@@ -42,14 +46,17 @@ const PracticePage: React.FC = () => {
         badge: attempts.length > 0 ? attempts.length : undefined,
         badgeColor: "bg-gray-600",
         content: (
-          <Attempts
-            lines={lines}
-            chapters={chapters}
-            attempts={attempts}
-            chessboardState={chessboardState}
-            engineData={engineData}
-            reviewState={reviewState}
-          />
+          <div className="flex flex-col gap-3 h-full">
+            <StudyChapterSelector studyData={studyData} />
+            <Attempts
+              lines={lines}
+              chapters={chapters}
+              attempts={attempts}
+              chessboardState={chessboardState}
+              engineData={engineData}
+              reviewState={reviewState}
+            />
+          </div>
         ),
       },
     ],

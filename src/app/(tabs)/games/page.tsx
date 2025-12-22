@@ -10,6 +10,7 @@ import { FlippablePanel, PanelView } from "@/components/FlippablePanel";
 import { generateSortedMoveArrows, generateDeviationArrows, generateUncoveredArrows, getDeviationsAtPosition } from "@/components/MoveArrows";
 import { GamePositionNode, findPathToFen, getMostCommonChild } from "@/chess/GamePositionTree";
 import { Deviation } from "@/utils/RepertoireComparer";
+import { Color, WHITE, BLACK } from "chess.js";
 
 /**
  * Empty state shown when no games have been loaded
@@ -78,17 +79,20 @@ const ErrorState: React.FC<{ error: string; onRetry: () => void }> = ({
  */
 const GamesHeader: React.FC<{
   config: GameReviewConfig;
-  gameCount: number;
+  whiteGameCount: number;
+  blackGameCount: number;
   onReset: () => void;
   onCompare: () => void;
   hasRepertoire: boolean;
   isCompared: boolean;
-}> = ({ config, gameCount, onReset, onCompare, hasRepertoire, isCompared }) => {
+}> = ({ config, whiteGameCount, blackGameCount, onReset, onCompare, hasRepertoire, isCompared }) => {
   const formatDate = (date: Date) =>
     date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 
+  const totalGames = whiteGameCount + blackGameCount;
+
   return (
-    <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-3 mb-4">
+    <div className="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-3">
       <div className="flex items-center gap-4">
         <div>
           <span className="text-gray-400 text-sm">Player:</span>{" "}
@@ -97,7 +101,10 @@ const GamesHeader: React.FC<{
         <div className="text-gray-600">|</div>
         <div>
           <span className="text-gray-400 text-sm">Games:</span>{" "}
-          <span className="text-white font-semibold">{gameCount}</span>
+          <span className="text-white font-semibold">{totalGames}</span>
+          <span className="text-gray-500 text-xs ml-1">
+            ({whiteGameCount}W / {blackGameCount}B)
+          </span>
         </div>
         <div className="text-gray-600">|</div>
         <div className="text-gray-400 text-sm">
@@ -125,6 +132,53 @@ const GamesHeader: React.FC<{
 };
 
 /**
+ * Color toggle for Moves tab
+ */
+const ColorToggle: React.FC<{
+  currentColor: Color;
+  onColorChange: (color: Color) => void;
+  whiteCount: number;
+  blackCount: number;
+}> = ({ currentColor, onColorChange, whiteCount, blackCount }) => {
+  return (
+    <div className="flex gap-2 mb-3">
+      <button
+        onClick={() => onColorChange(WHITE)}
+        disabled={whiteCount === 0}
+        className={`
+          flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm
+          ${
+            currentColor === WHITE
+              ? "bg-white text-gray-900 font-semibold"
+              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+          }
+          ${whiteCount === 0 ? "opacity-50 cursor-not-allowed" : ""}
+        `}
+      >
+        <span className="w-3 h-3 rounded-full bg-white border border-gray-400"></span>
+        White ({whiteCount})
+      </button>
+      <button
+        onClick={() => onColorChange(BLACK)}
+        disabled={blackCount === 0}
+        className={`
+          flex-1 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm
+          ${
+            currentColor === BLACK
+              ? "bg-gray-900 text-white font-semibold border border-gray-500"
+              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+          }
+          ${blackCount === 0 ? "opacity-50 cursor-not-allowed" : ""}
+        `}
+      >
+        <span className="w-3 h-3 rounded-full bg-gray-900 border border-gray-500"></span>
+        Black ({blackCount})
+      </button>
+    </div>
+  );
+};
+
+/**
  * Main Games page component
  */
 const GamesPage: React.FC = () => {
@@ -145,10 +199,14 @@ const GamesPage: React.FC = () => {
     isLoading,
     error,
     games,
+    whiteGames,
+    blackGames,
     gameTree,
     comparisonResult,
     currentNode,
     currentFen,
+    currentColor,
+    setCurrentColor,
     selectedDeviation,
     setSelectedDeviation,
     loadGames,
@@ -330,6 +388,15 @@ const GamesPage: React.FC = () => {
   const deviationsCount = playerDeviations.length;
   const uncoveredCount = uncoveredLines.length;
 
+  // Handle color change - also update chessboard orientation
+  const handleColorChange = useCallback((color: Color) => {
+    setCurrentColor(color);
+    // Update chessboard orientation to match the player's perspective
+    chessboardState.setOrientation(color);
+    // Reset to starting position when switching colors
+    navigateToPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  }, [setCurrentColor, chessboardState, navigateToPosition]);
+
   // Render based on state
   if (isLoading) {
     return <LoadingState />;
@@ -345,38 +412,43 @@ const GamesPage: React.FC = () => {
 
   // Main view with data
   return (
-    <div className="flex flex-col h-full gap-4">
-      {/* Header */}
-      <GamesHeader
-        config={config}
-        gameCount={games.length}
-        onReset={reset}
-        onCompare={handleCompare}
-        hasRepertoire={hasRepertoire ?? false}
-        isCompared={comparisonResult !== null}
-      />
-
-
-      {/* Flippable panel with move stats / deviations / gaps */}
-      <div className="flex-1 min-h-0">
-        <FlippablePanel
-          initialView={panelView}
-          onViewChange={setPanelView}
-          deviationsCount={deviationsCount}
-          gapsCount={uncoveredCount}
-          movesContent={
-            currentNode ? (
-              <MoveStatsTable
-                nodes={currentNode.children}
-                parentStats={currentNode.stats}
-                onMoveClick={handleMoveClick}
-                selectedMove={selectedDeviation?.playedMove.san}
+    <FlippablePanel
+      initialView={panelView}
+      onViewChange={setPanelView}
+      deviationsCount={deviationsCount}
+      gapsCount={uncoveredCount}
+      header={
+        <GamesHeader
+          config={config}
+          whiteGameCount={whiteGames.length}
+          blackGameCount={blackGames.length}
+          onReset={reset}
+          onCompare={handleCompare}
+          hasRepertoire={hasRepertoire ?? false}
+          isCompared={comparisonResult !== null}
+        />
+      }
+      movesContent={
+            <div className="flex flex-col h-full">
+              <ColorToggle
+                currentColor={currentColor}
+                onColorChange={handleColorChange}
+                whiteCount={whiteGames.length}
+                blackCount={blackGames.length}
               />
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                No position selected
-              </div>
-            )
+              {currentNode ? (
+                <MoveStatsTable
+                  nodes={currentNode.children}
+                  parentStats={currentNode.stats}
+                  onMoveClick={handleMoveClick}
+                  selectedMove={selectedDeviation?.playedMove.san}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  No position selected
+                </div>
+              )}
+            </div>
           }
           deviationsContent={
             comparisonResult ? (
@@ -423,8 +495,6 @@ const GamesPage: React.FC = () => {
             )
           }
         />
-      </div>
-    </div>
   );
 };
 

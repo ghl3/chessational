@@ -81,8 +81,8 @@ export const SubTabPanel: React.FC<SubTabPanelProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab headers */}
-      <div className="flex gap-1 px-2 bg-gray-900/50">
+      {/* Tab headers - pt-2 gives room for badge overflow */}
+      <div className="flex gap-1 px-2 pt-2 bg-gray-900/50">
         {tabs.map((tab) => (
           <TabButton
             key={tab.id}

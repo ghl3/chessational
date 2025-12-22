@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "./Button";
 import { GameReviewConfig } from "@/hooks/UseGameReviewState";
-import { WHITE, BLACK, Color } from "chess.js";
 
 interface GamesConfigProps {
   onSubmit: (config: GameReviewConfig) => void;
@@ -52,9 +51,6 @@ export const GamesConfig: React.FC<GamesConfigProps> = ({
   const [timeClasses, setTimeClasses] = useState<string[]>(
     initialConfig?.timeClasses || []
   );
-  const [playerColor, setPlayerColor] = useState<Color>(
-    initialConfig?.playerColor || WHITE
-  );
 
   const handleTimeClassToggle = useCallback((timeClass: string) => {
     setTimeClasses((prev) =>
@@ -79,12 +75,11 @@ export const GamesConfig: React.FC<GamesConfigProps> = ({
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         timeClasses,
-        playerColor,
       };
       console.log("Calling onSubmit with config:", config);
       onSubmit(config);
     },
-    [username, startDate, endDate, timeClasses, playerColor, onSubmit]
+    [username, startDate, endDate, timeClasses, onSubmit]
   );
 
   return (
@@ -169,49 +164,6 @@ export const GamesConfig: React.FC<GamesConfigProps> = ({
               {label}
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Player color for repertoire comparison */}
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          Your Repertoire Color
-        </label>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setPlayerColor(WHITE)}
-            disabled={isLoading}
-            className={`
-              flex-1 py-2 rounded-lg transition-colors flex items-center justify-center gap-2
-              ${
-                playerColor === WHITE
-                  ? "bg-white text-black font-semibold"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }
-              ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
-            `}
-          >
-            <span className="w-4 h-4 rounded-full bg-white border border-gray-400"></span>
-            White
-          </button>
-          <button
-            type="button"
-            onClick={() => setPlayerColor(BLACK)}
-            disabled={isLoading}
-            className={`
-              flex-1 py-2 rounded-lg transition-colors flex items-center justify-center gap-2
-              ${
-                playerColor === BLACK
-                  ? "bg-gray-900 text-white font-semibold border-2 border-gray-600"
-                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }
-              ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
-            `}
-          >
-            <span className="w-4 h-4 rounded-full bg-gray-900 border border-gray-600"></span>
-            Black
-          </button>
         </div>
       </div>
 

@@ -6,6 +6,7 @@ import { SubTabPanel, SubTab } from "@/components/SubTabPanel";
 import { Studies } from "@/components/Studies";
 import Lines from "@/components/Lines";
 import OpeningTree from "@/components/OpeningTree";
+import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 
 const RepertoirePage: React.FC = () => {
   const { chessboardState, studyData, engineData, reviewState } = useAppContext();
@@ -40,24 +41,30 @@ const RepertoirePage: React.FC = () => {
         badge: linesCount > 0 ? linesCount : undefined,
         badgeColor: "bg-blue-600",
         content: (
-          <Lines
-            lines={lines}
-            chapters={chapters}
-            attempts={attempts}
-            chessboardState={chessboardState}
-            engineData={engineData}
-            reviewState={reviewState}
-          />
+          <div className="flex flex-col gap-3 h-full">
+            <StudyChapterSelector studyData={studyData} />
+            <Lines
+              lines={lines}
+              chapters={chapters}
+              attempts={attempts}
+              chessboardState={chessboardState}
+              engineData={engineData}
+              reviewState={reviewState}
+            />
+          </div>
         ),
       },
       {
         id: "tree",
         label: "Tree",
         content: (
-          <OpeningTree
-            chapters={chapters}
-            onNodeSelect={handleTreeNodeSelect}
-          />
+          <div className="flex flex-col gap-3 h-full">
+            <StudyChapterSelector studyData={studyData} />
+            <OpeningTree
+              chapters={chapters}
+              onNodeSelect={handleTreeNodeSelect}
+            />
+          </div>
         ),
       },
     ],

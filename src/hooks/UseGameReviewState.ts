@@ -17,7 +17,7 @@ import {
 } from "@/utils/RepertoireComparer";
 import { PositionTree } from "@/chess/PositionTree";
 import { Fen } from "@/chess/Fen";
-import { Color, WHITE } from "chess.js";
+import { Color, WHITE, BLACK } from "chess.js";
 import { Chapter } from "@/chess/Chapter";
 
 export interface GameReviewConfig {
@@ -25,7 +25,6 @@ export interface GameReviewConfig {
   startDate: Date;
   endDate: Date;
   timeClasses: string[];
-  playerColor: Color;
 }
 
 export interface GameReviewState {
@@ -37,9 +36,23 @@ export interface GameReviewState {
   isLoading: boolean;
   error: string | null;
 
-  // Data
+  // Data - all games (both colors)
   games: ChessComGame[];
+  whiteGames: ChessComGame[];
+  blackGames: ChessComGame[];
+  
+  // Separate trees for each color
+  whiteGameTree: GamePositionTree;
+  blackGameTree: GamePositionTree;
+  
+  // Current color for Moves tab navigation
+  currentColor: Color;
+  setCurrentColor: (color: Color) => void;
+  
+  // Current game tree (based on currentColor)
   gameTree: GamePositionTree;
+  
+  // Combined comparison result (both colors)
   comparisonResult: ComparisonResult | null;
 
   // Current position in the tree
@@ -58,13 +71,37 @@ export interface GameReviewState {
   reset: () => void;
 }
 
-const DEFAULT_START_DATE = (): Date => {
-  const date = new Date();
-  date.setMonth(date.getMonth() - 3); // Last 3 months
-  return date;
-};
-
 const INITIAL_FEN: Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+/**
+ * Combine two comparison results into one
+ */
+const combineComparisonResults = (
+  whiteResult: ComparisonResult | null,
+  blackResult: ComparisonResult | null
+): ComparisonResult | null => {
+  if (!whiteResult && !blackResult) return null;
+  if (!whiteResult) return blackResult;
+  if (!blackResult) return whiteResult;
+
+  // Combine deviations from both results
+  const allDeviations = [...whiteResult.deviations, ...blackResult.deviations];
+  
+  // Sort by occurrences
+  allDeviations.sort((a, b) => b.occurrences - a.occurrences);
+
+  return {
+    deviations: allDeviations,
+    markedTree: whiteResult.markedTree, // We'll use the white tree as reference (not really used in combined view)
+    summary: {
+      totalGames: whiteResult.summary.totalGames + blackResult.summary.totalGames,
+      gamesWithDeviations: whiteResult.summary.gamesWithDeviations + blackResult.summary.gamesWithDeviations,
+      playerDeviations: whiteResult.summary.playerDeviations + blackResult.summary.playerDeviations,
+      opponentDeviations: whiteResult.summary.opponentDeviations + blackResult.summary.opponentDeviations,
+      mostCommonDeviation: allDeviations.length > 0 ? allDeviations[0] : null,
+    },
+  };
+};
 
 export const useGameReviewState = (): GameReviewState => {
   // Configuration
@@ -74,19 +111,39 @@ export const useGameReviewState = (): GameReviewState => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Data
+  // Data - all games
   const [games, setGames] = useState<ChessComGame[]>([]);
-  const [gameTree, setGameTree] = useState<GamePositionTree>(createRootNode());
-  const [comparisonResult, setComparisonResult] =
-    useState<ComparisonResult | null>(null);
+  
+  // Separate trees for each color
+  const [whiteGameTree, setWhiteGameTree] = useState<GamePositionTree>(createRootNode());
+  const [blackGameTree, setBlackGameTree] = useState<GamePositionTree>(createRootNode());
+  
+  // Current color for Moves tab
+  const [currentColor, setCurrentColor] = useState<Color>(WHITE);
+  
+  // Separate comparison results
+  const [whiteComparisonResult, setWhiteComparisonResult] = useState<ComparisonResult | null>(null);
+  const [blackComparisonResult, setBlackComparisonResult] = useState<ComparisonResult | null>(null);
 
   // Navigation
   const [currentFen, setCurrentFen] = useState<Fen>(INITIAL_FEN);
-  const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(
-    null
-  );
+  const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(null);
 
-  // Computed current node
+  // Derived state: games filtered by color
+  const whiteGames = useMemo(() => games.filter(g => g.color === WHITE), [games]);
+  const blackGames = useMemo(() => games.filter(g => g.color === BLACK), [games]);
+
+  // Current game tree based on selected color
+  const gameTree = useMemo(() => {
+    return currentColor === WHITE ? whiteGameTree : blackGameTree;
+  }, [currentColor, whiteGameTree, blackGameTree]);
+
+  // Combined comparison result for Deviations/Gaps tabs
+  const comparisonResult = useMemo(() => {
+    return combineComparisonResults(whiteComparisonResult, blackComparisonResult);
+  }, [whiteComparisonResult, blackComparisonResult]);
+
+  // Computed current node (based on current color's tree)
   const currentNode = useMemo(() => {
     return findNodeByFen(gameTree, currentFen);
   }, [gameTree, currentFen]);
@@ -110,41 +167,45 @@ export const useGameReviewState = (): GameReviewState => {
 
         console.log("Fetched games (all colors):", fetchedGames.length);
 
-        // Filter games to only include those where user played the selected color
-        // This is critical for correct deviation detection!
-        const filteredGames = fetchedGames.filter(
-          (game) => game.color === newConfig.playerColor
-        );
-
-        console.log(
-          `Filtered to ${filteredGames.length} games where user played as ${newConfig.playerColor === "w" ? "White" : "Black"}`
-        );
-
-        if (filteredGames.length === 0) {
-          setError(
-            `No games found where you played as ${newConfig.playerColor === "w" ? "White" : "Black"} in the selected date range.`
-          );
+        if (fetchedGames.length === 0) {
+          setError("No games found in the selected date range.");
           setGames([]);
-          setGameTree(createRootNode());
+          setWhiteGameTree(createRootNode());
+          setBlackGameTree(createRootNode());
           return;
         }
 
-        setGames(filteredGames);
+        // Store all games
+        setGames(fetchedGames);
 
-        // Build the game tree from filtered games only
-        const tree = buildGamePositionTree(filteredGames);
-        setGameTree(tree);
+        // Split games by color
+        const white = fetchedGames.filter(g => g.color === WHITE);
+        const black = fetchedGames.filter(g => g.color === BLACK);
 
-        // Reset to starting position
+        console.log(`Split into ${white.length} White games and ${black.length} Black games`);
+
+        // Build separate trees for each color
+        const wTree = white.length > 0 ? buildGamePositionTree(white) : createRootNode();
+        const bTree = black.length > 0 ? buildGamePositionTree(black) : createRootNode();
+        
+        setWhiteGameTree(wTree);
+        setBlackGameTree(bTree);
+
+        // Default to white if available, otherwise black
+        setCurrentColor(white.length > 0 ? WHITE : BLACK);
+
+        // Reset navigation state
         setCurrentFen(INITIAL_FEN);
         setSelectedDeviation(null);
-        setComparisonResult(null);
+        setWhiteComparisonResult(null);
+        setBlackComparisonResult(null);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to fetch games"
         );
         setGames([]);
-        setGameTree(createRootNode());
+        setWhiteGameTree(createRootNode());
+        setBlackGameTree(createRootNode());
       } finally {
         setIsLoading(false);
       }
@@ -152,11 +213,12 @@ export const useGameReviewState = (): GameReviewState => {
     []
   );
 
-  // Compare games to repertoire chapters
+  // Compare games to repertoire chapters - compares BOTH trees
   const doCompareToRepertoire = useCallback(
     (chapters: Chapter[]) => {
       if (chapters.length === 0 || games.length === 0) {
-        setComparisonResult(null);
+        setWhiteComparisonResult(null);
+        setBlackComparisonResult(null);
         return;
       }
 
@@ -164,18 +226,29 @@ export const useGameReviewState = (): GameReviewState => {
         (ch) => ch.positionTree
       );
 
-      const playerColor = config?.playerColor ?? WHITE;
-      const result = compareToRepertoireChapters(
-        gameTree,
-        repertoireTrees,
-        playerColor
-      );
+      // Compare white games
+      if (whiteGames.length > 0) {
+        const whiteResult = compareToRepertoireChapters(
+          whiteGameTree,
+          repertoireTrees,
+          WHITE
+        );
+        setWhiteComparisonResult(whiteResult);
+        setWhiteGameTree(whiteResult.markedTree);
+      }
 
-      setComparisonResult(result);
-      // Update the tree with marked nodes
-      setGameTree(result.markedTree);
+      // Compare black games
+      if (blackGames.length > 0) {
+        const blackResult = compareToRepertoireChapters(
+          blackGameTree,
+          repertoireTrees,
+          BLACK
+        );
+        setBlackComparisonResult(blackResult);
+        setBlackGameTree(blackResult.markedTree);
+      }
     },
-    [games, gameTree, config]
+    [games, whiteGames, blackGames, whiteGameTree, blackGameTree]
   );
 
   // Navigate to a position by FEN
@@ -192,11 +265,14 @@ export const useGameReviewState = (): GameReviewState => {
   const reset = useCallback(() => {
     setConfig(null);
     setGames([]);
-    setGameTree(createRootNode());
-    setComparisonResult(null);
+    setWhiteGameTree(createRootNode());
+    setBlackGameTree(createRootNode());
+    setWhiteComparisonResult(null);
+    setBlackComparisonResult(null);
     setCurrentFen(INITIAL_FEN);
     setSelectedDeviation(null);
     setError(null);
+    setCurrentColor(WHITE);
   }, []);
 
   return {
@@ -205,6 +281,12 @@ export const useGameReviewState = (): GameReviewState => {
     isLoading,
     error,
     games,
+    whiteGames,
+    blackGames,
+    whiteGameTree,
+    blackGameTree,
+    currentColor,
+    setCurrentColor,
     gameTree,
     comparisonResult,
     currentNode,

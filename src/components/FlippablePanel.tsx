@@ -12,6 +12,8 @@ interface FlippablePanelProps {
   gapsCount?: number;
   initialView?: PanelView;
   onViewChange?: (view: PanelView) => void;
+  /** Optional header that appears above content in all views */
+  header?: ReactNode;
 }
 
 /**
@@ -64,6 +66,7 @@ export const FlippablePanel: React.FC<FlippablePanelProps> = ({
   gapsCount,
   initialView = "moves",
   onViewChange,
+  header,
 }) => {
   const [currentView, setCurrentView] = useState<PanelView>(initialView);
 
@@ -85,8 +88,8 @@ export const FlippablePanel: React.FC<FlippablePanelProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab headers */}
-      <div className="flex gap-1 px-2 bg-gray-900/50">
+      {/* Tab headers - pt-2 gives room for badge overflow */}
+      <div className="flex gap-1 px-2 pt-2 bg-gray-900/50">
         <TabButton
           label="Moves"
           isActive={currentView === "moves"}
@@ -109,8 +112,11 @@ export const FlippablePanel: React.FC<FlippablePanelProps> = ({
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-auto bg-gray-800/30 rounded-b-lg p-3">
-        {getContent()}
+      <div className="flex-1 overflow-auto bg-gray-800/30 rounded-b-lg p-3 flex flex-col gap-3">
+        {header}
+        <div className="flex-1 min-h-0">
+          {getContent()}
+        </div>
       </div>
     </div>
   );
