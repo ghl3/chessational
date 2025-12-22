@@ -4,6 +4,7 @@ import { Study } from "@/chess/Study";
 import { StudyChapterAndLines } from "@/chess/StudyChapterAndLines";
 import { StudyData } from "@/hooks/UseStudyData";
 import { fetchStudy } from "@/utils/StudyFetcher";
+import { invalidateGameComparisonCache } from "@/app/db";
 import React, { useCallback, useState } from "react";
 import { Button } from "./Button";
 import DeleteConfirmation from "./DeleteConfirmation";
@@ -27,11 +28,20 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
     studies,
     selectedStudy,
     selectStudy,
-    addStudyAndChapters,
+    addStudyAndChapters: originalAddStudyAndChapters,
     deleteStudy,
   } = studyData;
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Wrap addStudyAndChapters to invalidate game comparison cache
+  const addStudyAndChapters = useCallback(
+    async (studyAndChapters: StudyChapterAndLines) => {
+      originalAddStudyAndChapters(studyAndChapters);
+      await invalidateGameComparisonCache();
+    },
+    [originalAddStudyAndChapters]
+  );
   const [isStudyInput, setIsStudyInput] = useState(false);
   const [isDeleteConfirmation, setIsDeleteConfirmation] = useState(false);
   const [studyToDelete, setStudyToDelete] = useState<string | null>(null);
@@ -55,6 +65,8 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
         throw new Error("Study has no chapters");
       }
       addStudyAndChapters(updatedStudy);
+      // Invalidate game comparison cache since repertoire changed
+      await invalidateGameComparisonCache();
       setIsLoading(false);
       return updatedStudy;
     },
@@ -79,11 +91,13 @@ export const Studies: React.FC<StudiesProps> = ({ studyData }) => {
     } else if (isDeleteConfirmation) {
       return (
         <DeleteConfirmation
-          onConfirmDeleteYes={() => {
+          onConfirmDeleteYes={async () => {
             if (studyToDelete === null) {
               throw new Error("selectedStudy is null");
             }
             deleteStudy(studyToDelete);
+            // Invalidate game comparison cache since repertoire changed
+            await invalidateGameComparisonCache();
             setIsDeleteConfirmation(false);
           }}
           onConfirmDeleteNo={() => {

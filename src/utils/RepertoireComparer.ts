@@ -23,6 +23,8 @@ export interface Deviation {
   occurrences: number;
   // Move number (half-move)
   moveNumber: number;
+  // The player's color in the games this deviation came from
+  playerColor: Color;
   // Source study/chapter for the expected moves (if applicable)
   studyName?: string;
   chapterName?: string;
@@ -165,6 +167,7 @@ const walkAndCompare = (
           stats: { ...child.stats },
           occurrences: child.stats.gameCount,
           moveNumber: moveNumber + 1,
+          playerColor,
         });
       }
     }
@@ -424,6 +427,7 @@ const walkAndCompareMultiple = (
           stats: { ...child.stats },
           occurrences: child.stats.gameCount,
           moveNumber: moveNumber + 1,
+          playerColor,
         });
       }
     }
@@ -499,6 +503,7 @@ const walkAndCompareWithChapters = (
           stats: { ...child.stats },
           occurrences: child.stats.gameCount,
           moveNumber: moveNumber + 1,
+          playerColor,
           studyName,
           chapterName,
         });

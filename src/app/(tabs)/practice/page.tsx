@@ -17,10 +17,10 @@ const PracticePage: React.FC = () => {
     router.push("/repertoire");
   }, [router]);
 
-  // Memoize data for Attempts component
-  const lines = useMemo(() => studyData.lines || [], [studyData.lines]);
-  const chapters = useMemo(() => studyData.chapters || [], [studyData.chapters]);
-  const attempts = useMemo(() => studyData.attempts || [], [studyData.attempts]);
+  // Memoize to ensure stable references when data is undefined
+  const lines = useMemo(() => studyData.selectedChapterLines ?? [], [studyData.selectedChapterLines]);
+  const chapters = useMemo(() => studyData.selectedStudyChapters ?? [], [studyData.selectedStudyChapters]);
+  const attempts = useMemo(() => studyData.selectedChapterAttempts ?? [], [studyData.selectedChapterAttempts]);
 
   const tabs: SubTab[] = useMemo(
     () => [

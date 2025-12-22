@@ -82,8 +82,8 @@ export const StudyChapterSelector: React.FC<{
     return null;
   }
 
-  const chapterNames = studyData.chapters
-    ? studyData.chapters.map((chapter) => chapter.name)
+  const chapterNames = studyData.selectedStudyChapters
+    ? studyData.selectedStudyChapters.map((chapter) => chapter.name)
     : undefined;
 
   return (

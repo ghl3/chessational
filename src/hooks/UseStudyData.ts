@@ -8,16 +8,21 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useCallback } from "react";
 
 export interface StudyData {
+  // Unfiltered data
   studies: Study[]; // All studies
+  allChapters?: Chapter[]; // All chapters from ALL studies (for game comparison)
 
+  // Selected study
   selectedStudyName?: string; // The name of the selected study
   selectedStudy?: Study; // The selected study
-  chapters?: Chapter[]; // All chapters from the selected study
+  selectedStudyChapters?: Chapter[]; // Chapters from the selected study only
 
+  // Selected chapters (within the selected study)
   selectedChapterNames?: string[]; // The names of the selected chapters
-  lines?: Line[]; // All lines from the selected chapters
-  attempts?: Attempt[]; // Attempts for the selected chapters
+  selectedChapterLines?: Line[]; // Lines from selected chapters only
+  selectedChapterAttempts?: Attempt[]; // Attempts for selected chapters only
 
+  // Actions
   addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
   deleteStudy: (studyName: string) => void;
   selectStudy: (studyName: string) => void;
@@ -33,6 +38,16 @@ export const useStudyData = (): StudyData => {
     },
     [],
     [],
+  );
+
+  // All chapters from ALL studies (for game comparison across entire repertoire)
+  const allChapters: Chapter[] | undefined = useLiveQuery(
+    async () => {
+      const chapters = await db.chapters.toArray();
+      return chapters || [];
+    },
+    [],
+    undefined, // undefined while loading
   );
 
   const selectedStudyName: string | undefined = useLiveQuery(
@@ -63,8 +78,8 @@ export const useStudyData = (): StudyData => {
     undefined,
   );
 
-  // All chapters from the currently selected study
-  const chapters: Chapter[] | undefined = useLiveQuery(
+  // Chapters from the currently selected study only
+  const selectedStudyChapters: Chapter[] | undefined = useLiveQuery(
     async () => {
       if (selectedStudyName === null || selectedStudyName === undefined) {
         return [];
@@ -101,16 +116,16 @@ export const useStudyData = (): StudyData => {
     undefined,
   );
 
-  // All lines from the current study and
-  // the selected chapters.
-  const lines: Line[] | undefined = useLiveQuery(
+  // Lines from the selected chapters only (within the selected study)
+  // Returns: undefined (loading/no study), [] (no chapters selected or no lines exist)
+  const selectedChapterLines: Line[] | undefined = useLiveQuery(
     async () => {
       if (selectedStudyName === null || selectedStudyName === undefined) {
-        return undefined;
+        return undefined; // No study selected
       }
 
       if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
-        return [];
+        return []; // Study selected but no chapters selected
       }
 
       const lines = await db.lines
@@ -123,7 +138,7 @@ export const useStudyData = (): StudyData => {
       return lines;
     },
     [selectedStudyName, selectedChapterNames],
-    undefined,
+    undefined, // undefined while loading
   );
 
   const selectStudy = useCallback((studyName: string) => {
@@ -131,16 +146,16 @@ export const useStudyData = (): StudyData => {
     db.selectedStudyName.add({ studyName });
   }, []);
 
-  // Get all attempts for the active chapters
-  // in the current study
-  const attempts: Attempt[] | undefined = useLiveQuery(
+  // Attempts for the selected chapters only (within the selected study)
+  // Returns: undefined (loading/no study), [] (no chapters selected or no attempts exist)
+  const selectedChapterAttempts: Attempt[] | undefined = useLiveQuery(
     async () => {
       if (selectedStudyName === null || selectedStudyName === undefined) {
-        return undefined;
+        return undefined; // No study selected
       }
 
       if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
-        return [];
+        return []; // Study selected but no chapters selected
       }
 
       const attempts = await db.attempts
@@ -154,7 +169,7 @@ export const useStudyData = (): StudyData => {
       return attempts;
     },
     [selectedStudyName, selectedChapterNames],
-    undefined,
+    undefined, // undefined while loading
   );
 
   const deleteStudy = useCallback(
@@ -253,12 +268,13 @@ export const useStudyData = (): StudyData => {
 
   return {
     studies,
+    allChapters,
     selectedStudyName,
     selectedStudy,
-    chapters,
+    selectedStudyChapters,
     selectedChapterNames,
-    lines,
-    attempts,
+    selectedChapterLines,
+    selectedChapterAttempts,
 
     addStudyAndChapters,
     deleteStudy,

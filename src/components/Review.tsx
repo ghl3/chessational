@@ -177,14 +177,14 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     studyData.selectedChapterNames !== null &&
     studyData.selectedChapterNames.length > 0;
   const hasLines =
-    studyData.lines !== null &&
-    studyData.lines !== undefined &&
-    studyData.lines.length > 0;
+    studyData.selectedChapterLines !== null &&
+    studyData.selectedChapterLines !== undefined &&
+    studyData.selectedChapterLines.length > 0;
 
   const onNewLine = useCallback(() => {
     reviewState.clearLine(chessboardState);
 
-    if (studyData.lines === null || studyData.lines === undefined || studyData.lines.length === 0) {
+    if (studyData.selectedChapterLines === null || studyData.selectedChapterLines === undefined || studyData.selectedChapterLines.length === 0) {
       window.alert(
         "No lines available. Please select a study and at least one chapter to review.",
       );
@@ -192,11 +192,11 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     }
 
     const line = pickLine(
-      studyData.lines,
+      studyData.selectedChapterLines,
       "SPACED_REPETITION",
-      studyData.attempts,
+      studyData.selectedChapterAttempts,
     );
-    const chapter = studyData.chapters?.find(
+    const chapter = studyData.selectedStudyChapters?.find(
       (chapter) => chapter.name === line.chapterName,
     );
     if (chapter === null || chapter === undefined) {
@@ -210,9 +210,9 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
   }, [
     reviewState,
     chessboardState,
-    studyData.lines,
-    studyData.attempts,
-    studyData.chapters,
+    studyData.selectedChapterLines,
+    studyData.selectedChapterAttempts,
+    studyData.selectedStudyChapters,
   ]);
 
   const onRestartLine = useCallback(() => {

@@ -12,10 +12,10 @@ const RepertoirePage: React.FC = () => {
   const { chessboardState, studyData, engineData, reviewState } = useAppContext();
   const [currentTab, setCurrentTab] = useState<string>("manage");
 
-  // Memoize data for Lines component
-  const lines = useMemo(() => studyData.lines || [], [studyData.lines]);
-  const chapters = useMemo(() => studyData.chapters || [], [studyData.chapters]);
-  const attempts = useMemo(() => studyData.attempts || [], [studyData.attempts]);
+  // Memoize to ensure stable references when data is undefined
+  const lines = useMemo(() => studyData.selectedChapterLines ?? [], [studyData.selectedChapterLines]);
+  const chapters = useMemo(() => studyData.selectedStudyChapters ?? [], [studyData.selectedStudyChapters]);
+  const attempts = useMemo(() => studyData.selectedChapterAttempts ?? [], [studyData.selectedChapterAttempts]);
 
   // Count lines for badge
   const linesCount = lines.length;

@@ -198,6 +198,8 @@ const GamesPage: React.FC = () => {
     config,
     isLoading,
     isLoadingCache,
+    isComparing,
+    treesReady,
     error,
     games,
     whiteGames,
@@ -331,18 +333,23 @@ const GamesPage: React.FC = () => {
   const handleDeviationClick = useCallback(
     (deviation: Deviation) => {
       setSelectedDeviation(deviation);
+      // Switch to the correct color's game tree and orient board if needed
+      if (deviation.playerColor !== currentColor) {
+        setCurrentColor(deviation.playerColor);
+        chessboardState.setOrientation(deviation.playerColor);
+      }
       navigateToPosition(deviation.fen);
       // Stay on deviations view so user can see context
     },
-    [navigateToPosition, setSelectedDeviation]
+    [navigateToPosition, setSelectedDeviation, currentColor, setCurrentColor, chessboardState]
   );
 
-  // Handle compare button click
+  // Handle compare button click - use ALL chapters from ALL studies
   const handleCompare = useCallback(() => {
-    if (studyData.chapters && studyData.chapters.length > 0) {
-      compareToRepertoire(studyData.chapters);
+    if (studyData.allChapters && studyData.allChapters.length > 0) {
+      compareToRepertoire(studyData.allChapters);
     }
-  }, [compareToRepertoire, studyData.chapters]);
+  }, [compareToRepertoire, studyData.allChapters]);
 
   // Handle retry after error
   const handleRetry = useCallback(() => {
@@ -353,27 +360,29 @@ const GamesPage: React.FC = () => {
   useEffect(() => {
     // Only auto-compare if:
     // 1. Games have been loaded (games.length > 0)
-    // 2. Repertoire is available (chapters exist)
-    // 3. Haven't already compared (comparisonResult is null)
-    // 4. Not currently loading (either from network or cache)
+    // 2. Trees are ready (built from games)
+    // 3. Repertoire is available (chapters exist)
+    // 4. Haven't already compared (comparisonResult is null)
+    // 5. Not currently loading (either from network or cache)
     if (
       games.length > 0 &&
-      studyData.chapters &&
-      studyData.chapters.length > 0 &&
+      treesReady &&
+      studyData.allChapters &&
+      studyData.allChapters.length > 0 &&
       comparisonResult === null &&
       !isLoading &&
       !isLoadingCache
     ) {
       console.log("Auto-comparing to repertoire...");
-      compareToRepertoire(studyData.chapters);
+      compareToRepertoire(studyData.allChapters);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [games.length, studyData.chapters?.length, isLoading, isLoadingCache]);
+  }, [games.length, treesReady, studyData.allChapters?.length, isLoading, isLoadingCache]);
 
   // Memoized values
   const hasRepertoire = useMemo(
-    () => studyData.chapters && studyData.chapters.length > 0,
-    [studyData.chapters]
+    () => studyData.allChapters && studyData.allChapters.length > 0,
+    [studyData.allChapters]
   );
 
   // Separate player deviations from opponent uncovered lines
@@ -401,11 +410,15 @@ const GamesPage: React.FC = () => {
 
   // Render based on state
   if (isLoadingCache) {
-    return <LoadingState message="Checking for cached games..." />;
+    return <LoadingState message="Loading cached games..." />;
   }
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState message="Downloading games from Chess.com..." />;
+  }
+
+  if (isComparing) {
+    return <LoadingState message="Comparing games to repertoire..." />;
   }
 
   if (error) {
