@@ -31,13 +31,11 @@ export type MoveExecutor = (
 ) => boolean;
 
 interface ChessboardProps extends HTMLAttributes<HTMLDivElement> {
-  chessboardSize: number;
   chessboardState: ChessboardState;
   onLegalMove: MoveExecutor;
 }
 
 const Chessboard: React.FC<ChessboardProps> = ({
-  chessboardSize,
   chessboardState,
   onLegalMove,
 }) => {
@@ -150,16 +148,14 @@ const Chessboard: React.FC<ChessboardProps> = ({
     chessboardState.orientation === WHITE ? "white" : "black";
 
   return (
-    <div
-      className="flex flex-col items-center gap-3"
-      style={{ width: `${chessboardSize}px` }}
-    >
+    <div className="flex flex-col items-center gap-3 w-full flex-1">
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation === WHITE ? BLACK : WHITE}
-        className="h-6"
+        className="h-6 flex-shrink-0"
       />
-      <div style={{ width: chessboardSize, height: chessboardSize }}>
+      {/* Board wrapper - square aspect ratio, takes full width */}
+      <div className="w-full aspect-square flex-shrink-0">
         <ReactChessboard
           options={{
             position: fen,
@@ -174,7 +170,7 @@ const Chessboard: React.FC<ChessboardProps> = ({
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation === WHITE ? WHITE : BLACK}
-        className="h-6"
+        className="h-6 flex-shrink-0"
       />
       <ChessboardButtons
         isDisabled={false}

@@ -1,12 +1,11 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useEffect, useCallback, RefObject } from "react";
+import { createContext, useContext, ReactNode, useEffect, useCallback } from "react";
 import { ChessboardState, useChessboardState } from "@/hooks/UseChessboardState";
 import { EngineData } from "@/hooks/UseEngineData";
 import useEngine from "@/hooks/UseEngineData";
 import { ReviewState, useReviewState } from "@/hooks/UseReviewState";
 import { StudyData, useStudyData } from "@/hooks/UseStudyData";
-import { useChessboardSize } from "@/hooks/UseChessboardSize";
 import { Engine } from "@/engine/Engine";
 import { Position } from "@/chess/Position";
 import { executeLegalMoveIfIsCorrect } from "@/components/Review";
@@ -24,8 +23,6 @@ export interface AppContextType {
   chessboardState: ChessboardState;
   engineData: EngineData;
   reviewState: ReviewState;
-  boardSize: number;
-  containerRef: RefObject<HTMLDivElement | null>;
   onLegalMove: MoveExecutor;
 }
 
@@ -45,7 +42,6 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children, currentTab }) => {
-  const { boardSize, containerRef } = useChessboardSize();
   const chessboardState: ChessboardState = useChessboardState();
   const studyData = useStudyData();
   const reviewState = useReviewState();
@@ -92,8 +88,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children, currentTab }
         chessboardState,
         engineData,
         reviewState,
-        boardSize,
-        containerRef,
         onLegalMove,
       }}
     >
