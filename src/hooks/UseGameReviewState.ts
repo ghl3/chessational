@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChessComGame } from "@/chess/ChessComGame";
 import {
   GamePositionTree,
@@ -77,6 +78,116 @@ export interface GameReviewState {
 
 const INITIAL_FEN: Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+interface CachedState {
+  config: GameReviewConfig | null;
+  games: ChessComGame[];
+  whiteGameTree: GamePositionTree;
+  blackGameTree: GamePositionTree;
+  whiteComparisonResult: ComparisonResult | null;
+  blackComparisonResult: ComparisonResult | null;
+  currentColor: Color;
+  treesReady: boolean;
+}
+
+/**
+ * Load games and trees from IndexedDB cache
+ */
+const loadFromCache = async (): Promise<CachedState | null> => {
+  const startTime = performance.now();
+  console.log("[Cache] Starting cache load...");
+  
+  // Check if we have a cached search config
+  const cachedConfig = await db.gamesSearchConfig.get(1);
+  
+  if (!cachedConfig) {
+    console.log(`[Cache] No cached config found. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
+    return null;
+  }
+
+  // Load cached games
+  const cachedGames = await db.chesscomGames.toArray();
+
+  if (cachedGames.length === 0) {
+    // Config exists but no games - clear stale data
+    await db.gamesSearchConfig.delete(1);
+    await db.cachedGameData.clear();
+    console.log(`[Cache] No games in cache. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
+    return null;
+  }
+
+  // Try to load cached game data (trees + comparison results)
+  let cachedData: CachedGameData | undefined;
+  try {
+    cachedData = await db.cachedGameData.get(1);
+    console.log(`[Cache] cachedGameData.get(1) returned:`, cachedData ? 'found' : 'not found');
+  } catch (dataErr) {
+    console.error(`[Cache] Error loading cached data:`, dataErr);
+    cachedData = undefined;
+  }
+  
+  // Restore config
+  const restoredConfig: GameReviewConfig = {
+    username: cachedConfig.username,
+    startDate: new Date(cachedConfig.startDate),
+    endDate: new Date(cachedConfig.endDate),
+    timeClasses: cachedConfig.timeClasses,
+  };
+
+  if (cachedData) {
+    // Trees and possibly comparison results are cached
+    console.log(`[Cache] Found cached data! Loading instantly...`);
+    const hasWhite = cachedData.whiteTree.children.length > 0 || cachedData.whiteTree.stats.gameCount > 0;
+    
+    console.log(`[Cache] Loaded from cache. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
+    
+    return {
+      config: restoredConfig,
+      games: cachedGames,
+      whiteGameTree: cachedData.whiteTree,
+      blackGameTree: cachedData.blackTree,
+      whiteComparisonResult: cachedData.whiteComparisonResult,
+      blackComparisonResult: cachedData.blackComparisonResult,
+      currentColor: hasWhite ? WHITE : BLACK,
+      treesReady: true,
+    };
+  } else {
+    // Data not cached - need to build trees
+    console.log(`[Cache] No cached data, building trees...`);
+    const white = cachedGames.filter((g) => g.color === WHITE);
+    const black = cachedGames.filter((g) => g.color === BLACK);
+
+    const wTree = white.length > 0 ? buildGamePositionTree(white) : createRootNode();
+    const bTree = black.length > 0 ? buildGamePositionTree(black) : createRootNode();
+
+    // Cache the trees for next time (comparison results will be added later)
+    try {
+      await db.cachedGameData.put({ 
+        id: 1, 
+        whiteTree: wTree, 
+        blackTree: bTree,
+        whiteComparisonResult: null,
+        blackComparisonResult: null,
+        comparedChapterNames: [],
+      });
+      console.log(`[Cache] Successfully saved trees to cache`);
+    } catch (saveErr) {
+      console.error(`[Cache] Failed to save trees:`, saveErr);
+    }
+    console.log(`[Cache] Built and cached trees. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
+
+    return {
+      config: restoredConfig,
+      games: cachedGames,
+      whiteGameTree: wTree,
+      blackGameTree: bTree,
+      whiteComparisonResult: null,
+      blackComparisonResult: null,
+      currentColor: white.length > 0 ? WHITE : BLACK,
+      treesReady: true,
+    };
+  }
+};
+
 /**
  * Combine two comparison results into one
  */
@@ -108,284 +219,249 @@ const combineComparisonResults = (
 };
 
 export const useGameReviewState = (): GameReviewState => {
-  // Configuration
-  const [config, setConfig] = useState<GameReviewConfig | null>(null);
+  const queryClient = useQueryClient();
 
-  // Loading states (granular)
-  const [isLoading, setIsLoading] = useState(false); // Downloading from Chess.com
-  const [isLoadingCache, setIsLoadingCache] = useState(true); // Checking/loading from cache
-  const [isComparing, setIsComparing] = useState(false); // Comparing to repertoire
-  const [error, setError] = useState<string | null>(null);
+  // Use TanStack Query for cache loading
+  const {
+    data: cachedState,
+    isLoading: isLoadingCache,
+  } = useQuery({
+    queryKey: ["games-cache"],
+    queryFn: loadFromCache,
+    staleTime: Infinity, // Cache doesn't go stale automatically
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  // Data - all games
-  const [games, setGames] = useState<ChessComGame[]>([]);
-  
-  // Separate trees for each color
-  const [whiteGameTree, setWhiteGameTree] = useState<GamePositionTree>(createRootNode());
-  const [blackGameTree, setBlackGameTree] = useState<GamePositionTree>(createRootNode());
-  
-  // Current color for Moves tab
-  const [currentColor, setCurrentColor] = useState<Color>(WHITE);
-  
-  // Separate comparison results
-  const [whiteComparisonResult, setWhiteComparisonResult] = useState<ComparisonResult | null>(null);
-  const [blackComparisonResult, setBlackComparisonResult] = useState<ComparisonResult | null>(null);
-  
-  // Track whether trees are ready (for cached loads, trees build async)
-  const [treesReady, setTreesReady] = useState(false);
+  // Local state that can be updated by mutations
+  const [localState, setLocalState] = useState<{
+    config: GameReviewConfig | null;
+    games: ChessComGame[];
+    whiteGameTree: GamePositionTree;
+    blackGameTree: GamePositionTree;
+    whiteComparisonResult: ComparisonResult | null;
+    blackComparisonResult: ComparisonResult | null;
+    currentColor: Color;
+    treesReady: boolean;
+    error: string | null;
+  }>({
+    config: null,
+    games: [],
+    whiteGameTree: createRootNode(),
+    blackGameTree: createRootNode(),
+    whiteComparisonResult: null,
+    blackComparisonResult: null,
+    currentColor: WHITE,
+    treesReady: false,
+    error: null,
+  });
 
-  // Navigation
+  // Track if we've initialized color from cache
+  const hasInitializedColorRef = useRef(false);
+
+  // Initialize currentColor from cache when it first loads
+  useEffect(() => {
+    if (cachedState && !hasInitializedColorRef.current) {
+      hasInitializedColorRef.current = true;
+      setLocalState((prev) => ({ ...prev, currentColor: cachedState.currentColor }));
+    }
+  }, [cachedState]);
+
+  // Merge cached state with local state (local state takes precedence if set)
+  const effectiveState = useMemo(() => {
+    // If we have local games loaded, use local state
+    if (localState.games.length > 0) {
+      return localState;
+    }
+    // Otherwise use cached state if available
+    if (cachedState) {
+      return {
+        ...localState,
+        config: cachedState.config,
+        games: cachedState.games,
+        whiteGameTree: cachedState.whiteGameTree,
+        blackGameTree: cachedState.blackGameTree,
+        whiteComparisonResult: cachedState.whiteComparisonResult,
+        blackComparisonResult: cachedState.blackComparisonResult,
+        // Keep localState.currentColor - user interactions should override cache
+        currentColor: localState.currentColor,
+        treesReady: cachedState.treesReady,
+      };
+    }
+    return localState;
+  }, [cachedState, localState]);
+
+  // Separate comparison results state (can be updated independently)
+  const [comparisonState, setComparisonState] = useState<{
+    whiteResult: ComparisonResult | null;
+    blackResult: ComparisonResult | null;
+    isComparing: boolean;
+  }>({
+    whiteResult: null,
+    blackResult: null,
+    isComparing: false,
+  });
+
+  // Navigation state
   const [currentFen, setCurrentFen] = useState<Fen>(INITIAL_FEN);
   const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(null);
 
-  // Ref to prevent double-loading in React Strict Mode
-  const cacheLoadedRef = useRef(false);
-
-  // Load from cache on mount
-  useEffect(() => {
-    // Prevent double-loading in React Strict Mode
-    if (cacheLoadedRef.current) {
-      console.log("[Cache] Already loaded, skipping duplicate effect");
-      return;
-    }
-    cacheLoadedRef.current = true;
-
-    const loadFromCache = async () => {
-      const startTime = performance.now();
-      console.log("[Cache] Starting cache load...");
-      
-      try {
-        // Check if we have a cached search config
-        const cachedConfig = await db.gamesSearchConfig.get(1);
-        
-        if (!cachedConfig) {
-          console.log(`[Cache] No cached config found. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
-          setIsLoadingCache(false);
-          return;
-        }
-
-        // Load cached games
-        const cachedGames = await db.chesscomGames.toArray();
-
-        if (cachedGames.length === 0) {
-          // Config exists but no games - clear stale data
-          await db.gamesSearchConfig.delete(1);
-          await db.cachedGameData.clear();
-          console.log(`[Cache] No games in cache. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
-          setIsLoadingCache(false);
-          return;
-        }
-
-        // Try to load cached game data (trees + comparison results)
-        let cachedData: CachedGameData | undefined;
-        try {
-          cachedData = await db.cachedGameData.get(1);
-          console.log(`[Cache] cachedGameData.get(1) returned:`, cachedData ? 'found' : 'not found');
-        } catch (dataErr) {
-          console.error(`[Cache] Error loading cached data:`, dataErr);
-          cachedData = undefined;
-        }
-        
-        // Restore config
-        const restoredConfig: GameReviewConfig = {
-          username: cachedConfig.username,
-          startDate: new Date(cachedConfig.startDate),
-          endDate: new Date(cachedConfig.endDate),
-          timeClasses: cachedConfig.timeClasses,
-        };
-        
-        setConfig(restoredConfig);
-        setGames(cachedGames);
-
-        if (cachedData) {
-          // Trees and possibly comparison results are cached
-          console.log(`[Cache] Found cached data! Loading instantly...`);
-          setWhiteGameTree(cachedData.whiteTree);
-          setBlackGameTree(cachedData.blackTree);
-          const hasWhite = cachedData.whiteTree.children.length > 0 || cachedData.whiteTree.stats.gameCount > 0;
-          setCurrentColor(hasWhite ? WHITE : BLACK);
-          setTreesReady(true);
-          
-          // Also restore comparison results if available
-          if (cachedData.whiteComparisonResult || cachedData.blackComparisonResult) {
-            console.log(`[Cache] Restoring cached comparison results`);
-            setWhiteComparisonResult(cachedData.whiteComparisonResult);
-            setBlackComparisonResult(cachedData.blackComparisonResult);
-          }
-          
-          console.log(`[Cache] Loaded from cache. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
-        } else {
-          // Data not cached - need to build trees
-          console.log(`[Cache] No cached data, building trees...`);
-          const white = cachedGames.filter((g) => g.color === WHITE);
-          const black = cachedGames.filter((g) => g.color === BLACK);
-
-          const wTree = white.length > 0 ? buildGamePositionTree(white) : createRootNode();
-          const bTree = black.length > 0 ? buildGamePositionTree(black) : createRootNode();
-
-          setWhiteGameTree(wTree);
-          setBlackGameTree(bTree);
-          setCurrentColor(white.length > 0 ? WHITE : BLACK);
-          setTreesReady(true);
-
-          // Cache the trees for next time (comparison results will be added later)
-          try {
-            await db.cachedGameData.put({ 
-              id: 1, 
-              whiteTree: wTree, 
-              blackTree: bTree,
-              whiteComparisonResult: null,
-              blackComparisonResult: null,
-              comparedChapterNames: [],
-            });
-            console.log(`[Cache] Successfully saved trees to cache`);
-          } catch (saveErr) {
-            console.error(`[Cache] Failed to save trees:`, saveErr);
-          }
-          console.log(`[Cache] Built and cached trees. Total: ${(performance.now() - startTime).toFixed(1)}ms`);
-        }
-
-        setIsLoadingCache(false);
-      } catch (err) {
-        console.error("Failed to load from cache:", err);
-        setIsLoadingCache(false);
+  // Load games mutation
+  const loadGamesMutation = useMutation({
+    mutationFn: async (newConfig: GameReviewConfig) => {
+      console.log("loadGames called with config:", newConfig);
+      console.log("Fetching games from Chess.com...");
+      const fetchedGames = await fetchChessComGames(
+        newConfig.username,
+        newConfig.startDate,
+        newConfig.endDate,
+        newConfig.timeClasses.length > 0 ? newConfig.timeClasses : undefined
+      );
+      console.log("Fetched games (all colors):", fetchedGames.length);
+      return { config: newConfig, games: fetchedGames };
+    },
+    onMutate: (newConfig) => {
+      setLocalState((prev) => ({
+        ...prev,
+        config: newConfig,
+        treesReady: false,
+        error: null,
+      }));
+    },
+    onSuccess: async ({ config: newConfig, games: fetchedGames }) => {
+      if (fetchedGames.length === 0) {
+        setLocalState((prev) => ({
+          ...prev,
+          error: "No games found in the selected date range.",
+          games: [],
+          whiteGameTree: createRootNode(),
+          blackGameTree: createRootNode(),
+          treesReady: false,
+        }));
+        return;
       }
-    };
 
-    loadFromCache();
-  }, []);
+      // Split games by color
+      const white = fetchedGames.filter(g => g.color === WHITE);
+      const black = fetchedGames.filter(g => g.color === BLACK);
+      console.log(`Split into ${white.length} White games and ${black.length} Black games`);
+
+      // Build separate trees for each color
+      const wTree = white.length > 0 ? buildGamePositionTree(white) : createRootNode();
+      const bTree = black.length > 0 ? buildGamePositionTree(black) : createRootNode();
+
+      // Update local state
+      setLocalState({
+        config: newConfig,
+        games: fetchedGames,
+        whiteGameTree: wTree,
+        blackGameTree: bTree,
+        whiteComparisonResult: null,
+        blackComparisonResult: null,
+        currentColor: white.length > 0 ? WHITE : BLACK,
+        treesReady: true,
+        error: null,
+      });
+
+      // Reset comparison and navigation state
+      setComparisonState({
+        whiteResult: null,
+        blackResult: null,
+        isComparing: false,
+      });
+      setCurrentFen(INITIAL_FEN);
+      setSelectedDeviation(null);
+
+      // Save to IndexedDB cache
+      try {
+        await db.chesscomGames.clear();
+        await db.chesscomGames.bulkPut(fetchedGames);
+        await db.cachedGameData.clear();
+        await db.cachedGameData.put({ 
+          id: 1, 
+          whiteTree: wTree, 
+          blackTree: bTree,
+          whiteComparisonResult: null,
+          blackComparisonResult: null,
+          comparedChapterNames: [],
+        });
+        console.log(`[Cache] Saved ${fetchedGames.length} games and trees to cache`);
+
+        const configToStore: GamesSearchConfig = {
+          id: 1,
+          username: newConfig.username,
+          startDate: newConfig.startDate.getTime(),
+          endDate: newConfig.endDate.getTime(),
+          timeClasses: newConfig.timeClasses,
+        };
+        await db.gamesSearchConfig.put(configToStore);
+        console.log("Games and trees cached to IndexedDB");
+
+        // Invalidate query cache so next mount loads fresh data
+        queryClient.invalidateQueries({ queryKey: ["games-cache"] });
+      } catch (cacheErr) {
+        console.error("Failed to cache games:", cacheErr);
+      }
+    },
+    onError: (err) => {
+      setLocalState((prev) => ({
+        ...prev,
+        error: err instanceof Error ? err.message : "Failed to fetch games",
+        games: [],
+        whiteGameTree: createRootNode(),
+        blackGameTree: createRootNode(),
+        treesReady: false,
+      }));
+    },
+  });
 
   // Derived state: games filtered by color
-  const whiteGames = useMemo(() => games.filter(g => g.color === WHITE), [games]);
-  const blackGames = useMemo(() => games.filter(g => g.color === BLACK), [games]);
+  const whiteGames = useMemo(() => effectiveState.games.filter(g => g.color === WHITE), [effectiveState.games]);
+  const blackGames = useMemo(() => effectiveState.games.filter(g => g.color === BLACK), [effectiveState.games]);
 
   // Current game tree based on selected color
   const gameTree = useMemo(() => {
-    return currentColor === WHITE ? whiteGameTree : blackGameTree;
-  }, [currentColor, whiteGameTree, blackGameTree]);
+    return effectiveState.currentColor === WHITE ? effectiveState.whiteGameTree : effectiveState.blackGameTree;
+  }, [effectiveState.currentColor, effectiveState.whiteGameTree, effectiveState.blackGameTree]);
+
+  // Get effective comparison results (from comparison state or cached)
+  const effectiveWhiteComparison = comparisonState.whiteResult ?? effectiveState.whiteComparisonResult;
+  const effectiveBlackComparison = comparisonState.blackResult ?? effectiveState.blackComparisonResult;
 
   // Combined comparison result for Deviations/Gaps tabs
   const comparisonResult = useMemo(() => {
-    return combineComparisonResults(whiteComparisonResult, blackComparisonResult);
-  }, [whiteComparisonResult, blackComparisonResult]);
+    return combineComparisonResults(effectiveWhiteComparison, effectiveBlackComparison);
+  }, [effectiveWhiteComparison, effectiveBlackComparison]);
 
   // Computed current node (based on current color's tree)
   const currentNode = useMemo(() => {
     return findNodeByFen(gameTree, currentFen);
   }, [gameTree, currentFen]);
 
-  // Load games from Chess.com
+  // Load games wrapper
   const loadGames = useCallback(
     async (newConfig: GameReviewConfig) => {
-      console.log("loadGames called with config:", newConfig);
-      setIsLoading(true);
-      setTreesReady(false);
-      setError(null);
-      setConfig(newConfig);
-
-      try {
-        console.log("Fetching games from Chess.com...");
-        const fetchedGames = await fetchChessComGames(
-          newConfig.username,
-          newConfig.startDate,
-          newConfig.endDate,
-          newConfig.timeClasses.length > 0 ? newConfig.timeClasses : undefined
-        );
-
-        console.log("Fetched games (all colors):", fetchedGames.length);
-
-        if (fetchedGames.length === 0) {
-          setError("No games found in the selected date range.");
-          setGames([]);
-          setWhiteGameTree(createRootNode());
-          setBlackGameTree(createRootNode());
-          return;
-        }
-
-        // Store all games
-        setGames(fetchedGames);
-
-        // Split games by color
-        const white = fetchedGames.filter(g => g.color === WHITE);
-        const black = fetchedGames.filter(g => g.color === BLACK);
-
-        console.log(`Split into ${white.length} White games and ${black.length} Black games`);
-
-        // Build separate trees for each color
-        const wTree = white.length > 0 ? buildGamePositionTree(white) : createRootNode();
-        const bTree = black.length > 0 ? buildGamePositionTree(black) : createRootNode();
-        
-        setWhiteGameTree(wTree);
-        setBlackGameTree(bTree);
-        setTreesReady(true);
-
-        // Default to white if available, otherwise black
-        setCurrentColor(white.length > 0 ? WHITE : BLACK);
-
-        // Reset navigation state
-        setCurrentFen(INITIAL_FEN);
-        setSelectedDeviation(null);
-        setWhiteComparisonResult(null);
-        setBlackComparisonResult(null);
-
-        // Save to IndexedDB cache
-        try {
-          // Clear previous cached data and save new ones
-          await db.chesscomGames.clear();
-          await db.chesscomGames.bulkPut(fetchedGames);
-          await db.cachedGameData.clear();
-          await db.cachedGameData.put({ 
-            id: 1, 
-            whiteTree: wTree, 
-            blackTree: bTree,
-            whiteComparisonResult: null,
-            blackComparisonResult: null,
-            comparedChapterNames: [],
-          });
-          console.log(`[Cache] Saved ${fetchedGames.length} games and trees to cache`);
-
-          // Save the search config
-          const configToStore: GamesSearchConfig = {
-            id: 1,
-            username: newConfig.username,
-            startDate: newConfig.startDate.getTime(),
-            endDate: newConfig.endDate.getTime(),
-            timeClasses: newConfig.timeClasses,
-          };
-          await db.gamesSearchConfig.put(configToStore);
-          console.log("Games and trees cached to IndexedDB");
-        } catch (cacheErr) {
-          console.error("Failed to cache games:", cacheErr);
-          // Don't fail the load if caching fails
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch games"
-        );
-        setGames([]);
-        setWhiteGameTree(createRootNode());
-        setBlackGameTree(createRootNode());
-      } finally {
-        setIsLoading(false);
-      }
+      await loadGamesMutation.mutateAsync(newConfig);
     },
-    []
+    [loadGamesMutation]
   );
 
   // Compare games to repertoire chapters - compares BOTH trees
-  // Filter chapters by orientation to match the player color
   const doCompareToRepertoire = useCallback(
     async (chapters: Chapter[]) => {
-      if (chapters.length === 0 || games.length === 0) {
-        setWhiteComparisonResult(null);
-        setBlackComparisonResult(null);
+      if (chapters.length === 0 || effectiveState.games.length === 0) {
+        setComparisonState({
+          whiteResult: null,
+          blackResult: null,
+          isComparing: false,
+        });
         return;
       }
 
-      setIsComparing(true);
+      setComparisonState((prev) => ({ ...prev, isComparing: true }));
       const compareStart = performance.now();
 
-      // Filter chapters by orientation - white repertoires for white games, black for black
+      // Filter chapters by orientation
       const whiteChapters = chapters.filter((ch) => ch.orientation === WHITE);
       const blackChapters = chapters.filter((ch) => ch.orientation === BLACK);
 
@@ -395,30 +471,38 @@ export const useGameReviewState = (): GameReviewState => {
       // Compare white games against white repertoires only
       if (whiteGames.length > 0 && whiteChapters.length > 0) {
         whiteResult = compareToChapters(
-          whiteGameTree,
+          effectiveState.whiteGameTree,
           whiteChapters,
           WHITE
         );
-        setWhiteComparisonResult(whiteResult);
-        setWhiteGameTree(whiteResult.markedTree);
-      } else {
-        setWhiteComparisonResult(null);
+        // Update tree with marked nodes
+        setLocalState((prev) => ({
+          ...prev,
+          whiteGameTree: whiteResult!.markedTree,
+        }));
       }
 
       // Compare black games against black repertoires only
       if (blackGames.length > 0 && blackChapters.length > 0) {
         blackResult = compareToChapters(
-          blackGameTree,
+          effectiveState.blackGameTree,
           blackChapters,
           BLACK
         );
-        setBlackComparisonResult(blackResult);
-        setBlackGameTree(blackResult.markedTree);
-      } else {
-        setBlackComparisonResult(null);
+        // Update tree with marked nodes
+        setLocalState((prev) => ({
+          ...prev,
+          blackGameTree: blackResult!.markedTree,
+        }));
       }
 
       console.log(`[Compare] Comparison took ${(performance.now() - compareStart).toFixed(1)}ms`);
+
+      setComparisonState({
+        whiteResult,
+        blackResult,
+        isComparing: false,
+      });
 
       // Cache the comparison results
       try {
@@ -427,28 +511,28 @@ export const useGameReviewState = (): GameReviewState => {
           id: 1,
           whiteComparisonResult: whiteResult,
           blackComparisonResult: blackResult,
-          whiteTree: whiteResult?.markedTree || whiteGameTree,
-          blackTree: blackResult?.markedTree || blackGameTree,
+          whiteTree: whiteResult?.markedTree || effectiveState.whiteGameTree,
+          blackTree: blackResult?.markedTree || effectiveState.blackGameTree,
           comparedChapterNames: chapterNames,
         };
         await db.cachedGameData.put(cachedData);
         console.log(`[Cache] Saved comparison results to cache`);
       } catch (cacheErr) {
         console.error(`[Cache] Failed to save comparison results:`, cacheErr);
-      } finally {
-        setIsComparing(false);
       }
     },
-    [games, whiteGames, blackGames, whiteGameTree, blackGameTree]
+    [effectiveState.games.length, effectiveState.whiteGameTree, effectiveState.blackGameTree, whiteGames.length, blackGames.length]
   );
 
-  // Invalidate comparison cache (call when repertoire changes)
+  // Invalidate comparison cache
   const invalidateComparisonCache = useCallback(async () => {
     console.log(`[Cache] Invalidating comparison cache due to repertoire change`);
-    setWhiteComparisonResult(null);
-    setBlackComparisonResult(null);
+    setComparisonState({
+      whiteResult: null,
+      blackResult: null,
+      isComparing: false,
+    });
     
-    // Update the cached data to remove comparison results but keep trees
     try {
       const cachedData = await db.cachedGameData.get(1);
       if (cachedData) {
@@ -475,19 +559,36 @@ export const useGameReviewState = (): GameReviewState => {
     setCurrentFen(node.position.fen);
   }, []);
 
+  // Set current color
+  const setCurrentColor = useCallback((color: Color) => {
+    setLocalState((prev) => ({ ...prev, currentColor: color }));
+  }, []);
+
+  // Set config
+  const setConfig = useCallback((config: GameReviewConfig) => {
+    setLocalState((prev) => ({ ...prev, config }));
+  }, []);
+
   // Reset all state and clear cache
   const reset = useCallback(async () => {
-    setConfig(null);
-    setGames([]);
-    setWhiteGameTree(createRootNode());
-    setBlackGameTree(createRootNode());
-    setTreesReady(false);
-    setWhiteComparisonResult(null);
-    setBlackComparisonResult(null);
+    setLocalState({
+      config: null,
+      games: [],
+      whiteGameTree: createRootNode(),
+      blackGameTree: createRootNode(),
+      whiteComparisonResult: null,
+      blackComparisonResult: null,
+      currentColor: WHITE,
+      treesReady: false,
+      error: null,
+    });
+    setComparisonState({
+      whiteResult: null,
+      blackResult: null,
+      isComparing: false,
+    });
     setCurrentFen(INITIAL_FEN);
     setSelectedDeviation(null);
-    setError(null);
-    setCurrentColor(WHITE);
 
     // Clear IndexedDB cache
     try {
@@ -495,25 +596,28 @@ export const useGameReviewState = (): GameReviewState => {
       await db.chesscomGames.clear();
       await db.cachedGameData.clear();
       console.log("Games cache cleared");
+      
+      // Invalidate query cache
+      queryClient.invalidateQueries({ queryKey: ["games-cache"] });
     } catch (err) {
       console.error("Failed to clear cache:", err);
     }
-  }, []);
+  }, [queryClient]);
 
   return {
-    config,
+    config: effectiveState.config,
     setConfig,
-    isLoading,
+    isLoading: loadGamesMutation.isPending,
     isLoadingCache,
-    isComparing,
-    treesReady,
-    error,
-    games,
+    isComparing: comparisonState.isComparing,
+    treesReady: effectiveState.treesReady,
+    error: effectiveState.error,
+    games: effectiveState.games,
     whiteGames,
     blackGames,
-    whiteGameTree,
-    blackGameTree,
-    currentColor,
+    whiteGameTree: effectiveState.whiteGameTree,
+    blackGameTree: effectiveState.blackGameTree,
+    currentColor: effectiveState.currentColor,
     setCurrentColor,
     gameTree,
     comparisonResult,
@@ -531,4 +635,3 @@ export const useGameReviewState = (): GameReviewState => {
 };
 
 export default useGameReviewState;
-

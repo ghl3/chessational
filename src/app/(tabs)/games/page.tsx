@@ -3,12 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useGameReviewState, GameReviewConfig } from "@/hooks/UseGameReviewState";
+import { useGamesChessboardSync } from "@/hooks/UseGamesChessboardSync";
 import { GamesConfig } from "@/components/GamesConfig";
 import { MoveStatsTable } from "@/components/MoveStatsTable";
 import { DeviationsList, GapsList } from "@/components/DeviationsList";
 import { FlippablePanel, PanelView } from "@/components/FlippablePanel";
-import { generateSortedMoveArrows, generateDeviationArrows, generateUncoveredArrows, getDeviationsAtPosition } from "@/components/MoveArrows";
-import { GamePositionNode, findPathToFen, getMostCommonChild } from "@/chess/GamePositionTree";
+import { GamePositionNode } from "@/chess/GamePositionTree";
 import { Deviation } from "@/utils/RepertoireComparer";
 import { Color, WHITE, BLACK } from "chess.js";
 
@@ -186,13 +186,8 @@ const GamesPage: React.FC = () => {
   const gameReviewState = useGameReviewState();
   const [panelView, setPanelView] = useState<PanelView>("moves");
   
-  // Track the current path through the game tree for chessboard sync
-  const [currentPath, setCurrentPath] = useState<GamePositionNode[]>([]);
-  
-  // Ref to prevent sync loops between game review state and chessboard
-  const isSyncingFromGameState = useRef(false);
-  const lastSyncedFen = useRef<string | null>(null);
-  const lastSyncedTreeSize = useRef<number>(0);
+  // Track if auto-compare has been triggered to prevent re-running
+  const hasAutoComparedRef = useRef(false);
 
   const {
     config,
@@ -219,105 +214,18 @@ const GamesPage: React.FC = () => {
     reset,
   } = gameReviewState;
 
-  // Build path and sync chessboard when current position changes (from game review state)
-  useEffect(() => {
-    if (!gameTree || !currentFen) return;
-    
-    // Count tree size to detect when tree changes (e.g., when games are loaded)
-    const treeSize = gameTree.children.length;
-    
-    // Skip if FEN hasn't changed AND tree hasn't changed
-    if (lastSyncedFen.current === currentFen && lastSyncedTreeSize.current === treeSize) return;
-    
-    // Build path from root to current position
-    const pathToPosition = findPathToFen(gameTree, currentFen);
-    if (pathToPosition.length === 0) return;
-    
-    // Extend path with main line continuation (most common moves) for forward navigation
-    const extendedPath = [...pathToPosition];
-    let lastNode = extendedPath[extendedPath.length - 1];
-    while (lastNode && lastNode.children.length > 0) {
-      const nextNode = getMostCommonChild(lastNode);
-      if (!nextNode) break;
-      extendedPath.push(nextNode);
-      lastNode = nextNode;
-    }
-    
-    setCurrentPath(extendedPath);
-    lastSyncedFen.current = currentFen;
-    lastSyncedTreeSize.current = treeSize;
-    
-    // Mark that we're syncing from game state to prevent loop
-    isSyncingFromGameState.current = true;
-    
-    // Load all positions into chessboard, index at current position (not end)
-    const positions = extendedPath.map(node => node.position);
-    const currentIndex = pathToPosition.length - 1; // Index of current position in extended path
-    chessboardState.clearAndSetPositions(positions, currentIndex);
-    
-    // Reset flag after a short delay to allow chessboard to update
-    setTimeout(() => {
-      isSyncingFromGameState.current = false;
-    }, 50);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentFen, gameTree]);
-  
-  // Sync game review state when chessboard navigates via arrows
-  useEffect(() => {
-    // Skip if we're currently syncing from game state
-    if (isSyncingFromGameState.current) return;
-    
-    // Only handle if we have a path and the chessboard has positions
-    if (currentPath.length === 0 || chessboardState.positions.length === 0) return;
-    
-    const chessboardIndex = chessboardState.currentPositionIndex;
-    
-    // If the chessboard index corresponds to a different node in our path, sync it
-    if (chessboardIndex >= 0 && chessboardIndex < currentPath.length) {
-      const nodeAtIndex = currentPath[chessboardIndex];
-      if (nodeAtIndex && nodeAtIndex.position.fen !== currentFen) {
-        // Clear selected deviation when navigating
-        setSelectedDeviation(null);
-        // Update the lastSyncedFen before navigating to prevent double-sync
-        lastSyncedFen.current = nodeAtIndex.position.fen;
-        navigateToPosition(nodeAtIndex.position.fen);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chessboardState.currentPositionIndex, currentPath]);
-
-  // Update arrows when current node or selected deviation changes
-  useEffect(() => {
-    // If a deviation/uncovered item is selected, show appropriate arrows
-    if (selectedDeviation && currentNode && comparisonResult) {
-      // Find ALL items at this position (of the same type)
-      const itemsAtPosition = getDeviationsAtPosition(
-        comparisonResult.deviations,
-        selectedDeviation.fen
-      ).filter((d) => d.deviatedBy === selectedDeviation.deviatedBy);
-      
-      // Get the last move that led to this position (for context)
-      const lastMove = currentNode.position.lastMove;
-      
-      // Use different arrow generators for deviations vs uncovered lines
-      const arrows = selectedDeviation.deviatedBy === "player"
-        ? generateDeviationArrows(itemsAtPosition, lastMove)
-        : generateUncoveredArrows(itemsAtPosition, lastMove);
-      
-      chessboardState.setArrows(arrows);
-    } else if (currentNode && currentNode.children.length > 0) {
-      // Normal view: show frequency-based arrows for all moves
-      const arrows = generateSortedMoveArrows(
-        currentNode.children,
-        currentNode.stats,
-        comparisonResult !== null // Show repertoire colors if compared
-      );
-      chessboardState.setArrows(arrows);
-    } else {
-      chessboardState.setArrows([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentNode, comparisonResult, selectedDeviation]);
+  // Use the extracted sync hook for chessboard synchronization
+  useGamesChessboardSync({
+    chessboardState,
+    gameTree,
+    currentFen,
+    currentColor,
+    currentNode,
+    comparisonResult,
+    selectedDeviation,
+    navigateToPosition,
+    setSelectedDeviation,
+  });
 
   // Handle clicking a move in the stats table
   const handleMoveClick = useCallback(
@@ -333,15 +241,14 @@ const GamesPage: React.FC = () => {
   const handleDeviationClick = useCallback(
     (deviation: Deviation) => {
       setSelectedDeviation(deviation);
-      // Switch to the correct color's game tree and orient board if needed
+      // Switch to the correct color's game tree if needed (orientation synced by hook)
       if (deviation.playerColor !== currentColor) {
         setCurrentColor(deviation.playerColor);
-        chessboardState.setOrientation(deviation.playerColor);
       }
       navigateToPosition(deviation.fen);
       // Stay on deviations view so user can see context
     },
-    [navigateToPosition, setSelectedDeviation, currentColor, setCurrentColor, chessboardState]
+    [navigateToPosition, setSelectedDeviation, currentColor, setCurrentColor]
   );
 
   // Handle compare button click - use ALL chapters from ALL studies
@@ -357,27 +264,31 @@ const GamesPage: React.FC = () => {
   }, [reset]);
 
   // Auto-compare when games are loaded and repertoire is available
+  // Using a ref to track if we've already auto-compared prevents the need for eslint-disable
+  const shouldAutoCompare =
+    games.length > 0 &&
+    treesReady &&
+    studyData.allChapters &&
+    studyData.allChapters.length > 0 &&
+    comparisonResult === null &&
+    !isLoading &&
+    !isLoadingCache &&
+    !hasAutoComparedRef.current;
+
   useEffect(() => {
-    // Only auto-compare if:
-    // 1. Games have been loaded (games.length > 0)
-    // 2. Trees are ready (built from games)
-    // 3. Repertoire is available (chapters exist)
-    // 4. Haven't already compared (comparisonResult is null)
-    // 5. Not currently loading (either from network or cache)
-    if (
-      games.length > 0 &&
-      treesReady &&
-      studyData.allChapters &&
-      studyData.allChapters.length > 0 &&
-      comparisonResult === null &&
-      !isLoading &&
-      !isLoadingCache
-    ) {
+    if (shouldAutoCompare && studyData.allChapters) {
       console.log("Auto-comparing to repertoire...");
+      hasAutoComparedRef.current = true;
       compareToRepertoire(studyData.allChapters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [games.length, treesReady, studyData.allChapters?.length, isLoading, isLoadingCache]);
+  }, [shouldAutoCompare, compareToRepertoire, studyData.allChapters]);
+
+  // Reset auto-compare flag when games are reset
+  useEffect(() => {
+    if (games.length === 0) {
+      hasAutoComparedRef.current = false;
+    }
+  }, [games.length]);
 
   // Memoized values
   const hasRepertoire = useMemo(
@@ -399,14 +310,12 @@ const GamesPage: React.FC = () => {
   const deviationsCount = playerDeviations.length;
   const uncoveredCount = uncoveredLines.length;
 
-  // Handle color change - also update chessboard orientation
+  // Handle color change - orientation is synced by the hook
   const handleColorChange = useCallback((color: Color) => {
     setCurrentColor(color);
-    // Update chessboard orientation to match the player's perspective
-    chessboardState.setOrientation(color);
     // Reset to starting position when switching colors
     navigateToPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-  }, [setCurrentColor, chessboardState, navigateToPosition]);
+  }, [setCurrentColor, navigateToPosition]);
 
   // Render based on state
   if (isLoadingCache) {
@@ -518,4 +427,3 @@ const GamesPage: React.FC = () => {
 };
 
 export default GamesPage;
-
