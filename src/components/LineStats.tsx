@@ -25,7 +25,10 @@ export interface LineStatsRow {
   numAttempts: number;
   numCorrect: number;
   latestAttempt: Date | null;
-  estimatedSuccessRate: number | null;
+  // Raw success rate: numCorrect / numAttempts (historical accuracy)
+  rawSuccessRate: number | null;
+  // Time-weighted Bayesian estimate of current knowledge (0-1)
+  knowledgeScore: number | null;
 }
 
 interface LineStatsProps {
@@ -143,16 +146,17 @@ export const LineStats: React.FC<LineStatsProps> = ({
         numAttempts: stats?.numAttempts ?? 0,
         numCorrect: stats?.numCorrect ?? 0,
         latestAttempt: stats?.latestAttempt ?? null,
-        estimatedSuccessRate: stats?.estimatedSuccessRate ?? null,
+        rawSuccessRate: stats?.rawSuccessRate ?? null,
+        knowledgeScore: stats?.estimatedSuccessRate ?? null,
       };
     }).sort((a, b) => {
-      // Sort by success rate (ascending - worst first), then by attempts (most first)
-      if (a.estimatedSuccessRate === null && b.estimatedSuccessRate === null) {
+      // Sort by knowledge score (ascending - worst first), then by attempts (most first)
+      if (a.knowledgeScore === null && b.knowledgeScore === null) {
         return b.numAttempts - a.numAttempts;
       }
-      if (a.estimatedSuccessRate === null) return -1; // Never attempted first
-      if (b.estimatedSuccessRate === null) return 1;
-      return a.estimatedSuccessRate - b.estimatedSuccessRate;
+      if (a.knowledgeScore === null) return -1; // Never attempted first
+      if (b.knowledgeScore === null) return 1;
+      return a.knowledgeScore - b.knowledgeScore;
     });
   }, [lineAndChapters, lineStats, selectedStudies, selectedChapters, chessboardState, handleLineSelect]);
 
@@ -179,23 +183,33 @@ export const LineStats: React.FC<LineStatsProps> = ({
       statsColumnHelper.accessor((row) => row.numAttempts, {
         id: "numAttempts",
         header: "Attempts",
-        size: 70,
+        size: 65,
       }),
       statsColumnHelper.accessor((row) => row.numCorrect, {
         id: "numCorrect",
         header: "Correct",
-        size: 70,
+        size: 60,
       }),
-      statsColumnHelper.accessor((row) => row.estimatedSuccessRate, {
+      statsColumnHelper.accessor((row) => row.rawSuccessRate, {
         id: "successRate",
-        header: "Success",
-        size: 70,
+        header: "Success %",
+        size: 75,
         cell: (info) => {
           const val = info.getValue();
           if (val === null) return <span className="text-gray-500">-</span>;
           const pct = Math.round(val * 100);
-          const color = pct >= 80 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
-          return <span className={color}>{pct}%</span>;
+          return <span className="text-gray-300">{pct}%</span>;
+        },
+      }),
+      statsColumnHelper.accessor((row) => row.knowledgeScore, {
+        id: "knowledgeScore",
+        header: "Knowledge",
+        size: 70,
+        cell: (info) => {
+          const val = info.getValue();
+          if (val === null) return <span className="text-gray-500">-</span>;
+          const color = val >= 0.8 ? "text-green-400" : val >= 0.5 ? "text-yellow-400" : "text-red-400";
+          return <span className={color}>{val.toFixed(2)}</span>;
         },
       }),
       statsColumnHelper.accessor((row) => row.latestAttempt, {
