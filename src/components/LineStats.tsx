@@ -5,6 +5,7 @@ import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
+import { getStats, LineStats as LineStatsType } from "@/utils/LineStats";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
 import { DetailsPanel } from "./DetailsPanel";
@@ -15,19 +16,19 @@ import DynamicTable, {
 import { makePositionChips } from "./PositionChip";
 import Selector, { SelectOption } from "./Selector";
 
-// Individual attempt row
-export interface AttemptRow {
+// Line stats row (aggregated)
+export interface LineStatsRow {
   studyName: string;
   chapterName: string;
   line: React.JSX.Element[];
-  lineAndChapter?: LineAndChapter;
-  attemptDate: Date | null;
-  correct: boolean;
+  lineAndChapter: LineAndChapter;
+  numAttempts: number;
+  numCorrect: number;
+  latestAttempt: Date | null;
+  estimatedSuccessRate: number | null;
 }
 
-type OutcomeFilter = "all" | "correct" | "incorrect";
-
-interface AttemptsProps {
+interface LineStatsProps {
   lines: Line[];
   chapters: Chapter[];
   attempts: Attempt[];
@@ -36,7 +37,7 @@ interface AttemptsProps {
   reviewState: ReviewState;
 }
 
-export const Attempts: React.FC<AttemptsProps> = ({
+export const LineStats: React.FC<LineStatsProps> = ({
   lines,
   chapters,
   attempts,
@@ -47,7 +48,6 @@ export const Attempts: React.FC<AttemptsProps> = ({
   // Filters
   const [selectedStudies, setSelectedStudies] = useState<string[]>([]);
   const [selectedChapters, setSelectedChapters] = useState<string[]>([]);
-  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>("all");
 
   const handleLineSelect = useCallback(
     (lineAndChapter: LineAndChapter) => {
@@ -75,17 +75,17 @@ export const Attempts: React.FC<AttemptsProps> = ({
 
   // Get unique studies and chapters for filters
   const studyOptions: SelectOption[] = useMemo(() => {
-    const studies = [...new Set(attempts.map((a) => a.studyName))];
+    const studies = [...new Set(lineAndChapters.map((lc) => lc.line.studyName))];
     return studies.map((s) => ({ value: s, label: s }));
-  }, [attempts]);
+  }, [lineAndChapters]);
 
   const chapterOptions: SelectOption[] = useMemo(() => {
     // Filter chapters based on selected studies
-    const filteredAttempts = selectedStudies.length > 0
-      ? attempts.filter((a) => selectedStudies.includes(a.studyName))
-      : attempts;
+    const filtered = selectedStudies.length > 0
+      ? lineAndChapters.filter((lc) => selectedStudies.includes(lc.line.studyName))
+      : lineAndChapters;
     
-    const chapterKeys = [...new Set(filteredAttempts.map((a) => `${a.studyName}|${a.chapterName}`))];
+    const chapterKeys = [...new Set(filtered.map((lc) => `${lc.line.studyName}|${lc.line.chapterName}`))];
     return chapterKeys.map((c) => {
       const [studyName, chapterName] = c.split("|");
       return { 
@@ -94,97 +94,127 @@ export const Attempts: React.FC<AttemptsProps> = ({
         group: studyName,
       };
     });
-  }, [attempts, selectedStudies]);
+  }, [lineAndChapters, selectedStudies]);
 
-  // Filter attempts
+  // Filter attempts based on selected studies and chapters
   const filteredAttempts = useMemo(() => {
     return attempts.filter((attempt) => {
-      // Study filter
       if (selectedStudies.length > 0 && !selectedStudies.includes(attempt.studyName)) {
         return false;
       }
-      // Chapter filter
       if (selectedChapters.length > 0) {
         const key = `${attempt.studyName}|${attempt.chapterName}`;
         if (!selectedChapters.includes(key)) {
           return false;
         }
       }
-      // Outcome filter
-      if (outcomeFilter === "correct" && !attempt.correct) return false;
-      if (outcomeFilter === "incorrect" && attempt.correct) return false;
-      
       return true;
     });
-  }, [attempts, selectedStudies, selectedChapters, outcomeFilter]);
+  }, [attempts, selectedStudies, selectedChapters]);
 
-  // Build attempt rows
-  const attemptRows: AttemptRow[] = useMemo(() => {
-    return filteredAttempts
-      .map((attempt) => {
-        const lineAndChapter = lineAndChapters.find(
-          (lc) => lc.line.lineId === attempt.lineId,
-        );
+  // Calculate line stats
+  const lineStats: Map<string, LineStatsType> = useMemo(() => {
+    return getStats(filteredAttempts);
+  }, [filteredAttempts]);
 
-        const lineElements: React.JSX.Element[] =
-          lineAndChapter !== undefined && lineAndChapter !== null
-            ? makePositionChips(lineAndChapter, chessboardState, handleLineSelect)
-            : [<div key={attempt.lineId} className="text-gray-500 italic truncate">{attempt.lineId}</div>];
+  // Build line stats rows
+  const statsRows: LineStatsRow[] = useMemo(() => {
+    // Filter line and chapters based on selected filters
+    const filtered = lineAndChapters.filter((lc) => {
+      if (selectedStudies.length > 0 && !selectedStudies.includes(lc.line.studyName)) {
+        return false;
+      }
+      if (selectedChapters.length > 0) {
+        const key = `${lc.line.studyName}|${lc.line.chapterName}`;
+        if (!selectedChapters.includes(key)) {
+          return false;
+        }
+      }
+      return true;
+    });
 
-        return {
-          studyName: attempt.studyName,
-          chapterName: attempt.chapterName,
-          line: lineElements,
-          lineAndChapter,
-          attemptDate: attempt.timestamp,
-          correct: attempt.correct,
-        };
-      })
-      .sort((a, b) => {
-        if (a.attemptDate === null) return 1;
-        if (b.attemptDate === null) return -1;
-        return b.attemptDate.getTime() - a.attemptDate.getTime();
-      });
-  }, [filteredAttempts, lineAndChapters, chessboardState, handleLineSelect]);
+    return filtered.map((lc) => {
+      const stats = lineStats.get(lc.line.lineId);
+      return {
+        studyName: lc.line.studyName,
+        chapterName: lc.line.chapterName,
+        line: makePositionChips(lc, chessboardState, handleLineSelect),
+        lineAndChapter: lc,
+        numAttempts: stats?.numAttempts ?? 0,
+        numCorrect: stats?.numCorrect ?? 0,
+        latestAttempt: stats?.latestAttempt ?? null,
+        estimatedSuccessRate: stats?.estimatedSuccessRate ?? null,
+      };
+    }).sort((a, b) => {
+      // Sort by success rate (ascending - worst first), then by attempts (most first)
+      if (a.estimatedSuccessRate === null && b.estimatedSuccessRate === null) {
+        return b.numAttempts - a.numAttempts;
+      }
+      if (a.estimatedSuccessRate === null) return -1; // Never attempted first
+      if (b.estimatedSuccessRate === null) return 1;
+      return a.estimatedSuccessRate - b.estimatedSuccessRate;
+    });
+  }, [lineAndChapters, lineStats, selectedStudies, selectedChapters, chessboardState, handleLineSelect]);
 
-  // Column definitions for attempts view
-  const attemptColumnHelper = createColumnHelper<AttemptRow>();
-  const attemptColumns = useMemo(
+  // Column definitions for stats view
+  const statsColumnHelper = createColumnHelper<LineStatsRow>();
+  const statsColumns = useMemo(
     () => [
-      attemptColumnHelper.accessor((row) => row.studyName, {
+      statsColumnHelper.accessor((row) => row.studyName, {
         id: "studyName",
         header: "Study",
         size: BASE_COLUMN_WIDTHS.study,
       }),
-      attemptColumnHelper.accessor((row) => row.chapterName, {
+      statsColumnHelper.accessor((row) => row.chapterName, {
         id: "chapterName",
         header: "Chapter",
         size: BASE_COLUMN_WIDTHS.chapter,
       }),
-      attemptColumnHelper.accessor((row) => row.line, {
+      statsColumnHelper.accessor((row) => row.line, {
         id: "line",
         header: "Line",
         size: BASE_COLUMN_WIDTHS.line,
         cell: (props) => <ClickableLineFn value={props.getValue()} />,
       }),
-      attemptColumnHelper.accessor((row) => row.attemptDate, {
-        id: "attemptDate",
-        header: "Date",
-        size: BASE_COLUMN_WIDTHS.latestAttempt,
-        cell: (info) => info.getValue()?.toLocaleString() ?? "",
+      statsColumnHelper.accessor((row) => row.numAttempts, {
+        id: "numAttempts",
+        header: "Attempts",
+        size: 70,
       }),
-      attemptColumnHelper.accessor((row) => row.correct, {
-        id: "outcome",
-        header: "Outcome",
-        size: 80,
-        cell: (info) => (
-          <span className={info.getValue() ? "text-green-400" : "text-red-400"}>
-            {info.getValue() ? "Correct" : "Incorrect"}
-          </span>
-        ),
+      statsColumnHelper.accessor((row) => row.numCorrect, {
+        id: "numCorrect",
+        header: "Correct",
+        size: 70,
+      }),
+      statsColumnHelper.accessor((row) => row.estimatedSuccessRate, {
+        id: "successRate",
+        header: "Success",
+        size: 70,
+        cell: (info) => {
+          const val = info.getValue();
+          if (val === null) return <span className="text-gray-500">-</span>;
+          const pct = Math.round(val * 100);
+          const color = pct >= 80 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400";
+          return <span className={color}>{pct}%</span>;
+        },
+      }),
+      statsColumnHelper.accessor((row) => row.latestAttempt, {
+        id: "latestAttempt",
+        header: "Last",
+        size: 90,
+        cell: (info) => info.getValue()?.toLocaleDateString() ?? <span className="text-gray-500">Never</span>,
       }),
     ],
-    [attemptColumnHelper],
+    [statsColumnHelper],
+  );
+
+  const onRowClick = useCallback(
+    (row: LineStatsRow) => {
+      chessboardState.setOrientation(row.lineAndChapter.chapter.orientation);
+      chessboardState.clearAndSetPositions(row.lineAndChapter.line.positions, 0);
+      handleLineSelect(row.lineAndChapter);
+    },
+    [chessboardState, handleLineSelect],
   );
 
   return (
@@ -235,30 +265,21 @@ export const Attempts: React.FC<AttemptsProps> = ({
           }
         />
 
-        {/* Outcome Filter */}
-        <Selector
-          options={[
-            { value: "all", label: "All outcomes" },
-            { value: "correct", label: "Correct only" },
-            { value: "incorrect", label: "Incorrect only" },
-          ]}
-          selectedValues={[outcomeFilter]}
-          onChange={(values) => setOutcomeFilter((values[0] as OutcomeFilter) || "all")}
-          placeholder="All outcomes"
-          multiSelect={false}
-          className="w-36"
-        />
-
         {/* Result count */}
         <span className="text-sm text-gray-400 ml-auto">
-          {attemptRows.length} attempts
+          {statsRows.length} lines
         </span>
       </div>
 
       {/* Table */}
       <div className="flex-1 min-h-0 h-full">
-        <DynamicTable columns={attemptColumns} data={attemptRows} />
+        <DynamicTable 
+          columns={statsColumns} 
+          data={statsRows} 
+          onRowClick={onRowClick}
+        />
       </div>
     </div>
   );
 };
+

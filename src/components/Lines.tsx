@@ -1,17 +1,14 @@
-import { Attempt } from "@/chess/Attempt";
 import { Chapter } from "@/chess/Chapter";
 import { Line } from "@/chess/Line";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
-import { getStats, LineStats } from "@/utils/LineStats";
 import { Token } from "@/utils/Tokenizer";
 import { createColumnHelper } from "@tanstack/react-table";
 import React, { useCallback, useMemo, useState } from "react";
 import { DetailsPanel } from "./DetailsPanel";
 import {
-  BASE_COLUMN_WIDTHS,
   ClickableLineFn,
   DynamicTable,
 } from "./DynamicTable";
@@ -23,16 +20,11 @@ export interface LineRow {
   chapterName: string;
   line: React.JSX.Element[];
   lineAndChapter: LineAndChapter;
-  numAttempts: number;
-  numCorrect: number;
-  latestAttempt: Date | null;
-  estimatedSuccessRate: number | null;
 }
 
 interface LinesProps {
   lines: Line[];
   chapters: Chapter[];
-  attempts: Attempt[];
   chessboardState: ChessboardState;
   engineData: EngineData;
   reviewState: ReviewState;
@@ -41,7 +33,6 @@ interface LinesProps {
 const Lines: React.FC<LinesProps> = ({
   lines,
   chapters,
-  attempts,
   chessboardState,
   engineData,
   reviewState,
@@ -59,8 +50,9 @@ const Lines: React.FC<LinesProps> = ({
     }
 
     return lines.flatMap((line) => {
+      // Match by both study name and chapter name (important for multi-study)
       const chapter = chapters.find(
-        (chapter) => chapter.name === line.chapterName,
+        (ch) => ch.studyName === line.studyName && ch.name === line.chapterName,
       );
       if (chapter === undefined) {
         // Chapter not found - skip this line
@@ -83,32 +75,21 @@ const Lines: React.FC<LinesProps> = ({
     );
   }, [lineAndChapters, searchTokens]);
 
-  const stats: Map<string, LineStats> = useMemo(() => {
-    return getStats(attempts || []);
-  }, [attempts]);
-
   // Transform the data for the table
   const tableData: LineRow[] = useMemo(() => {
     const rows: LineRow[] = [];
 
     for (const lineAndChapter of filteredLines) {
-      const stat: LineStats | null =
-        stats.get(lineAndChapter.line.lineId) || null;
-
       rows.push({
         lineAndChapter: lineAndChapter,
         studyName: lineAndChapter.line.studyName,
         chapterName: lineAndChapter.line.chapterName,
         line: makePositionChips(lineAndChapter, chessboardState, handleLineSelect),
-        numAttempts: stat?.numAttempts || 0,
-        numCorrect: stat?.numCorrect || 0,
-        latestAttempt: stat?.latestAttempt || null,
-        estimatedSuccessRate: stat?.estimatedSuccessRate || null,
       });
     }
 
     return rows;
-  }, [filteredLines, chessboardState, stats, handleLineSelect]);
+  }, [filteredLines, chessboardState, handleLineSelect]);
 
   const onRowClick = useCallback(
     (row: LineRow) => {
@@ -125,44 +106,18 @@ const Lines: React.FC<LinesProps> = ({
       columnHelper.accessor((row) => row.studyName, {
         id: "studyName",
         header: "Study",
-        size: 100, // Reduced width
+        size: 120,
       }),
       columnHelper.accessor((row) => row.chapterName, {
         id: "chapterName",
         header: "Chapter",
-        size: 100, // Reduced width
+        size: 120,
       }),
       columnHelper.accessor((row) => row.line, {
         id: "line",
         header: "Line",
-        // Increase line width to give more space for moves
-        size: 400,
+        size: 500,
         cell: (props) => <ClickableLineFn value={props.getValue()} />,
-      }),
-      columnHelper.accessor((row) => row.numAttempts, {
-        id: "numAttempts",
-        header: "Attempts",
-        size: 70,
-      }),
-      columnHelper.accessor((row) => row.numCorrect, {
-        id: "numCorrect",
-        header: "Correct",
-        size: 70,
-      }),
-      columnHelper.accessor((row) => row.latestAttempt, {
-        id: "latestAttempt",
-        header: "Last Attempt",
-        size: 100,
-        cell: (info) => info.getValue()?.toLocaleDateString() ?? "-",
-      }),
-      columnHelper.accessor((row) => row.estimatedSuccessRate, {
-        id: "estimatedSuccessRate",
-        header: "Success Rate",
-        size: 90,
-        cell: (info) => {
-          const val = info.getValue();
-          return val !== null ? `${(val * 100).toFixed(0)}%` : "-";
-        },
       }),
     ],
     [columnHelper],
@@ -193,7 +148,7 @@ const Lines: React.FC<LinesProps> = ({
           setTokens={setSearchTokens}
         />
       </div>
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 h-full">
         <DynamicTable
           columns={columns}
           data={tableData}

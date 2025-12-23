@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type Tab = "REPERTOIRE" | "PRACTICE" | "GAMES";
+export type Tab = "STUDIES" | "PRACTICE" | "GAMES";
 
 // Map tabs to their URL paths
 const TAB_PATHS: Record<Tab, string> = {
-  REPERTOIRE: "/repertoire",
+  STUDIES: "/studies",
   PRACTICE: "/practice",
   GAMES: "/games",
 };
@@ -15,7 +15,7 @@ const TAB_PATHS: Record<Tab, string> = {
 // Map paths to tabs for reverse lookup
 const PATH_TO_TAB: Record<string, Tab> = {
   "/": "PRACTICE", // Root redirects to practice
-  "/repertoire": "REPERTOIRE",
+  "/studies": "STUDIES",
   "/practice": "PRACTICE",
   "/games": "GAMES",
 };
@@ -58,9 +58,9 @@ export const NavBar: React.FC = () => {
     >
       <ul className="flex space-x-2" role="tablist">
         <NavEntry
-          name="Repertoire"
-          href={TAB_PATHS.REPERTOIRE}
-          isActive={currentTab === "REPERTOIRE"}
+          name="Studies"
+          href={TAB_PATHS.STUDIES}
+          isActive={currentTab === "STUDIES"}
         />
         <NavEntry
           name="Practice"

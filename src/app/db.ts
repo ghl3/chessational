@@ -39,7 +39,8 @@ export class OpeningsDb extends Dexie {
   studies!: Table<Study>;
   chapters!: Table<Chapter>;
   lines!: Table<Line>;
-  selectedStudyName!: Table<{ studyName: string }>;
+  selectedStudyName!: Table<{ studyName: string }>; // Legacy - kept for migration
+  selectedStudyNames!: Table<{ studyName: string }>; // New - supports multiple
   selectedChapterNames!: Table<{ studyName: string; chapterName: string }>;
   positions!: Table<{ fen: Fen; database: LichessDatabase }>;
   attempts!: Table<Attempt>;
@@ -75,6 +76,16 @@ export class OpeningsDb extends Dexie {
     this.version(7).stores({
       cachedGameTrees: null, // Delete old table
       cachedGameData: "id",
+    });
+    // Version 8: Add selectedStudyNames table for multi-study selection
+    this.version(8).stores({
+      selectedStudyNames: "studyName",
+    }).upgrade(async (tx) => {
+      // Migrate from old single-selection to new multi-selection
+      const oldSelection = await tx.table("selectedStudyName").toArray();
+      if (oldSelection.length > 0) {
+        await tx.table("selectedStudyNames").bulkAdd(oldSelection);
+      }
     });
   }
 }

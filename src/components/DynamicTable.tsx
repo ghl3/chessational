@@ -57,7 +57,7 @@ export const DynamicTable = <T,>({
   });
 
   return (
-    <div className="h-full overflow-auto rounded-lg border border-gray-700 table-scroll">
+    <div className="h-full max-h-full overflow-x-auto overflow-y-auto rounded-lg border border-gray-700 table-scroll">
       <table className="text-sm text-left">
         <thead className="bg-gray-900 sticky top-0 z-[5]">
           {table.getHeaderGroups().map((headerGroup) => (

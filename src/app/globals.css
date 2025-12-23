@@ -80,29 +80,42 @@ body {
   animation: status-flash-green 0.6s ease-out forwards;
 }
 
-/* Custom scrollbar styling for better visibility */
-.table-scroll {
+/* Global scrollbar styling - dark, subtle, consistent */
+* {
   scrollbar-width: thin;
-  scrollbar-color: #4b5563 #1f2937;
+  scrollbar-color: #4b5563 transparent;
 }
 
-.table-scroll::-webkit-scrollbar {
+*::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Table-specific scrollbar with visible track */
+.table-scroll {
+  scrollbar-color: #4b5563 #1f2937;
 }
 
 .table-scroll::-webkit-scrollbar-track {
   background: #1f2937;
   border-radius: 4px;
-}
-
-.table-scroll::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
-}
-
-.table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
 }
 
 .table-scroll::-webkit-scrollbar-corner {

@@ -12,22 +12,33 @@ export interface StudyData {
   studies: Study[]; // All studies
   allChapters?: Chapter[]; // All chapters from ALL studies (for game comparison)
 
-  // Selected study
-  selectedStudyName?: string; // The name of the selected study
-  selectedStudy?: Study; // The selected study
-  selectedStudyChapters?: Chapter[]; // Chapters from the selected study only
+  // Selected studies (multiple)
+  selectedStudyNames?: string[]; // The names of the selected studies
+  selectedStudies?: Study[]; // The selected studies
+  selectedStudyChapters?: Chapter[]; // Chapters from ALL selected studies
 
-  // Selected chapters (within the selected study)
-  selectedChapterNames?: string[]; // The names of the selected chapters
+  // Selected chapters (across all selected studies)
+  selectedChapterNames?: string[]; // The names of the selected chapters (across all studies)
   selectedChapterLines?: Line[]; // Lines from selected chapters only
   selectedChapterAttempts?: Attempt[]; // Attempts for selected chapters only
 
   // Actions
   addStudyAndChapters: (studyAndChapters: StudyChapterAndLines) => void;
   deleteStudy: (studyName: string) => void;
+  addSelectedStudyName: (studyName: string) => void;
+  removeSelectedStudyName: (studyName: string) => void;
+  setSelectedStudyNames: (studyNames: string[]) => void;
+  addSelectedChapterName: (studyName: string, chapterName: string) => void;
+  removeSelectedChapterName: (studyName: string, chapterName: string) => void;
+  setSelectedChapterNames: (chapters: { studyName: string; chapterName: string }[]) => void;
+
+  // Deprecated - for backward compatibility during migration
+  /** @deprecated Use selectedStudyNames instead */
+  selectedStudyName?: string;
+  /** @deprecated Use selectedStudies[0] instead */
+  selectedStudy?: Study;
+  /** @deprecated Use addSelectedStudyName instead */
   selectStudy: (studyName: string) => void;
-  addSelectedChapterName: (chapterName: string) => void;
-  removeSelectedChapterName: (chapterName: string) => void;
 }
 
 export const useStudyData = (): StudyData => {
@@ -50,188 +61,241 @@ export const useStudyData = (): StudyData => {
     undefined, // undefined while loading
   );
 
-  const selectedStudyName: string | undefined = useLiveQuery(
+  // Selected study names (multiple)
+  const selectedStudyNames: string[] | undefined = useLiveQuery(
     async () => {
-      const selectedStudyNames = await db.selectedStudyName.toArray();
-      if (selectedStudyNames.length === 0) {
-        return undefined;
-      } else {
-        return selectedStudyNames[0].studyName;
-      }
+      const selected = await db.selectedStudyNames.toArray();
+      return selected.map((s) => s.studyName);
     },
     [],
     undefined,
   );
 
-  const selectedStudy: Study | undefined = useLiveQuery(
+  // Selected studies (multiple)
+  const selectedStudies: Study[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName === undefined) {
-        return undefined;
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
+        return [];
       }
-      const study = await db.studies
+      const studyList = await db.studies
         .where("name")
-        .equalsIgnoreCase(selectedStudyName)
-        .first();
-      return study;
+        .anyOfIgnoreCase(selectedStudyNames)
+        .toArray();
+      return studyList;
     },
-    [selectedStudyName],
+    [selectedStudyNames],
     undefined,
   );
 
-  // Chapters from the currently selected study only
+  // Chapters from ALL selected studies
   const selectedStudyChapters: Chapter[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName === null || selectedStudyName === undefined) {
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
         return [];
       }
       const chapters = await db.chapters
         .where("studyName")
-        .equalsIgnoreCase(selectedStudyName)
+        .anyOfIgnoreCase(selectedStudyNames)
         .sortBy("chapterIndex");
-      return chapters;
+      // Sort by study name first, then chapter index
+      return chapters.sort((a, b) => {
+        const studyCompare = a.studyName.localeCompare(b.studyName);
+        if (studyCompare !== 0) return studyCompare;
+        return a.chapterIndex - b.chapterIndex;
+      });
     },
-    [selectedStudyName],
+    [selectedStudyNames],
     undefined,
   );
 
+  // Selected chapter names across all selected studies
   const selectedChapterNames: string[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName === null || selectedStudyName === undefined) {
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
         return undefined;
       }
-      const selectedChapterNames = await db.selectedChapterNames
+      const selectedChapters = await db.selectedChapterNames
         .where("studyName")
-        .equalsIgnoreCase(selectedStudyName)
+        .anyOfIgnoreCase(selectedStudyNames)
         .toArray();
 
-      if (selectedChapterNames.length === 0) {
+      if (selectedChapters.length === 0) {
         return [];
-      } else {
-        return selectedChapterNames.map((selectedChapterName) => {
-          return selectedChapterName.chapterName;
-        });
       }
+      return selectedChapters.map((sc) => sc.chapterName);
     },
-    [selectedStudyName],
+    [selectedStudyNames],
     undefined,
   );
 
-  // Lines from the selected chapters only (within the selected study)
-  // Returns: undefined (loading/no study), [] (no chapters selected or no lines exist)
+  // Full selected chapter records (studyName + chapterName) for filtering
+  const selectedChapterRecords = useLiveQuery(
+    async () => {
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
+        return [];
+      }
+      return db.selectedChapterNames
+        .where("studyName")
+        .anyOfIgnoreCase(selectedStudyNames)
+        .toArray();
+    },
+    [selectedStudyNames],
+    [],
+  );
+
+  // Lines from the selected chapters (across all selected studies)
   const selectedChapterLines: Line[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName === null || selectedStudyName === undefined) {
-        return undefined; // No study selected
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
+        return undefined;
       }
 
-      if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
-        return []; // Study selected but no chapters selected
+      if (!selectedChapterRecords || selectedChapterRecords.length === 0) {
+        return [];
       }
+
+      // Create a set of "studyName|chapterName" for fast lookup
+      const selectedSet = new Set(
+        selectedChapterRecords.map((sc) => `${sc.studyName}|${sc.chapterName}`)
+      );
 
       const lines = await db.lines
         .where("studyName")
-        .equalsIgnoreCase(selectedStudyName)
-        .and((line) => {
-          return selectedChapterNames.includes(line.chapterName);
-        })
+        .anyOfIgnoreCase(selectedStudyNames)
+        .and((line) => selectedSet.has(`${line.studyName}|${line.chapterName}`))
         .toArray();
+
       return lines;
     },
-    [selectedStudyName, selectedChapterNames],
-    undefined, // undefined while loading
+    [selectedStudyNames, selectedChapterRecords],
+    undefined,
   );
 
-  const selectStudy = useCallback((studyName: string) => {
-    db.selectedStudyName.clear();
-    db.selectedStudyName.add({ studyName });
-  }, []);
-
-  // Attempts for the selected chapters only (within the selected study)
-  // Returns: undefined (loading/no study), [] (no chapters selected or no attempts exist)
+  // Attempts for the selected chapters (across all selected studies)
   const selectedChapterAttempts: Attempt[] | undefined = useLiveQuery(
     async () => {
-      if (selectedStudyName === null || selectedStudyName === undefined) {
-        return undefined; // No study selected
+      if (!selectedStudyNames || selectedStudyNames.length === 0) {
+        return undefined;
       }
 
-      if (selectedChapterNames === null || selectedChapterNames === undefined || selectedChapterNames.length === 0) {
-        return []; // Study selected but no chapters selected
+      if (!selectedChapterRecords || selectedChapterRecords.length === 0) {
+        return [];
       }
+
+      // Create a set of "studyName|chapterName" for fast lookup
+      const selectedSet = new Set(
+        selectedChapterRecords.map((sc) => `${sc.studyName}|${sc.chapterName}`)
+      );
 
       const attempts = await db.attempts
         .where("studyName")
-        .equalsIgnoreCase(selectedStudyName)
-        .and((attempt) => {
-          return selectedChapterNames.includes(attempt.chapterName);
-        })
+        .anyOfIgnoreCase(selectedStudyNames)
+        .and((attempt) => selectedSet.has(`${attempt.studyName}|${attempt.chapterName}`))
         .toArray();
 
       return attempts;
     },
-    [selectedStudyName, selectedChapterNames],
-    undefined, // undefined while loading
+    [selectedStudyNames, selectedChapterRecords],
+    undefined,
   );
+
+  // Actions
+  const addSelectedStudyName = useCallback((studyName: string) => {
+    db.selectedStudyNames.put({ studyName });
+  }, []);
+
+  const removeSelectedStudyName = useCallback((studyName: string) => {
+    db.selectedStudyNames.where("studyName").equalsIgnoreCase(studyName).delete();
+    // Also remove chapter selections for this study
+    db.selectedChapterNames.where("studyName").equalsIgnoreCase(studyName).delete();
+  }, []);
+
+  const setSelectedStudyNames = useCallback((studyNames: string[]) => {
+    db.transaction("rw", db.selectedStudyNames, db.selectedChapterNames, async () => {
+      // Get current selections to know what to remove
+      const current = await db.selectedStudyNames.toArray();
+      const currentNames = current.map((s) => s.studyName);
+      
+      // Remove studies that are no longer selected
+      const toRemove = currentNames.filter((name) => !studyNames.includes(name));
+      for (const name of toRemove) {
+        await db.selectedStudyNames.where("studyName").equalsIgnoreCase(name).delete();
+        // Also remove chapter selections for removed studies
+        await db.selectedChapterNames.where("studyName").equalsIgnoreCase(name).delete();
+      }
+      
+      // Add newly selected studies
+      const toAdd = studyNames.filter((name) => !currentNames.includes(name));
+      await db.selectedStudyNames.bulkPut(toAdd.map((name) => ({ studyName: name })));
+    });
+  }, []);
+
+  // Deprecated: Select a single study (clears others)
+  const selectStudy = useCallback((studyName: string) => {
+    db.transaction("rw", db.selectedStudyNames, db.selectedChapterNames, async () => {
+      await db.selectedStudyNames.clear();
+      await db.selectedStudyNames.add({ studyName });
+    });
+  }, []);
 
   const deleteStudy = useCallback(
     (studyName: string) => {
       db.studies.where("name").equalsIgnoreCase(studyName).delete();
       db.chapters.where("studyName").equalsIgnoreCase(studyName).delete();
       db.lines.where("studyName").equalsIgnoreCase(studyName).delete();
+      db.selectedChapterNames.where("studyName").equalsIgnoreCase(studyName).delete();
 
-      // If the study we're removing is the selected study,
-      // then we need to pick a new selected study.
-      if (selectedStudyName === studyName) {
-        db.selectedStudyName.clear();
+      // If the study we're removing is selected, remove it from selections
+      if (selectedStudyNames?.includes(studyName)) {
+        db.selectedStudyNames.where("studyName").equalsIgnoreCase(studyName).delete();
 
-        const nextSelectedStudyName = studies
+        // If this was the only selected study, select the next available one
+        const remaining = studies
           .map((study) => study.name)
-          .filter((sn) => sn !== studyName)[0];
+          .filter((sn) => sn !== studyName);
 
-        if (nextSelectedStudyName !== null) {
-          db.selectedStudyName.put({ studyName: nextSelectedStudyName });
+        if (selectedStudyNames.length === 1 && remaining.length > 0) {
+          db.selectedStudyNames.put({ studyName: remaining[0] });
         }
       }
     },
-    [selectedStudyName, studies],
+    [selectedStudyNames, studies],
   );
 
   const addSelectedChapterName = useCallback(
-    (chapterName: string) => {
-      if (selectedStudyName === null || selectedStudyName === undefined) {
-        throw new Error("No study selected");
-      }
-
-      if (selectedChapterNames === null || selectedChapterNames === undefined) {
-        throw new Error("No chapters selected");
-      }
-
-      if (selectedChapterNames.includes(chapterName)) {
-        return;
-      }
-
-      db.selectedChapterNames.add({
-        studyName: selectedStudyName!,
-        chapterName,
-      });
+    (studyName: string, chapterName: string) => {
+      db.selectedChapterNames.put({ studyName, chapterName });
     },
-    [selectedStudyName, selectedChapterNames],
+    [],
   );
 
   const removeSelectedChapterName = useCallback(
-    (chapterName: string) => {
-      if (selectedStudyName === null) {
-        throw new Error("No study selected");
-      }
-
+    (studyName: string, chapterName: string) => {
       db.selectedChapterNames
         .where("studyName")
-        .equalsIgnoreCase(selectedStudyName!)
-        .and((selectedChapterName) => {
-          return selectedChapterName.chapterName === chapterName;
-        })
+        .equalsIgnoreCase(studyName)
+        .and((sc) => sc.chapterName === chapterName)
         .delete();
     },
-    [selectedStudyName],
+    [],
+  );
+
+  const setSelectedChapterNames = useCallback(
+    (chapters: { studyName: string; chapterName: string }[]) => {
+      db.transaction("rw", db.selectedChapterNames, async () => {
+        // Get unique study names from the new selection
+        const studyNames = [...new Set(chapters.map((c) => c.studyName))];
+        
+        // Clear existing selections for these studies
+        for (const studyName of studyNames) {
+          await db.selectedChapterNames.where("studyName").equalsIgnoreCase(studyName).delete();
+        }
+        
+        // Add new selections
+        await db.selectedChapterNames.bulkPut(chapters);
+      });
+    },
+    [],
   );
 
   const addStudyAndChapters = useCallback(
@@ -243,9 +307,7 @@ export const useStudyData = (): StudyData => {
         for (const line of chapterAndLines.lines) {
           db.lines.add(line).catch((error) => {
             if (error.name === "ConstraintError") {
-              // Ignore duplicate key errors.
-              // We could alternatively use put, but we want to
-              // keep the original line.
+              // Ignore duplicate key errors
             } else {
               throw error;
             }
@@ -253,8 +315,8 @@ export const useStudyData = (): StudyData => {
         }
       });
 
-      // Set a new study as the selected study
-      selectStudy(study.name);
+      // Add this study to the selected studies
+      db.selectedStudyNames.put({ studyName: study.name });
 
       // Select all chapters by default
       db.selectedChapterNames.bulkPut(
@@ -263,23 +325,38 @@ export const useStudyData = (): StudyData => {
         }),
       );
     },
-    [selectStudy],
+    [],
   );
+
+  // Backward compatibility: first selected study
+  const selectedStudyName = selectedStudyNames?.[0];
+  const selectedStudy = selectedStudies?.[0];
 
   return {
     studies,
     allChapters,
-    selectedStudyName,
-    selectedStudy,
+    
+    // Multi-study selection
+    selectedStudyNames,
+    selectedStudies,
     selectedStudyChapters,
     selectedChapterNames,
     selectedChapterLines,
     selectedChapterAttempts,
 
+    // Actions
     addStudyAndChapters,
     deleteStudy,
-    selectStudy,
+    addSelectedStudyName,
+    removeSelectedStudyName,
+    setSelectedStudyNames,
     addSelectedChapterName,
     removeSelectedChapterName,
+    setSelectedChapterNames,
+
+    // Deprecated (backward compatibility)
+    selectedStudyName,
+    selectedStudy,
+    selectStudy,
   };
 };

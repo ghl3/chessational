@@ -1,73 +1,89 @@
 import { Study } from "@/chess/Study";
+import { Chapter } from "@/chess/Chapter";
 import { StudyData } from "@/hooks/UseStudyData";
-import Selector from "./Selector";
+import Selector, { SelectOption } from "./Selector";
+import { useMemo, useCallback } from "react";
 
 interface StudySelectorProps {
   studies: Study[];
-  selectedStudy: Study | null;
-  selectStudy: (studyName: string) => void;
+  selectedStudyNames: string[];
+  onStudyChange: (studyNames: string[]) => void;
 }
 
 export const StudySelector: React.FC<StudySelectorProps> = ({
   studies,
-  selectedStudy,
-  selectStudy,
+  selectedStudyNames,
+  onStudyChange,
 }) => {
-  return (
-    <Selector
-      options={studies.map((study) => ({
+  const options: SelectOption[] = useMemo(
+    () =>
+      studies.map((study) => ({
         value: study.name,
         label: study.name,
-      }))}
-      selectedValues={selectedStudy ? [selectedStudy.name] : []}
-      onChange={(values) => selectStudy(values[0])}
-      placeholder="Select a study..."
-      multiSelect={false}
+      })),
+    [studies]
+  );
+
+  return (
+    <Selector
+      options={options}
+      selectedValues={selectedStudyNames}
+      onChange={onStudyChange}
+      placeholder="Select studies..."
+      multiSelect={true}
       className="w-64"
+      formatMultipleDisplay={(selected) =>
+        selected.length === 0
+          ? "No studies selected"
+          : selected.length === 1
+          ? selected[0].label
+          : selected.length === studies.length
+          ? "All studies"
+          : `${selected.length} studies`
+      }
     />
   );
 };
 
 interface ChapterSelectorProps extends React.HTMLAttributes<HTMLDivElement> {
-  chapters: string[];
-  selectedChapters: string[] | null;
-  selectChapter: (chapterName: string) => void;
-  deselectChapter: (chapterName: string) => void;
+  chapters: Chapter[];
+  selectedChapterKeys: string[]; // Format: "studyName|chapterName"
+  onChapterChange: (chapterKeys: string[]) => void;
 }
 
 export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
   chapters,
-  selectedChapters,
-  selectChapter,
-  deselectChapter,
+  selectedChapterKeys,
+  onChapterChange,
 }) => {
-  const handleChange = (selectedValues: string[]) => {
-    const previouslySelected = selectedChapters || [];
-    selectedValues
-      .filter((chapter) => !previouslySelected.includes(chapter))
-      .forEach(selectChapter);
-    previouslySelected
-      .filter((chapter) => !selectedValues.includes(chapter))
-      .forEach(deselectChapter);
-  };
+  // Create options with study groups
+  const options: SelectOption[] = useMemo(
+    () =>
+      chapters.map((chapter) => ({
+        value: `${chapter.studyName}|${chapter.name}`,
+        label: chapter.name,
+        group: chapter.studyName,
+      })),
+    [chapters]
+  );
 
   return (
     <Selector
-      options={chapters.map((chapter) => ({
-        value: chapter,
-        label: chapter,
-      }))}
-      selectedValues={selectedChapters || []}
-      onChange={handleChange}
+      options={options}
+      selectedValues={selectedChapterKeys}
+      onChange={onChapterChange}
       placeholder="Select chapters..."
       multiSelect={true}
+      showGroupHeaders={true}
       className="w-64"
       formatMultipleDisplay={(selected) =>
         selected.length === 0
           ? "No chapters selected"
           : selected.length === 1
-          ? "1 chapter selected"
-          : `${selected.length} chapters selected`
+          ? selected[0].label
+          : selected.length === chapters.length
+          ? "All chapters"
+          : `${selected.length} chapters`
       }
     />
   );
@@ -76,28 +92,53 @@ export const ChapterSelector: React.FC<ChapterSelectorProps> = ({
 export const StudyChapterSelector: React.FC<{
   studyData: StudyData;
 }> = ({ studyData }) => {
-  const { studies, selectedChapterNames } = studyData;
+  const { studies, selectedStudyNames, selectedStudyChapters } = studyData;
+
+  // Create chapter keys for the selector
+  const selectedChapterKeys = useMemo(() => {
+    if (!studyData.selectedChapterNames || !selectedStudyChapters) return [];
+    
+    // We need the full chapter records to build the keys
+    // Filter selected chapters that exist in selectedStudyChapters
+    return selectedStudyChapters
+      .filter((chapter) => studyData.selectedChapterNames?.includes(chapter.name))
+      .map((chapter) => `${chapter.studyName}|${chapter.name}`);
+  }, [studyData.selectedChapterNames, selectedStudyChapters]);
+
+  const handleStudyChange = useCallback(
+    (studyNames: string[]) => {
+      studyData.setSelectedStudyNames(studyNames);
+    },
+    [studyData]
+  );
+
+  const handleChapterChange = useCallback(
+    (chapterKeys: string[]) => {
+      // Parse keys back to { studyName, chapterName }
+      const chapters = chapterKeys.map((key) => {
+        const [studyName, chapterName] = key.split("|");
+        return { studyName, chapterName };
+      });
+      studyData.setSelectedChapterNames(chapters);
+    },
+    [studyData]
+  );
 
   if (!studies || studies.length === 0) {
     return null;
   }
 
-  const chapterNames = studyData.selectedStudyChapters
-    ? studyData.selectedStudyChapters.map((chapter) => chapter.name)
-    : undefined;
-
   return (
     <div className="flex flex-wrap gap-2">
       <StudySelector
-        studies={studyData.studies}
-        selectedStudy={studyData.selectedStudy || null}
-        selectStudy={studyData.selectStudy}
+        studies={studies}
+        selectedStudyNames={selectedStudyNames || []}
+        onStudyChange={handleStudyChange}
       />
       <ChapterSelector
-        chapters={chapterNames || []}
-        selectedChapters={selectedChapterNames || null}
-        selectChapter={studyData.addSelectedChapterName}
-        deselectChapter={studyData.removeSelectedChapterName}
+        chapters={selectedStudyChapters || []}
+        selectedChapterKeys={selectedChapterKeys}
+        onChapterChange={handleChapterChange}
       />
     </div>
   );

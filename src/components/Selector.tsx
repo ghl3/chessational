@@ -4,6 +4,8 @@ export interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
+  /** Optional group/section this option belongs to */
+  group?: string;
 }
 
 interface SelectorProps {
@@ -19,6 +21,8 @@ interface SelectorProps {
   formatMultipleDisplay?: (selectedOptions: SelectOption[]) => string;
   displayAllValues?: boolean;
   renderDisplay?: (selectedOptions: SelectOption[]) => React.ReactNode;
+  /** Show group headers when options have groups */
+  showGroupHeaders?: boolean;
 }
 
 const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
@@ -36,13 +40,32 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       formatMultipleDisplay,
       displayAllValues,
       renderDisplay,
+      showGroupHeaders = true,
     },
     ref,
   ) => {
     const [isOpen, setIsOpen] = useState(false);
     const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+    const [dropdownPosition, setDropdownPosition] = useState<{
+      top: number;
+      left: number;
+      width: number;
+    } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
     const optionsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+    // Calculate dropdown position when opening
+    useEffect(() => {
+      if (isOpen && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + 4, // 4px gap
+          left: rect.left,
+          width: rect.width,
+        });
+      }
+    }, [isOpen]);
 
     // Handle click outside
     useEffect(() => {
@@ -62,6 +85,26 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
           document.removeEventListener("mousedown", handleClickOutside);
       }
     }, [isOpen, onBlur]);
+
+    // Close dropdown on scroll (since we use fixed positioning)
+    useEffect(() => {
+      if (!isOpen) return;
+
+      const handleScroll = () => {
+        // Recalculate position on scroll
+        if (triggerRef.current) {
+          const rect = triggerRef.current.getBoundingClientRect();
+          setDropdownPosition({
+            top: rect.bottom + 4,
+            left: rect.left,
+            width: rect.width,
+          });
+        }
+      };
+
+      window.addEventListener("scroll", handleScroll, true);
+      return () => window.removeEventListener("scroll", handleScroll, true);
+    }, [isOpen]);
 
     const handleOptionClick = useCallback(
       (value: string, optionDisabled?: boolean) => {
@@ -111,6 +154,33 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
 
     // Filter out disabled options for keyboard navigation
     const validOptions = options.filter((opt) => !opt.disabled);
+    const enabledOptions = options.filter((opt) => !opt.disabled);
+
+    // Group options by their group property
+    const groupedOptions = React.useMemo(() => {
+      if (!showGroupHeaders) return null;
+      
+      const groups: { group: string | null; options: SelectOption[] }[] = [];
+      let currentGroup: string | null = null;
+      let currentOptions: SelectOption[] = [];
+
+      for (const option of options) {
+        const optionGroup = option.group ?? null;
+        if (optionGroup !== currentGroup) {
+          if (currentOptions.length > 0) {
+            groups.push({ group: currentGroup, options: currentOptions });
+          }
+          currentGroup = optionGroup;
+          currentOptions = [option];
+        } else {
+          currentOptions.push(option);
+        }
+      }
+      if (currentOptions.length > 0) {
+        groups.push({ group: currentGroup, options: currentOptions });
+      }
+      return groups;
+    }, [options, showGroupHeaders]);
 
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
@@ -141,7 +211,6 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
             }
             setFocusedIndex((prev) => {
               const nextIndex = prev < validOptions.length - 1 ? prev + 1 : 0;
-              // Scroll the option into view if needed
               optionsRef.current[nextIndex]?.scrollIntoView({
                 block: "nearest",
               });
@@ -152,7 +221,6 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
             e.preventDefault();
             setFocusedIndex((prev) => {
               const nextIndex = prev > 0 ? prev - 1 : validOptions.length - 1;
-              // Scroll the option into view if needed
               optionsRef.current[nextIndex]?.scrollIntoView({
                 block: "nearest",
               });
@@ -164,6 +232,67 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
       [isOpen, focusedIndex, validOptions, handleOptionClick, onBlur],
     );
 
+    const handleSelectAll = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onChange(enabledOptions.map((opt) => opt.value));
+      },
+      [enabledOptions, onChange],
+    );
+
+    const handleClearAll = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onChange([]);
+      },
+      [onChange],
+    );
+
+    const renderOption = (option: SelectOption, globalIndex: number) => {
+      const validIndex = validOptions.findIndex((opt) => opt.value === option.value);
+      return (
+        <div
+          key={option.value}
+          ref={(el) => {
+            if (validIndex !== -1) optionsRef.current[validIndex] = el;
+          }}
+          className={`
+            p-2 cursor-pointer transition-colors
+            ${
+              option.disabled
+                ? "bg-gray-900 text-gray-500 cursor-not-allowed"
+                : "hover:bg-gray-700"
+            }
+            ${
+              !option.disabled && focusedIndex === validIndex
+                ? "bg-gray-700 text-white"
+                : selectedValues.includes(option.value)
+                ? "bg-gray-700/50 text-white"
+                : "text-gray-300"
+            }
+          `}
+          onClick={() => handleOptionClick(option.value, option.disabled)}
+          role="option"
+          aria-selected={selectedValues.includes(option.value)}
+        >
+          {multiSelect && (
+            <input
+              type="checkbox"
+              checked={selectedValues.includes(option.value)}
+              onChange={() => {}}
+              disabled={option.disabled}
+              className="mr-2 accent-blue-500"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          )}
+          <span className={option.disabled ? "text-gray-500" : ""}>
+            {option.label}
+          </span>
+        </div>
+      );
+    };
+
     return (
       <div
         ref={containerRef}
@@ -172,6 +301,7 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
         tabIndex={disabled ? -1 : 0}
       >
         <div
+          ref={triggerRef}
           className={`
           w-full p-2 rounded-lg
           flex justify-between items-center
@@ -207,89 +337,67 @@ const Selector = React.forwardRef<HTMLDivElement, SelectorProps>(
           </svg>
         </div>
 
-        {isOpen && (
+        {isOpen && dropdownPosition && (
           <div
-            className="absolute left-0 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-auto"
-            style={{ zIndex: 20 }}
+            className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-auto"
+            style={{
+              zIndex: 50,
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width,
+              // Responsive max-height: min of 50% viewport or 400px, but at least 200px
+              maxHeight: "min(50vh, 400px)",
+            }}
             role="listbox"
             aria-multiselectable={multiSelect}
           >
-            {options.map((option) => (
-              <div
-                key={option.value}
-                ref={(el) => {
-                  const index = validOptions.findIndex(
-                    (opt) => opt.value === option.value,
-                  );
-                  if (index !== -1) optionsRef.current[index] = el;
-                }}
-                className={`
-                p-2 cursor-pointer transition-colors
-                ${
-                  option.disabled
-                    ? "bg-gray-900 text-gray-500 cursor-not-allowed"
-                    : "hover:bg-gray-700"
-                }
-                ${
-                  !option.disabled &&
-                  focusedIndex ===
-                    validOptions.findIndex((opt) => opt.value === option.value)
-                    ? "bg-gray-700 text-white"
-                    : selectedValues.includes(option.value)
-                    ? "bg-gray-700/50 text-white"
-                    : "text-gray-300"
-                }
-              `}
-                onClick={() => handleOptionClick(option.value, option.disabled)}
-                role="option"
-                aria-selected={selectedValues.includes(option.value)}
-              >
-                {multiSelect && (
-                  <input
-                    type="checkbox"
-                    checked={selectedValues.includes(option.value)}
-                    onChange={() => {}}
-                    disabled={option.disabled}
-                    className="mr-2 accent-blue-500"
-                    aria-hidden="true"
-                    tabIndex={-1}
-                  />
-                )}
-                <span
-                  className={
-                    option.disabled ? "text-gray-500" : ""
-                  }
-                >
-                  {option.label}
-                </span>
-              </div>
-            ))}
-
+            {/* Select All / Clear All at the TOP for multi-select */}
             {multiSelect && options.length > 1 && (
-              <div className="flex justify-between p-2 border-t border-gray-700">
-                <button
-                  className="px-3 py-1 text-sm text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange(
-                      options
-                        .filter((opt) => !opt.disabled)
-                        .map((opt) => opt.value),
-                    );
-                  }}
-                >
-                  Select All
-                </button>
-                <button
-                  className="px-3 py-1 text-sm text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange([]);
-                  }}
-                >
-                  Clear All
-                </button>
+              <div className="flex justify-between items-center p-2 border-b border-gray-700 sticky top-0 bg-gray-800 z-20">
+                <span className="text-xs text-gray-400">
+                  {selectedValues.length} of {enabledOptions.length} selected
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    className="px-2 py-0.5 text-xs text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
+                    onClick={handleSelectAll}
+                  >
+                    All
+                  </button>
+                  <button
+                    className="px-2 py-0.5 text-xs text-gray-300 bg-gray-700 rounded hover:bg-gray-600 hover:text-white transition-colors duration-200"
+                    onClick={handleClearAll}
+                  >
+                    None
+                  </button>
+                </div>
               </div>
+            )}
+
+            {/* Render options with optional group headers */}
+            {showGroupHeaders && groupedOptions ? (
+              groupedOptions.map(({ group, options: groupOpts }, groupIndex) => (
+                <div key={group ?? `group-${groupIndex}`}>
+                  {group && (
+                    <div 
+                      className="px-2 py-1.5 text-xs font-medium text-gray-400 bg-gray-800 border-b border-gray-700 uppercase tracking-wider sticky z-10"
+                      style={{ 
+                        // Position below the All/None header (which is ~36px tall)
+                        // All group headers share the same top so they push each other naturally
+                        top: multiSelect && options.length > 1 ? "36px" : "0px" 
+                      }}
+                    >
+                      {group}
+                    </div>
+                  )}
+                  {groupOpts.map((option) => {
+                    const globalIndex = options.findIndex((o) => o.value === option.value);
+                    return renderOption(option, globalIndex);
+                  })}
+                </div>
+              ))
+            ) : (
+              options.map((option, index) => renderOption(option, index))
             )}
           </div>
         )}

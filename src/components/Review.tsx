@@ -182,7 +182,10 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
 
   // Check if we have the necessary data
   const hasStudies = studyData.studies && studyData.studies.length > 0;
-  const hasSelectedStudy = studyData.selectedStudy !== undefined && studyData.selectedStudy !== null;
+  const hasSelectedStudies = 
+    studyData.selectedStudyNames !== undefined && 
+    studyData.selectedStudyNames !== null && 
+    studyData.selectedStudyNames.length > 0;
   const hasSelectedChapters =
     studyData.selectedChapterNames !== undefined &&
     studyData.selectedChapterNames !== null &&
@@ -209,12 +212,13 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
       "SPACED_REPETITION",
       studyData.selectedChapterAttempts,
     );
+    // Match chapter by both study name and chapter name (important for multi-study)
     const chapter = studyData.selectedStudyChapters?.find(
-      (chapter) => chapter.name === line.chapterName,
+      (ch) => ch.studyName === line.studyName && ch.name === line.chapterName,
     );
     if (chapter === null || chapter === undefined) {
       window.alert(
-        `Chapter "${line.chapterName}" not found. Please ensure the study data is properly loaded.`,
+        `Chapter "${line.chapterName}" from "${line.studyName}" not found. Please ensure the study data is properly loaded.`,
       );
       return;
     }
@@ -335,11 +339,11 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     );
   }
 
-  if (!hasSelectedStudy) {
+  if (!hasSelectedStudies) {
     return (
       <EmptyState
-        title="No Study Selected"
-        message="Please select a study from the dropdown above, or go to the Repertoire tab to add a new study."
+        title="No Studies Selected"
+        message="Please select one or more studies from the dropdown above, or go to the Repertoire tab to add a new study."
         showButton={true}
       />
     );
