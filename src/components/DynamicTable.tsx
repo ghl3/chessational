@@ -20,7 +20,7 @@ export type ColumnWidths = {
 export const BASE_COLUMN_WIDTHS: Readonly<ColumnWidths> = {
   study: 80,
   chapter: 80,
-  line: 200,
+  line: 300,
   numAttempts: 32,
   numCorrect: 32,
   latestAttempt: 64,

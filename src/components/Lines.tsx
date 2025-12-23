@@ -9,6 +9,7 @@ import { createColumnHelper } from "@tanstack/react-table";
 import React, { useCallback, useMemo, useState } from "react";
 import { DetailsPanel } from "./DetailsPanel";
 import {
+  BASE_COLUMN_WIDTHS,
   ClickableLineFn,
   DynamicTable,
 } from "./DynamicTable";
@@ -106,17 +107,17 @@ const Lines: React.FC<LinesProps> = ({
       columnHelper.accessor((row) => row.studyName, {
         id: "studyName",
         header: "Study",
-        size: 120,
+        size: BASE_COLUMN_WIDTHS.study,
       }),
       columnHelper.accessor((row) => row.chapterName, {
         id: "chapterName",
         header: "Chapter",
-        size: 120,
+        size: BASE_COLUMN_WIDTHS.chapter,
       }),
       columnHelper.accessor((row) => row.line, {
         id: "line",
         header: "Line",
-        size: 500,
+        size: BASE_COLUMN_WIDTHS.line,
         cell: (props) => <ClickableLineFn value={props.getValue()} />,
       }),
     ],
