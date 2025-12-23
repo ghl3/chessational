@@ -2,15 +2,25 @@
 
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
-import { useGameReviewState, GameReviewConfig } from "@/hooks/UseGameReviewState";
-import { useGamesChessboardSync } from "@/hooks/UseGamesChessboardSync";
+import { useGameReviewState, GameReviewConfig, INITIAL_FEN } from "@/hooks/UseGameReviewState";
 import { GamesConfig } from "@/components/GamesConfig";
 import { MoveStatsTable } from "@/components/MoveStatsTable";
 import { DeviationsList, GapsList } from "@/components/DeviationsList";
 import { FlippablePanel, PanelView } from "@/components/FlippablePanel";
-import { GamePositionNode } from "@/chess/GamePositionTree";
+import { 
+  GamePositionNode, 
+  findPathToFen, 
+  getMostCommonChild 
+} from "@/chess/GamePositionTree";
 import { Deviation } from "@/utils/RepertoireComparer";
 import { Color, WHITE, BLACK } from "chess.js";
+import { Arrow } from "@/components/Chessboard";
+import {
+  generateSortedMoveArrows,
+  generateDeviationArrows,
+  generateUncoveredArrows,
+  getDeviationsAtPosition,
+} from "@/components/MoveArrows";
 
 /**
  * Empty state shown when no games have been loaded
@@ -201,31 +211,141 @@ const GamesPage: React.FC = () => {
     blackGames,
     gameTree,
     comparisonResult,
-    currentNode,
-    currentFen,
+    getNodeAtFen,
     currentColor,
     setCurrentColor,
     selectedDeviation,
     setSelectedDeviation,
     loadGames,
     compareToRepertoire,
-    navigateToNode,
-    navigateToPosition,
     reset,
   } = gameReviewState;
 
-  // Use the extracted sync hook for chessboard synchronization
-  useGamesChessboardSync({
-    chessboardState,
-    gameTree,
-    currentFen,
-    currentColor,
-    currentNode,
-    comparisonResult,
-    selectedDeviation,
-    navigateToPosition,
-    setSelectedDeviation,
-  });
+  // Derive current position from chessboard (single source of truth)
+  const currentFen = chessboardState.getCurrentFen() ?? INITIAL_FEN;
+  
+  // Derive current node from the game tree based on board position
+  const currentNode = useMemo(() => {
+    return getNodeAtFen(currentFen);
+  }, [getNodeAtFen, currentFen]);
+
+  // Sync board orientation with current color
+  useEffect(() => {
+    chessboardState.setOrientation(currentColor);
+  }, [currentColor, chessboardState]);
+
+  // Helper to load positions into the board for a given node
+  // If extendPath is true, extends with main line continuation for forward navigation
+  const navigateToNode = useCallback((node: GamePositionNode, extendPath: boolean = true) => {
+    // Build path from root to this node
+    const pathToPosition = findPathToFen(gameTree, node.position.fen);
+    if (pathToPosition.length === 0) return;
+    
+    // Optionally extend path with main line continuation
+    let positions = pathToPosition.map(n => n.position);
+    let currentIndex = pathToPosition.length - 1;
+    
+    if (extendPath) {
+      const extendedPath = [...pathToPosition];
+      let lastNode = extendedPath[extendedPath.length - 1];
+      while (lastNode && lastNode.children.length > 0) {
+        const nextNode = getMostCommonChild(lastNode);
+        if (!nextNode) break;
+        extendedPath.push(nextNode);
+        lastNode = nextNode;
+      }
+      positions = extendedPath.map(n => n.position);
+    }
+    
+    chessboardState.clearAndSetPositions(positions, currentIndex);
+  }, [gameTree, chessboardState]);
+
+  // Navigate to a position by FEN (extends path for forward navigation)
+  const navigateToPosition = useCallback((fen: string) => {
+    const node = getNodeAtFen(fen);
+    if (node) {
+      navigateToNode(node, true);
+    }
+  }, [getNodeAtFen, navigateToNode]);
+  
+  // Navigate to a deviation (doesn't extend path - stops at deviation point)
+  const navigateToDeviation = useCallback((fen: string) => {
+    const node = getNodeAtFen(fen);
+    if (node) {
+      navigateToNode(node, false);
+    }
+  }, [getNodeAtFen, navigateToNode]);
+
+  // Normalize FEN for comparison (ignore move counts)
+  const normalizeFen = (fen: string): string => {
+    const parts = fen.split(" ");
+    return parts.slice(0, 4).join(" ");
+  };
+  
+  // Check if current position is at the selected deviation point
+  const isAtDeviationPoint = useMemo(() => {
+    if (!selectedDeviation || !currentFen) return false;
+    return normalizeFen(currentFen) === normalizeFen(selectedDeviation.fen);
+  }, [selectedDeviation, currentFen]);
+
+  // Compute arrows based on current position and selection
+  const arrows = useMemo((): Arrow[] => {
+    // If we're at the deviation point, show deviation/gap arrows
+    if (selectedDeviation && currentNode && comparisonResult && isAtDeviationPoint) {
+      // Find ALL items at this position (of the same type)
+      const itemsAtPosition = getDeviationsAtPosition(
+        comparisonResult.deviations,
+        selectedDeviation.fen
+      ).filter((d) => d.deviatedBy === selectedDeviation.deviatedBy);
+      
+      // Get the last move that led to this position (for context)
+      const lastMove = currentNode.position.lastMove;
+      
+      // Use different arrow generators for deviations vs uncovered lines
+      return selectedDeviation.deviatedBy === "player"
+        ? generateDeviationArrows(itemsAtPosition, lastMove)
+        : generateUncoveredArrows(itemsAtPosition, lastMove);
+    } 
+    
+    // If deviation is selected but we're NOT at the deviation point,
+    // show only the last move arrow (helps track where we are)
+    if (selectedDeviation && currentNode) {
+      const lastMove = currentNode.position.lastMove;
+      if (lastMove) {
+        return [{
+          from: lastMove.from,
+          to: lastMove.to,
+          color: "rgba(100, 100, 100, 0.5)", // Subtle gray for context
+        }];
+      }
+      return [];
+    }
+    
+    // Normal view: show frequency-based arrows for all moves
+    if (currentNode && currentNode.children.length > 0) {
+      return generateSortedMoveArrows(
+        currentNode.children,
+        currentNode.stats,
+        comparisonResult !== null // Show repertoire colors if compared
+      );
+    }
+    return [];
+  }, [currentNode, comparisonResult, selectedDeviation, isAtDeviationPoint]);
+
+  // Update arrows on the board
+  useEffect(() => {
+    chessboardState.setArrows(arrows);
+  }, [arrows, chessboardState]);
+
+  // Initialize board when game tree is ready
+  const prevTreesReadyRef = useRef(false);
+  useEffect(() => {
+    // Only initialize when trees become ready (transition from false to true)
+    if (treesReady && !prevTreesReadyRef.current && gameTree.children.length > 0) {
+      navigateToPosition(INITIAL_FEN);
+    }
+    prevTreesReadyRef.current = treesReady;
+  }, [treesReady, gameTree, navigateToPosition]);
 
   // Handle clicking a move in the stats table
   const handleMoveClick = useCallback(
@@ -241,14 +361,14 @@ const GamesPage: React.FC = () => {
   const handleDeviationClick = useCallback(
     (deviation: Deviation) => {
       setSelectedDeviation(deviation);
-      // Switch to the correct color's game tree if needed (orientation synced by hook)
+      // Switch to the correct color's game tree if needed
       if (deviation.playerColor !== currentColor) {
         setCurrentColor(deviation.playerColor);
       }
-      navigateToPosition(deviation.fen);
-      // Stay on deviations view so user can see context
+      // Navigate to the deviation position (don't extend path - stops at deviation)
+      navigateToDeviation(deviation.fen);
     },
-    [navigateToPosition, setSelectedDeviation, currentColor, setCurrentColor]
+    [navigateToDeviation, setSelectedDeviation, currentColor, setCurrentColor]
   );
 
   // Handle compare button click - use ALL chapters from ALL studies
@@ -310,11 +430,11 @@ const GamesPage: React.FC = () => {
   const deviationsCount = playerDeviations.length;
   const uncoveredCount = uncoveredLines.length;
 
-  // Handle color change - orientation is synced by the hook
+  // Handle color change
   const handleColorChange = useCallback((color: Color) => {
     setCurrentColor(color);
     // Reset to starting position when switching colors
-    navigateToPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    navigateToPosition(INITIAL_FEN);
   }, [setCurrentColor, navigateToPosition]);
 
   // Render based on state

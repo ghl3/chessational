@@ -2,7 +2,7 @@ import { getLineStatus, LineStatus } from "@/chess/Line";
 import { Position } from "@/chess/Position";
 import { LineAndChapter } from "@/chess/StudyChapterAndLines";
 import { LineMoveResult } from "@/components/MoveDescription";
-import { BLACK } from "chess.js";
+import { BLACK, Color, WHITE } from "chess.js";
 import {
   Dispatch,
   SetStateAction,
@@ -10,7 +10,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ChessboardState } from "./UseChessboardState";
 import useStateWithTimeout from "./UseStateWithTimeout";
 
 export interface ReviewState {
@@ -18,16 +17,16 @@ export interface ReviewState {
   lineIndex: number;
   lineStatus: LineStatus | undefined;
 
-  setLineAndChapter: (
-    lineAndChapter: LineAndChapter | null,
-    chessboardState: ChessboardState,
-  ) => void;
+  // Setters for review state only (no board manipulation)
+  setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
   setLineIndex: Dispatch<SetStateAction<number>>;
-  initializeLine: (
-    lineAndChapter: LineAndChapter,
-    chessboardState: ChessboardState,
-  ) => void;
-  clearLine: (chessboardState: ChessboardState) => void;
+  initializeLine: (lineAndChapter: LineAndChapter) => void;
+  clearLine: () => void;
+
+  // Getters for board initialization (caller updates board)
+  getLinePositions: () => Position[];
+  getLineOrientation: () => Color;
+  getInitialLineIndex: () => number;
 
   showSolution: boolean;
   setShowSolution: Dispatch<SetStateAction<boolean>>;
@@ -60,55 +59,56 @@ export const useReviewState = (): ReviewState => {
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
-  const setLineAndChapterWithDefaults = (
-    lineAndChapter: LineAndChapter | null,
-  ) => {
-    setCurrentLineAndChapter(lineAndChapter);
-    setCurrentLineIndex(-1);
-  };
-
-  const clearLine = useCallback(
-    (chessboardState: ChessboardState) => {
-      chessboardState.clearGame();
-      setCurrentLineAndChapter(null);
-      setCurrentLineIndex(-1);
-      setAttemptResult(null);
-      setShowSolution(false);
-      setLineMoveResult(null);
-    },
-    [
-      setCurrentLineAndChapter,
-      setCurrentLineIndex,
-      setAttemptResult,
-      setShowSolution,
-      setLineMoveResult,
-    ],
-  );
-
-  const initializeLine = useCallback(
-    (lineAndChapter: LineAndChapter, chessboardState: ChessboardState) => {
-      const { line } = lineAndChapter;
-
+  const setLineAndChapterWithDefaults = useCallback(
+    (lineAndChapter: LineAndChapter | null) => {
       setCurrentLineAndChapter(lineAndChapter);
-      
-      // Set orientation first, then positions
-      chessboardState.setOrientation(line.orientation);
-
-      // Initialize the first position (starting position)
-      chessboardState.setNextPosition(line.positions[0], true);
-      setCurrentLineIndex(0);
-
-      // If we are black, we first have to show white's move
-      if (line.orientation === BLACK) {
-        if (line.positions.length > 1) {
-          const firstPosition: Position = line.positions[1];
-          chessboardState.setNextPosition(firstPosition, false);
-          setCurrentLineIndex(1);
-        }
-      }
+      setCurrentLineIndex(-1);
     },
-    [setCurrentLineAndChapter, setCurrentLineIndex],
+    [],
   );
+
+  const clearLine = useCallback(() => {
+    setCurrentLineAndChapter(null);
+    setCurrentLineIndex(-1);
+    setAttemptResult(null);
+    setShowSolution(false);
+    setLineMoveResult(null);
+  }, [setLineMoveResult]);
+
+  const initializeLine = useCallback((lineAndChapter: LineAndChapter) => {
+    const { line } = lineAndChapter;
+    setCurrentLineAndChapter(lineAndChapter);
+    setAttemptResult(null);
+    setShowSolution(false);
+    setLineMoveResult(null);
+    
+    // Set the initial line index based on orientation
+    // If black, we start at index 1 (after white's first move)
+    if (line.orientation === BLACK && line.positions.length > 1) {
+      setCurrentLineIndex(1);
+    } else {
+      setCurrentLineIndex(0);
+    }
+  }, [setLineMoveResult]);
+
+  // Getters for board initialization - caller updates board separately
+  const getLinePositions = useCallback((): Position[] => {
+    return currentLineAndChapter?.line.positions ?? [];
+  }, [currentLineAndChapter]);
+
+  const getLineOrientation = useCallback((): Color => {
+    return currentLineAndChapter?.line.orientation ?? WHITE;
+  }, [currentLineAndChapter]);
+
+  const getInitialLineIndex = useCallback((): number => {
+    if (!currentLineAndChapter) return 0;
+    const { line } = currentLineAndChapter;
+    // If black, start at index 1 (after white's first move)
+    if (line.orientation === BLACK && line.positions.length > 1) {
+      return 1;
+    }
+    return 0;
+  }, [currentLineAndChapter]);
 
   return {
     lineAndChapter: currentLineAndChapter,
@@ -119,6 +119,11 @@ export const useReviewState = (): ReviewState => {
 
     clearLine,
     initializeLine,
+
+    // Getters for board initialization
+    getLinePositions,
+    getLineOrientation,
+    getInitialLineIndex,
 
     showSolution,
     setShowSolution,

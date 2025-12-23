@@ -48,9 +48,9 @@ const Lines: React.FC<LinesProps> = ({
 }) => {
   const handleLineSelect = useCallback(
     (lineAndChapter: LineAndChapter) => {
-      reviewState.setLineAndChapter(lineAndChapter, chessboardState);
+      reviewState.setLineAndChapter(lineAndChapter);
     },
-    [reviewState, chessboardState],
+    [reviewState],
   );
 
   const lineAndChapters = useMemo(() => {

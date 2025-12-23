@@ -41,9 +41,9 @@ export const Attempts: React.FC<AttemptsProps> = ({
 }) => {
   const handleLineSelect = useCallback(
     (lineAndChapter: LineAndChapter) => {
-      reviewState.setLineAndChapter(lineAndChapter, chessboardState);
+      reviewState.setLineAndChapter(lineAndChapter);
     },
-    [reviewState, chessboardState],
+    [reviewState],
   );
 
   const lineAndChapters = useMemo(() => {

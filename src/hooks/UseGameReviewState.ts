@@ -21,6 +21,8 @@ import { Color, WHITE, BLACK } from "chess.js";
 import { Chapter } from "@/chess/Chapter";
 import { db, GamesSearchConfig, CachedGameData } from "@/app/db";
 
+export const INITIAL_FEN: Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 export interface GameReviewConfig {
   username: string;
   startDate: Date;
@@ -59,9 +61,8 @@ export interface GameReviewState {
   // Combined comparison result (both colors)
   comparisonResult: ComparisonResult | null;
 
-  // Current position in the tree
-  currentNode: GamePositionNode | null;
-  currentFen: Fen;
+  // Get node at a given FEN (derived from chessboard state)
+  getNodeAtFen: (fen: Fen) => GamePositionNode | null;
 
   // Selected deviation
   selectedDeviation: Deviation | null;
@@ -70,13 +71,9 @@ export interface GameReviewState {
   // Actions
   loadGames: (config: GameReviewConfig) => Promise<void>;
   compareToRepertoire: (chapters: Chapter[]) => void;
-  navigateToPosition: (fen: Fen) => void;
-  navigateToNode: (node: GamePositionNode) => void;
   reset: () => void;
   invalidateComparisonCache: () => Promise<void>; // Call when repertoire changes
 }
-
-const INITIAL_FEN: Fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 interface CachedState {
   config: GameReviewConfig | null;
@@ -302,8 +299,7 @@ export const useGameReviewState = (): GameReviewState => {
     isComparing: false,
   });
 
-  // Navigation state
-  const [currentFen, setCurrentFen] = useState<Fen>(INITIAL_FEN);
+  // Selected deviation state
   const [selectedDeviation, setSelectedDeviation] = useState<Deviation | null>(null);
 
   // Load games mutation
@@ -363,13 +359,12 @@ export const useGameReviewState = (): GameReviewState => {
         error: null,
       });
 
-      // Reset comparison and navigation state
+      // Reset comparison state
       setComparisonState({
         whiteResult: null,
         blackResult: null,
         isComparing: false,
       });
-      setCurrentFen(INITIAL_FEN);
       setSelectedDeviation(null);
 
       // Save to IndexedDB cache
@@ -433,10 +428,10 @@ export const useGameReviewState = (): GameReviewState => {
     return combineComparisonResults(effectiveWhiteComparison, effectiveBlackComparison);
   }, [effectiveWhiteComparison, effectiveBlackComparison]);
 
-  // Computed current node (based on current color's tree)
-  const currentNode = useMemo(() => {
-    return findNodeByFen(gameTree, currentFen);
-  }, [gameTree, currentFen]);
+  // Get node at a given FEN - derived from chessboard state by caller
+  const getNodeAtFen = useCallback((fen: Fen): GamePositionNode | null => {
+    return findNodeByFen(gameTree, fen);
+  }, [gameTree]);
 
   // Load games wrapper
   const loadGames = useCallback(
@@ -549,16 +544,6 @@ export const useGameReviewState = (): GameReviewState => {
     }
   }, []);
 
-  // Navigate to a position by FEN
-  const navigateToPosition = useCallback((fen: Fen) => {
-    setCurrentFen(fen);
-  }, []);
-
-  // Navigate to a specific node
-  const navigateToNode = useCallback((node: GamePositionNode) => {
-    setCurrentFen(node.position.fen);
-  }, []);
-
   // Set current color
   const setCurrentColor = useCallback((color: Color) => {
     setLocalState((prev) => ({ ...prev, currentColor: color }));
@@ -587,7 +572,6 @@ export const useGameReviewState = (): GameReviewState => {
       blackResult: null,
       isComparing: false,
     });
-    setCurrentFen(INITIAL_FEN);
     setSelectedDeviation(null);
 
     // Clear IndexedDB cache
@@ -621,14 +605,11 @@ export const useGameReviewState = (): GameReviewState => {
     setCurrentColor,
     gameTree,
     comparisonResult,
-    currentNode,
-    currentFen,
+    getNodeAtFen,
     selectedDeviation,
     setSelectedDeviation,
     loadGames,
     compareToRepertoire: doCompareToRepertoire,
-    navigateToPosition,
-    navigateToNode,
     reset,
     invalidateComparisonCache,
   };

@@ -7,12 +7,23 @@ import { EngineData } from "@/hooks/UseEngineData";
 import { ReviewState } from "@/hooks/UseReviewState";
 import { StudyData } from "@/hooks/UseStudyData";
 import { pickLine } from "@/utils/LinePicker";
-import { PieceSymbol, Square } from "chess.js";
+import { BLACK, PieceSymbol, Square } from "chess.js";
 import { default as React, useCallback, useMemo } from "react";
 import { db } from "../app/db";
 import { Button } from "./Button";
 import { DetailsPanel } from "./DetailsPanel";
 import { StatusBanner } from "./StatusBanner";
+
+/**
+ * Compute the initial line index based on orientation.
+ * If playing as black, start at index 1 (after white's first move).
+ */
+const computeInitialLineIndex = (line: { orientation: string; positions: Position[] }): number => {
+  if (line.orientation === BLACK && line.positions.length > 1) {
+    return 1;
+  }
+  return 0;
+};
 
 const OPPONENT_MOVE_DELAY = 250;
 
@@ -182,7 +193,9 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     studyData.selectedChapterLines.length > 0;
 
   const onNewLine = useCallback(() => {
-    reviewState.clearLine(chessboardState);
+    // Clear review state and board separately
+    reviewState.clearLine();
+    chessboardState.clearGame();
 
     if (studyData.selectedChapterLines === null || studyData.selectedChapterLines === undefined || studyData.selectedChapterLines.length === 0) {
       window.alert(
@@ -206,7 +219,16 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
       return;
     }
 
-    reviewState.initializeLine({ line, chapter }, chessboardState);
+    // Initialize review state
+    reviewState.initializeLine({ line, chapter });
+    
+    // Update board separately
+    chessboardState.setOrientation(line.orientation);
+    const initialIndex = computeInitialLineIndex(line);
+    // Only load positions up to (and including) the initial index for quiz mode
+    // This way, as the user progresses, positions can be added
+    const initialPositions = line.positions.slice(0, initialIndex + 1);
+    chessboardState.clearAndSetPositions(initialPositions, initialIndex);
   }, [
     reviewState,
     chessboardState,
@@ -219,8 +241,19 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     if (reviewState.lineAndChapter === null) {
       throw new Error("line is null");
     }
-    reviewState.clearLine(chessboardState);
-    reviewState.initializeLine(reviewState.lineAndChapter, chessboardState);
+    const { line, chapter } = reviewState.lineAndChapter;
+    
+    // Clear and reinitialize review state
+    reviewState.clearLine();
+    reviewState.initializeLine({ line, chapter });
+    
+    // Update board separately
+    chessboardState.clearGame();
+    chessboardState.setOrientation(line.orientation);
+    const initialIndex = computeInitialLineIndex(line);
+    // Only load positions up to (and including) the initial index for quiz mode
+    const initialPositions = line.positions.slice(0, initialIndex + 1);
+    chessboardState.clearAndSetPositions(initialPositions, initialIndex);
   }, [chessboardState, reviewState]);
 
   const arrows = useMemo(() => {
