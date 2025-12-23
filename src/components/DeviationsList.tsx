@@ -5,6 +5,7 @@ import {
   getWinPercentage,
   getLossPercentage,
 } from "@/chess/GamePositionTree";
+import { normalizeFen } from "@/chess/Fen";
 import React from "react";
 
 interface DeviationsListProps {
@@ -160,20 +161,12 @@ const DeviationItem: React.FC<{
 };
 
 /**
- * Normalize FEN for grouping (ignore move counts)
- */
-const normalizeFenForGrouping = (fen: string): string => {
-  const parts = fen.split(" ");
-  return parts.slice(0, 4).join(" ");
-};
-
-/**
  * Group deviations by position (FEN)
  */
 const groupDeviationsByPosition = (deviations: Deviation[]): Map<string, Deviation[]> => {
   const groups = new Map<string, Deviation[]>();
   for (const deviation of deviations) {
-    const key = normalizeFenForGrouping(deviation.fen);
+    const key = normalizeFen(deviation.fen);
     const existing = groups.get(key) || [];
     existing.push(deviation);
     groups.set(key, existing);

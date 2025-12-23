@@ -2,6 +2,7 @@ import { Arrow } from "./Chessboard";
 import { GamePositionNode, getMoveFrequency, GameStats } from "@/chess/GamePositionTree";
 import { Move } from "@/chess/Move";
 import { Deviation } from "@/utils/RepertoireComparer";
+import { normalizeFen } from "@/chess/Fen";
 
 /**
  * Color configuration for arrows based on move frequency
@@ -324,12 +325,6 @@ export const getDeviationsAtPosition = (
   allDeviations: Deviation[],
   fen: string
 ): Deviation[] => {
-  // Normalize FEN for comparison (ignore move counts)
-  const normalizeFen = (f: string): string => {
-    const parts = f.split(" ");
-    return parts.slice(0, 4).join(" ");
-  };
-
   const normalizedTarget = normalizeFen(fen);
   return allDeviations.filter(
     (d) => normalizeFen(d.fen) === normalizedTarget

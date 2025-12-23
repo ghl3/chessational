@@ -12,6 +12,7 @@ import {
   findPathToFen, 
   getMostCommonChild 
 } from "@/chess/GamePositionTree";
+import { normalizeFen } from "@/chess/Fen";
 import { Deviation } from "@/utils/RepertoireComparer";
 import { Color, WHITE, BLACK } from "chess.js";
 import { Arrow } from "@/components/Chessboard";
@@ -276,12 +277,6 @@ const GamesPage: React.FC = () => {
     }
   }, [getNodeAtFen, navigateToNode]);
 
-  // Normalize FEN for comparison (ignore move counts)
-  const normalizeFen = (fen: string): string => {
-    const parts = fen.split(" ");
-    return parts.slice(0, 4).join(" ");
-  };
-  
   // Check if current position is at the selected deviation point
   const isAtDeviationPoint = useMemo(() => {
     if (!selectedDeviation || !currentFen) return false;

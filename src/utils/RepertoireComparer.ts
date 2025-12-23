@@ -1,6 +1,6 @@
 import { GamePositionNode, GamePositionTree, GameStats } from "@/chess/GamePositionTree";
 import { PositionNode, PositionTree } from "@/chess/PositionTree";
-import { Fen } from "@/chess/Fen";
+import { Fen, normalizeFen } from "@/chess/Fen";
 import { Move } from "@/chess/Move";
 import { Color, WHITE, BLACK } from "chess.js";
 import { Chapter } from "@/chess/Chapter";
@@ -47,14 +47,6 @@ export interface ComparisonResult {
     mostCommonDeviation: Deviation | null;
   };
 }
-
-/**
- * Normalize FEN for comparison (ignore move counts)
- */
-const normalizeFen = (fen: Fen): string => {
-  const parts = fen.split(" ");
-  return parts.slice(0, 4).join(" ");
-};
 
 /**
  * Find a position in the repertoire tree by FEN

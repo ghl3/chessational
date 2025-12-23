@@ -3,7 +3,7 @@ import { Move, moveResultToMove } from "./Move";
 import { ChessComGame, GameResultString } from "./ChessComGame";
 import { Chess, Color, WHITE, BLACK, Move as MoveResult } from "chess.js";
 import { parse, ParsedPGN } from "pgn-parser";
-import { Fen } from "./Fen";
+import { Fen, normalizeFen } from "./Fen";
 
 /**
  * Statistics for a single node in the game tree
@@ -187,12 +187,6 @@ export const findNodeByFen = (
   node: GamePositionNode,
   fen: Fen
 ): GamePositionNode | null => {
-  // Normalize FEN by removing move counts for comparison
-  const normalizeFen = (f: Fen): string => {
-    const parts = f.split(" ");
-    return parts.slice(0, 4).join(" ");
-  };
-
   if (normalizeFen(node.position.fen) === normalizeFen(fen)) {
     return node;
   }
@@ -215,11 +209,6 @@ export const findPathToFen = (
   root: GamePositionNode,
   targetFen: Fen
 ): GamePositionNode[] => {
-  const normalizeFen = (f: Fen): string => {
-    const parts = f.split(" ");
-    return parts.slice(0, 4).join(" ");
-  };
-
   const normalizedTarget = normalizeFen(targetFen);
 
   const search = (node: GamePositionNode, path: GamePositionNode[]): GamePositionNode[] | null => {

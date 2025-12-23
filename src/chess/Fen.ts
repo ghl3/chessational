@@ -28,6 +28,19 @@ export const fenToComponents = (fen: Fen): FenComponents => {
 export const DEFAULT_FEN: Fen =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+/**
+ * Normalize FEN for comparison by ignoring move counts.
+ * FEN format: "board turn castling en-passant halfmove fullmove"
+ * This keeps only: board, turn, castling, en-passant (first 4 parts)
+ * 
+ * This is useful when comparing positions regardless of when they occurred
+ * in a game (e.g., same position reached via different move orders).
+ */
+export const normalizeFen = (fen: Fen): string => {
+  const parts = fen.split(" ");
+  return parts.slice(0, 4).join(" ");
+};
+
 export class FenUtil {
   static getTurn = (fen: Fen): Color => {
     return fen.split(" ")[1] as Color;
