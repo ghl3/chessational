@@ -1,4 +1,3 @@
-import { describe } from "node:test";
 import { parsePgnStringToChapters } from "./PgnParser";
 
 const pgnFischerSpassky = `[Event "F/S Return Match"]

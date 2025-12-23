@@ -9,7 +9,6 @@ import {
   CustomNodeDatum,
 } from "./OpeningTreeUtils";
 
-// Helper to create mock position
 const createMockPosition = (fen: string, san: string | null = null): Position => ({
   fen,
   lastMove: san
@@ -25,7 +24,6 @@ const createMockPosition = (fen: string, san: string | null = null): Position =>
   isGameOver: false,
 });
 
-// Helper to create mock PositionNode
 const createMockNode = (
   fen: string,
   san: string | null = null,
@@ -37,7 +35,7 @@ const createMockNode = (
 
 describe("OpeningTreeUtils", () => {
   describe("processNode", () => {
-    it("should process a leaf node correctly", () => {
+    it("processes a leaf node correctly", () => {
       const node = createMockNode("fen1", null);
 
       const result = processNode(node, 0);
@@ -48,7 +46,7 @@ describe("OpeningTreeUtils", () => {
       expect(result._hiddenChildren).toEqual([]);
     });
 
-    it("should process a node with a move correctly", () => {
+    it("processes a node with a move correctly", () => {
       const node = createMockNode("fen1", "e4");
 
       const result = processNode(node, 1);
@@ -56,7 +54,7 @@ describe("OpeningTreeUtils", () => {
       expect(result.name).toBe("e4");
     });
 
-    it("should expand children for root node (first branch point)", () => {
+    it("expands children for root node (first branch point)", () => {
       const child1 = createMockNode("fen2", "e4");
       const child2 = createMockNode("fen3", "d4");
       const root = createMockNode("fen1", null, [child1, child2]);
@@ -67,8 +65,7 @@ describe("OpeningTreeUtils", () => {
       expect(result._hiddenChildren?.length).toBe(0);
     });
 
-    it("should hide children after 2 branch points", () => {
-      // Create a tree with 3 levels of branching
+    it("hides children after 2 branch points", () => {
       const grandchild1 = createMockNode("fen4", "Nf3");
       const grandchild2 = createMockNode("fen5", "Nc3");
       const child = createMockNode("fen2", "e4", [grandchild1, grandchild2]);
@@ -76,13 +73,11 @@ describe("OpeningTreeUtils", () => {
 
       const result = processNode(root, 0);
 
-      // Root is branch point 1, child has 2 children (branch point 2)
-      // So grandchildren should be visible since branchCount is only 2 when we reach grandchildren
       expect(result.children?.length).toBe(1);
       expect(result.children?.[0].children?.length).toBe(2);
     });
 
-    it("should set correct attributes on nodes", () => {
+    it("sets correct attributes on nodes", () => {
       const node = createMockNode("test-fen", "e4");
 
       const result = processNode(node, 0);
@@ -98,7 +93,7 @@ describe("OpeningTreeUtils", () => {
   });
 
   describe("isNodeCollapsed", () => {
-    it("should return true when node has hidden children", () => {
+    it("returns true when node has hidden children", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -116,7 +111,7 @@ describe("OpeningTreeUtils", () => {
       expect(isNodeCollapsed(node)).toBe(true);
     });
 
-    it("should return false when node has no hidden children", () => {
+    it("returns false when node has no hidden children", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -134,7 +129,7 @@ describe("OpeningTreeUtils", () => {
       expect(isNodeCollapsed(node)).toBe(false);
     });
 
-    it("should return false when _hiddenChildren is undefined", () => {
+    it("returns false when _hiddenChildren is undefined", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -146,7 +141,7 @@ describe("OpeningTreeUtils", () => {
   });
 
   describe("hasAnyChildren", () => {
-    it("should return true when node has visible children", () => {
+    it("returns true when node has visible children", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -164,7 +159,7 @@ describe("OpeningTreeUtils", () => {
       expect(hasAnyChildren(node)).toBe(true);
     });
 
-    it("should return true when node has hidden children", () => {
+    it("returns true when node has hidden children", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -182,7 +177,7 @@ describe("OpeningTreeUtils", () => {
       expect(hasAnyChildren(node)).toBe(true);
     });
 
-    it("should return false when node has no children", () => {
+    it("returns false when node has no children", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -194,7 +189,7 @@ describe("OpeningTreeUtils", () => {
       expect(hasAnyChildren(node)).toBe(false);
     });
 
-    it("should return false when children arrays are undefined", () => {
+    it("returns false when children arrays are undefined", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -206,11 +201,11 @@ describe("OpeningTreeUtils", () => {
   });
 
   describe("handleToggle", () => {
-    it("should return undefined for undefined root", () => {
+    it("returns undefined for undefined root", () => {
       expect(handleToggle(undefined, "fen1")).toBeUndefined();
     });
 
-    it("should expand a collapsed node", () => {
+    it("expands a collapsed node", () => {
       const hiddenChild: CustomNodeDatum = {
         name: "e5",
         nodeId: "fen2",
@@ -233,7 +228,7 @@ describe("OpeningTreeUtils", () => {
       expect(result._hiddenChildren?.length).toBe(0);
     });
 
-    it("should collapse an expanded node", () => {
+    it("collapses an expanded node", () => {
       const visibleChild: CustomNodeDatum = {
         name: "e5",
         nodeId: "fen2",
@@ -256,7 +251,7 @@ describe("OpeningTreeUtils", () => {
       expect(result._hiddenChildren?.length).toBe(1);
     });
 
-    it("should find and toggle nested node", () => {
+    it("finds and toggles nested node", () => {
       const grandchild: CustomNodeDatum = {
         name: "Nf3",
         nodeId: "fen3",
@@ -281,17 +276,14 @@ describe("OpeningTreeUtils", () => {
         _hiddenChildren: [],
       };
 
-      // Toggle the child node (fen2) - should collapse it
       const result = handleToggle(root, "fen2") as CustomNodeDatum;
 
-      // Root should be unchanged
       expect(result.children?.length).toBe(1);
-      // Child should be collapsed
       expect(result.children?.[0].children?.length).toBe(0);
       expect(result.children?.[0]._hiddenChildren?.length).toBe(1);
     });
 
-    it("should handle array of nodes", () => {
+    it("handles array of nodes", () => {
       const node1: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",
@@ -319,11 +311,10 @@ describe("OpeningTreeUtils", () => {
       expect(result.length).toBe(2);
       expect(result[0].children?.length).toBe(1);
       expect(result[0]._hiddenChildren?.length).toBe(0);
-      // Second node unchanged
       expect(result[1].children?.length).toBe(0);
     });
 
-    it("should not modify unrelated nodes", () => {
+    it("does not modify unrelated nodes", () => {
       const node: CustomNodeDatum = {
         name: "e4",
         nodeId: "fen1",

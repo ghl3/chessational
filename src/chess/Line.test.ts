@@ -3,7 +3,6 @@ import { Line, createLineId, getLineStatus, lineToSan } from "./Line";
 import { Position } from "./Position";
 
 describe("Line utilities", () => {
-  // Helper to create mock positions
   const createMockPosition = (san: string | null): Position => ({
     fen: "mock-fen",
     lastMove: san
@@ -19,7 +18,6 @@ describe("Line utilities", () => {
     isGameOver: false,
   });
 
-  // Helper to create a mock line
   const createMockLine = (positions: Position[], orientation = WHITE): Line => ({
     studyName: "Test Study",
     chapterName: "Test Chapter",
@@ -29,9 +27,9 @@ describe("Line utilities", () => {
   });
 
   describe("createLineId", () => {
-    it("should create line ID from positions (excluding first position)", () => {
+    it("creates line ID from positions (excluding first position)", () => {
       const positions = [
-        createMockPosition(null), // Starting position has no move
+        createMockPosition(null),
         createMockPosition("e4"),
         createMockPosition("e5"),
         createMockPosition("Nf3"),
@@ -40,17 +38,17 @@ describe("Line utilities", () => {
       expect(createLineId(positions)).toBe("e4 e5 Nf3");
     });
 
-    it("should return empty string for single position (starting position only)", () => {
+    it("returns empty string for single position (starting position only)", () => {
       const positions = [createMockPosition(null)];
 
       expect(createLineId(positions)).toBe("");
     });
 
-    it("should handle positions with no lastMove gracefully", () => {
+    it("handles positions with no lastMove gracefully", () => {
       const positions = [
         createMockPosition(null),
         createMockPosition("e4"),
-        createMockPosition(null), // Unusual but handle gracefully
+        createMockPosition(null),
         createMockPosition("Nf3"),
       ];
 
@@ -59,7 +57,7 @@ describe("Line utilities", () => {
   });
 
   describe("getLineStatus", () => {
-    it("should return LINE_COMPLETE when at the last position", () => {
+    it("returns LINE_COMPLETE when at the last position", () => {
       const positions = [
         createMockPosition(null),
         createMockPosition("e4"),
@@ -70,7 +68,7 @@ describe("Line utilities", () => {
       expect(getLineStatus(line, 2)).toBe("LINE_COMPLETE");
     });
 
-    it("should return WHITE_TO_MOVE for even indices (not at end)", () => {
+    it("returns WHITE_TO_MOVE for even indices (not at end)", () => {
       const positions = [
         createMockPosition(null),
         createMockPosition("e4"),
@@ -83,7 +81,7 @@ describe("Line utilities", () => {
       expect(getLineStatus(line, 2)).toBe("WHITE_TO_MOVE");
     });
 
-    it("should return BLACK_TO_MOVE for odd indices (not at end)", () => {
+    it("returns BLACK_TO_MOVE for odd indices (not at end)", () => {
       const positions = [
         createMockPosition(null),
         createMockPosition("e4"),
@@ -97,7 +95,7 @@ describe("Line utilities", () => {
       expect(getLineStatus(line, 3)).toBe("BLACK_TO_MOVE");
     });
 
-    it("should return LINE_COMPLETE even for single-position line", () => {
+    it("returns LINE_COMPLETE even for single-position line", () => {
       const positions = [createMockPosition(null)];
       const line = createMockLine(positions);
 
@@ -106,9 +104,9 @@ describe("Line utilities", () => {
   });
 
   describe("lineToSan", () => {
-    it("should convert line positions to SAN moves", () => {
+    it("converts line positions to SAN moves", () => {
       const positions = [
-        createMockPosition(null), // Starting position
+        createMockPosition(null),
         createMockPosition("e4"),
         createMockPosition("e5"),
         createMockPosition("Nf3"),
@@ -118,14 +116,14 @@ describe("Line utilities", () => {
       expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3"]);
     });
 
-    it("should return empty array for line with only starting position", () => {
+    it("returns empty array for line with only starting position", () => {
       const positions = [createMockPosition(null)];
       const line = createMockLine(positions);
 
       expect(lineToSan(line)).toEqual([]);
     });
 
-    it("should filter out positions without moves", () => {
+    it("filters out positions without moves", () => {
       const positions = [
         createMockPosition(null),
         createMockPosition("e4"),

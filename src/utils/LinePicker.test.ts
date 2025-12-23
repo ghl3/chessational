@@ -14,74 +14,11 @@ import {
 } from "./LinePicker";
 import { parsePgnStringToChapters } from "./PgnParser";
 
-// =============================================================================
-// Test Fixtures & Helpers
-// =============================================================================
-
-/** Fixed reference date for consistent test results */
-const TEST_DATE = new Date("2024-06-15T12:00:00Z");
-
-/** Common time offsets */
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
-/**
- * Parses a PGN string and extracts all lines.
- * Used for integration-style tests with real PGN data.
- */
 const parseToLines = (pgn: string): Line[] => {
   const chapters: Chapter[] = parsePgnStringToChapters(pgn);
   const chapterAndLines = getLinesFromChapters("", chapters);
   return chapterAndLines.flatMap((cl) => cl.lines);
 };
-
-/**
- * Creates a minimal Line object for unit testing.
- * Does not include positions - use parseToLines for full lines.
- */
-const makeLine = (
-  lineId: string,
-  options: { chapterName?: string; studyName?: string } = {},
-): Line => ({
-  studyName: options.studyName ?? "study1",
-  chapterName: options.chapterName ?? "chapter1",
-  lineId,
-  orientation: WHITE,
-  positions: [],
-});
-
-/**
- * Creates an Attempt for testing.
- */
-const makeAttempt = (
-  lineId: string,
-  correct: boolean,
-  timestamp: Date = TEST_DATE,
-  options: { studyName?: string; chapterName?: string } = {},
-): Attempt => ({
-  studyName: options.studyName ?? "study1",
-  chapterName: options.chapterName ?? "chapter1",
-  lineId,
-  correct,
-  timestamp,
-});
-
-/**
- * Creates a SpacedRepetitionConfig with test defaults.
- * noiseSize defaults to 0 for deterministic tests.
- */
-const makeConfig = (
-  overrides: Partial<SpacedRepetitionConfig> = {},
-): SpacedRepetitionConfig => ({
-  currentTime: TEST_DATE,
-  halfLifeDays: 28,
-  stalenessWeight: 0.3,
-  noiseSize: 0, // Deterministic by default for testing
-  ...overrides,
-});
-
-// =============================================================================
-// pickLine - Basic Strategies (Integration Tests with Real PGN)
-// =============================================================================
 
 describe("pickLine - basic strategies", () => {
   it("picks the first line with DETERMINISTIC strategy", () => {
@@ -99,7 +36,6 @@ describe("pickLine - basic strategies", () => {
 
     const line = pickLine(lines, "DETERMINISTIC");
 
-    // White orientation = ends after white's move (Nf3), not black's response
     expect(lineToSan(line)).toEqual(["e4", "e5", "Nf3"]);
   });
 
@@ -161,10 +97,6 @@ describe("pickLine - basic strategies", () => {
   });
 });
 
-// =============================================================================
-// Utility Functions
-// =============================================================================
-
 describe("makeNoise", () => {
   it("returns values within [-size, +size] range", () => {
     const size = 0.2;
@@ -197,8 +129,6 @@ describe("weightedPick", () => {
   });
 
   it("respects weights statistically", () => {
-    // Note: This is a statistical test that could theoretically fail,
-    // but with 10000 iterations the probability is negligible
     const iterations = 10000;
     const counts = { a: 0, b: 0 };
 
@@ -207,7 +137,6 @@ describe("weightedPick", () => {
       counts[picked]++;
     }
 
-    // With 3:1 weights, 'a' should be picked ~75% of the time
     const ratioA = counts.a / iterations;
     expect(ratioA).toBeGreaterThan(0.7);
     expect(ratioA).toBeLessThan(0.8);
@@ -241,10 +170,10 @@ describe("findLastAttempt", () => {
   });
 
   it("finds the most recent attempt regardless of array order", () => {
-    const attempts = [
-      makeAttempt("line1", true, new Date("2024-01-01")),
-      makeAttempt("line2", false, new Date("2024-01-15")),
-      makeAttempt("line3", true, new Date("2024-01-10")),
+    const attempts: Attempt[] = [
+      { studyName: "s", chapterName: "c", lineId: "line1", correct: true, timestamp: new Date("2024-01-01") },
+      { studyName: "s", chapterName: "c", lineId: "line2", correct: false, timestamp: new Date("2024-01-15") },
+      { studyName: "s", chapterName: "c", lineId: "line3", correct: true, timestamp: new Date("2024-01-10") },
     ];
 
     const last = findLastAttempt(attempts);
@@ -254,17 +183,21 @@ describe("findLastAttempt", () => {
   });
 });
 
-// =============================================================================
-// pickLine - SPACED_REPETITION Strategy
-// =============================================================================
-
 describe("pickLine - SPACED_REPETITION strategy", () => {
   describe("initial state (no attempts)", () => {
     it("picks randomly when no attempts exist", () => {
-      const lines = [makeLine("line1"), makeLine("line2"), makeLine("line3")];
-      const config = makeConfig({ noiseSize: 0.5 }); // Enable noise for randomness
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "line1", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "line2", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "line3", orientation: WHITE, positions: [] },
+      ];
+      const config: SpacedRepetitionConfig = {
+        currentTime: new Date("2024-06-15"),
+        halfLifeDays: 28,
+        stalenessWeight: 0.3,
+        noiseSize: 0.5,
+      };
 
-      // Run multiple times to verify randomness
       const picks = new Set<string>();
       for (let i = 0; i < 50; i++) {
         const line = pickLine(lines, "SPACED_REPETITION", [], config);
@@ -277,31 +210,45 @@ describe("pickLine - SPACED_REPETITION strategy", () => {
 
   describe("failure retry behavior", () => {
     it("immediately retries a line after failure", () => {
-      const lines = [makeLine("line1"), makeLine("line2"), makeLine("line3")];
-      const attempts = [makeAttempt("line2", false)];
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "line1", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "line2", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "line3", orientation: WHITE, positions: [] },
+      ];
+      const now = new Date("2024-06-15");
+      const attempts: Attempt[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "line2", correct: false, timestamp: now },
+      ];
+      const config: SpacedRepetitionConfig = {
+        currentTime: now,
+        halfLifeDays: 28,
+        stalenessWeight: 0.3,
+        noiseSize: 0,
+      };
 
-      // Should always pick the failed line
       for (let i = 0; i < 10; i++) {
-        const line = pickLine(
-          lines,
-          "SPACED_REPETITION",
-          attempts,
-          makeConfig(),
-        );
+        const line = pickLine(lines, "SPACED_REPETITION", attempts, config);
         expect(line.lineId).toBe("line2");
       }
     });
 
     it("falls back to normal selection if failed line was removed", () => {
-      const lines = [makeLine("line1"), makeLine("line3")]; // line2 not in list
-      const attempts = [makeAttempt("line2", false)];
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "line1", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "line3", orientation: WHITE, positions: [] },
+      ];
+      const now = new Date("2024-06-15");
+      const attempts: Attempt[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "line2", correct: false, timestamp: now },
+      ];
+      const config: SpacedRepetitionConfig = {
+        currentTime: now,
+        halfLifeDays: 28,
+        stalenessWeight: 0.3,
+        noiseSize: 0,
+      };
 
-      const line = pickLine(
-        lines,
-        "SPACED_REPETITION",
-        attempts,
-        makeConfig(),
-      );
+      const line = pickLine(lines, "SPACED_REPETITION", attempts, config);
 
       expect(["line1", "line3"]).toContain(line.lineId);
     });
@@ -309,18 +256,23 @@ describe("pickLine - SPACED_REPETITION strategy", () => {
 
   describe("priority-based selection", () => {
     it("prioritizes never-practiced lines over practiced ones", () => {
-      const lines = [
-        makeLine("practiced"),
-        makeLine("never1"),
-        makeLine("never2"),
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "practiced", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "never1", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "never2", orientation: WHITE, positions: [] },
       ];
-      const attempts = [
-        makeAttempt("practiced", true),
-        makeAttempt("practiced", true),
+      const now = new Date("2024-06-15");
+      const attempts: Attempt[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "practiced", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "practiced", correct: true, timestamp: now },
       ];
-      const config = makeConfig({ noiseSize: 0.1 });
+      const config: SpacedRepetitionConfig = {
+        currentTime: now,
+        halfLifeDays: 28,
+        stalenessWeight: 0.3,
+        noiseSize: 0.1,
+      };
 
-      // Run multiple times - should frequently pick never-practiced
       let neverPickedCount = 0;
       for (let i = 0; i < 20; i++) {
         const line = pickLine(lines, "SPACED_REPETITION", attempts, config);
@@ -333,63 +285,75 @@ describe("pickLine - SPACED_REPETITION strategy", () => {
     });
 
     it("prioritizes weak lines over strong ones", () => {
-      const lines = [makeLine("weak"), makeLine("strong")];
-      const attempts = [
-        // Weak: 1/4 = 25% success
-        makeAttempt("weak", true),
-        makeAttempt("weak", false),
-        makeAttempt("weak", false),
-        makeAttempt("weak", false),
-        // Strong: 4/4 = 100% success
-        makeAttempt("strong", true),
-        makeAttempt("strong", true),
-        makeAttempt("strong", true),
-        makeAttempt("strong", true),
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "weak", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "strong", orientation: WHITE, positions: [] },
       ];
+      const now = new Date("2024-06-15");
+      const attempts: Attempt[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: false, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: false, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: false, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+      ];
+      const config: SpacedRepetitionConfig = {
+        currentTime: now,
+        halfLifeDays: 28,
+        stalenessWeight: 0.3,
+        noiseSize: 0,
+      };
 
-      const line = pickLine(
-        lines,
-        "SPACED_REPETITION",
-        attempts,
-        makeConfig(),
-      );
+      const line = pickLine(lines, "SPACED_REPETITION", attempts, config);
 
       expect(line.lineId).toBe("weak");
     });
 
     it("prioritizes stale lines when staleness weight is high", () => {
-      const lines = [makeLine("recent"), makeLine("stale")];
-      const twoMonthsAgo = new Date(TEST_DATE.getTime() - 60 * ONE_DAY_MS);
-
-      const attempts = [
-        makeAttempt("recent", true, TEST_DATE),
-        makeAttempt("recent", true, TEST_DATE),
-        makeAttempt("stale", true, twoMonthsAgo),
-        makeAttempt("stale", true, twoMonthsAgo),
+      const now = new Date("2024-06-15T12:00:00Z");
+      const twoMonthsAgo = new Date("2024-04-15T12:00:00Z");
+      const lines: Line[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "recent", orientation: WHITE, positions: [] },
+        { studyName: "study1", chapterName: "chapter1", lineId: "stale", orientation: WHITE, positions: [] },
       ];
+      const attempts: Attempt[] = [
+        { studyName: "study1", chapterName: "chapter1", lineId: "recent", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "recent", correct: true, timestamp: now },
+        { studyName: "study1", chapterName: "chapter1", lineId: "stale", correct: true, timestamp: twoMonthsAgo },
+        { studyName: "study1", chapterName: "chapter1", lineId: "stale", correct: true, timestamp: twoMonthsAgo },
+      ];
+      const config: SpacedRepetitionConfig = {
+        currentTime: now,
+        halfLifeDays: 28,
+        stalenessWeight: 0.5,
+        noiseSize: 0,
+      };
 
-      const line = pickLine(
-        lines,
-        "SPACED_REPETITION",
-        attempts,
-        makeConfig({ stalenessWeight: 0.5 }),
-      );
+      const line = pickLine(lines, "SPACED_REPETITION", attempts, config);
 
       expect(line.lineId).toBe("stale");
     });
   });
 });
 
-// =============================================================================
-// calculateLinePriorities
-// =============================================================================
-
 describe("calculateLinePriorities", () => {
   it("assigns maximum priority (1.0) to never-practiced lines", () => {
-    const lines = [makeLine("line1"), makeLine("line2")];
-    const attempts: Attempt[] = [];
+    const lines: Line[] = [
+      { studyName: "study1", chapterName: "chapter1", lineId: "line1", orientation: WHITE, positions: [] },
+      { studyName: "study1", chapterName: "chapter1", lineId: "line2", orientation: WHITE, positions: [] },
+    ];
+    const now = new Date("2024-06-15");
+    const config: SpacedRepetitionConfig = {
+      currentTime: now,
+      halfLifeDays: 28,
+      stalenessWeight: 0.3,
+      noiseSize: 0,
+    };
 
-    const priorities = calculateLinePriorities(lines, attempts, makeConfig());
+    const priorities = calculateLinePriorities(lines, [], config);
 
     expect(priorities).toHaveLength(2);
     priorities.forEach((p) => {
@@ -399,15 +363,25 @@ describe("calculateLinePriorities", () => {
   });
 
   it("assigns lower priority to well-known lines", () => {
-    const lines = [makeLine("weak"), makeLine("strong")];
-    const attempts = [
-      makeAttempt("weak", false),
-      makeAttempt("weak", false),
-      makeAttempt("strong", true),
-      makeAttempt("strong", true),
+    const lines: Line[] = [
+      { studyName: "study1", chapterName: "chapter1", lineId: "weak", orientation: WHITE, positions: [] },
+      { studyName: "study1", chapterName: "chapter1", lineId: "strong", orientation: WHITE, positions: [] },
     ];
+    const now = new Date("2024-06-15");
+    const attempts: Attempt[] = [
+      { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: false, timestamp: now },
+      { studyName: "study1", chapterName: "chapter1", lineId: "weak", correct: false, timestamp: now },
+      { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+      { studyName: "study1", chapterName: "chapter1", lineId: "strong", correct: true, timestamp: now },
+    ];
+    const config: SpacedRepetitionConfig = {
+      currentTime: now,
+      halfLifeDays: 28,
+      stalenessWeight: 0.3,
+      noiseSize: 0,
+    };
 
-    const priorities = calculateLinePriorities(lines, attempts, makeConfig());
+    const priorities = calculateLinePriorities(lines, attempts, config);
 
     const weak = priorities.find((p) => p.line.lineId === "weak")!;
     const strong = priorities.find((p) => p.line.lineId === "strong")!;
@@ -418,15 +392,24 @@ describe("calculateLinePriorities", () => {
   });
 
   it("factors in staleness when calculating priority", () => {
-    const lines = [makeLine("recent"), makeLine("stale")];
-    const monthAgo = new Date(TEST_DATE.getTime() - 30 * ONE_DAY_MS);
-
-    const attempts = [
-      makeAttempt("recent", true, TEST_DATE),
-      makeAttempt("stale", true, monthAgo),
+    const now = new Date("2024-06-15T12:00:00Z");
+    const monthAgo = new Date("2024-05-15T12:00:00Z");
+    const lines: Line[] = [
+      { studyName: "study1", chapterName: "chapter1", lineId: "recent", orientation: WHITE, positions: [] },
+      { studyName: "study1", chapterName: "chapter1", lineId: "stale", orientation: WHITE, positions: [] },
     ];
+    const attempts: Attempt[] = [
+      { studyName: "study1", chapterName: "chapter1", lineId: "recent", correct: true, timestamp: now },
+      { studyName: "study1", chapterName: "chapter1", lineId: "stale", correct: true, timestamp: monthAgo },
+    ];
+    const config: SpacedRepetitionConfig = {
+      currentTime: now,
+      halfLifeDays: 28,
+      stalenessWeight: 0.3,
+      noiseSize: 0,
+    };
 
-    const priorities = calculateLinePriorities(lines, attempts, makeConfig());
+    const priorities = calculateLinePriorities(lines, attempts, config);
 
     const recent = priorities.find((p) => p.line.lineId === "recent")!;
     const stale = priorities.find((p) => p.line.lineId === "stale")!;
