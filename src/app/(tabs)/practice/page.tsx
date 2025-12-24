@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import { SubTabPanel, SubTab } from "@/components/SubTabPanel";
@@ -12,7 +12,6 @@ import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 const PracticePage: React.FC = () => {
   const { chessboardState, studyData, engineData, reviewState } = useAppContext();
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState<string>("quiz");
 
   const navigateToStudies = useCallback(() => {
     router.push("/studies");
@@ -96,8 +95,7 @@ const PracticePage: React.FC = () => {
     <div className="flex-1 min-h-0 flex flex-col">
       <SubTabPanel
         tabs={tabs}
-        initialTab={currentTab}
-        onTabChange={setCurrentTab}
+        initialTab="quiz"
       />
     </div>
   );

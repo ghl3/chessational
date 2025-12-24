@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { useGameReviewState, GameReviewConfig, INITIAL_FEN } from "@/hooks/UseGameReviewState";
 import { GamesConfig } from "@/components/GamesConfig";
 import { MoveStatsTable } from "@/components/MoveStatsTable";
 import { DeviationsList, GapsList } from "@/components/DeviationsList";
-import { FlippablePanel, PanelView } from "@/components/FlippablePanel";
+import { SubTabPanel, SubTab } from "@/components/SubTabPanel";
 import { 
   GamePositionNode, 
   findPathToFen, 
@@ -195,7 +195,6 @@ const ColorToggle: React.FC<{
 const GamesPage: React.FC = () => {
   const { chessboardState, studyData } = useAppContext();
   const gameReviewState = useGameReviewState();
-  const [panelView, setPanelView] = useState<PanelView>("moves");
   
   // Track if auto-compare has been triggered to prevent re-running
   const hasAutoComparedRef = useRef(false);
@@ -432,6 +431,104 @@ const GamesPage: React.FC = () => {
     navigateToPosition(INITIAL_FEN);
   }, [setCurrentColor, navigateToPosition]);
 
+  // Build tabs array for SubTabPanel (must be before early returns to satisfy Rules of Hooks)
+  const tabs: SubTab[] = useMemo(
+    () => [
+      {
+        id: "moves",
+        label: "Moves",
+        content: (
+          <div className="flex flex-col h-full">
+            <ColorToggle
+              currentColor={currentColor}
+              onColorChange={handleColorChange}
+              whiteCount={whiteGames.length}
+              blackCount={blackGames.length}
+            />
+            {currentNode ? (
+              <MoveStatsTable
+                nodes={currentNode.children}
+                parentStats={currentNode.stats}
+                onMoveClick={handleMoveClick}
+                selectedMove={selectedDeviation?.playedMove.san}
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-400">
+                No position selected
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "deviations",
+        label: "Deviations",
+        badge: deviationsCount > 0 ? deviationsCount : undefined,
+        badgeColor: "bg-rose-500",
+        content: comparisonResult ? (
+          <DeviationsList
+            deviations={comparisonResult.deviations}
+            onDeviationClick={handleDeviationClick}
+            selectedDeviation={selectedDeviation}
+          />
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <p className="mb-2">No comparison data</p>
+            {hasRepertoire ? (
+              <p className="text-sm">
+                Click &quot;Compare to Repertoire&quot; to see deviations
+              </p>
+            ) : (
+              <p className="text-sm">
+                Add a study first to compare against your repertoire
+              </p>
+            )}
+          </div>
+        ),
+      },
+      {
+        id: "gaps",
+        label: "Gaps",
+        badge: uncoveredCount > 0 ? uncoveredCount : undefined,
+        badgeColor: "bg-amber-500",
+        content: comparisonResult ? (
+          <GapsList
+            deviations={comparisonResult.deviations}
+            onDeviationClick={handleDeviationClick}
+            selectedDeviation={selectedDeviation}
+          />
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            <p className="mb-2">No comparison data</p>
+            {hasRepertoire ? (
+              <p className="text-sm">
+                Click &quot;Compare to Repertoire&quot; to see gaps
+              </p>
+            ) : (
+              <p className="text-sm">
+                Add a study first to compare against your repertoire
+              </p>
+            )}
+          </div>
+        ),
+      },
+    ],
+    [
+      currentColor,
+      handleColorChange,
+      whiteGames.length,
+      blackGames.length,
+      currentNode,
+      handleMoveClick,
+      selectedDeviation,
+      deviationsCount,
+      comparisonResult,
+      handleDeviationClick,
+      hasRepertoire,
+      uncoveredCount,
+    ]
+  );
+
   // Render based on state
   if (isLoadingCache) {
     return <LoadingState message="Loading cached games..." />;
@@ -455,11 +552,9 @@ const GamesPage: React.FC = () => {
 
   // Main view with data
   return (
-    <FlippablePanel
-      initialView={panelView}
-      onViewChange={setPanelView}
-      deviationsCount={deviationsCount}
-      gapsCount={uncoveredCount}
+    <SubTabPanel
+      tabs={tabs}
+      initialTab="moves"
       header={
         <GamesHeader
           config={config}
@@ -471,73 +566,7 @@ const GamesPage: React.FC = () => {
           isCompared={comparisonResult !== null}
         />
       }
-      movesContent={
-            <div className="flex flex-col h-full">
-              <ColorToggle
-                currentColor={currentColor}
-                onColorChange={handleColorChange}
-                whiteCount={whiteGames.length}
-                blackCount={blackGames.length}
-              />
-              {currentNode ? (
-                <MoveStatsTable
-                  nodes={currentNode.children}
-                  parentStats={currentNode.stats}
-                  onMoveClick={handleMoveClick}
-                  selectedMove={selectedDeviation?.playedMove.san}
-                />
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  No position selected
-                </div>
-              )}
-            </div>
-          }
-          deviationsContent={
-            comparisonResult ? (
-              <DeviationsList
-                deviations={comparisonResult.deviations}
-                onDeviationClick={handleDeviationClick}
-                selectedDeviation={selectedDeviation}
-              />
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                <p className="mb-2">No comparison data</p>
-                {hasRepertoire ? (
-                  <p className="text-sm">
-                    Click &quot;Compare to Repertoire&quot; to see deviations
-                  </p>
-                ) : (
-                  <p className="text-sm">
-                    Add a study first to compare against your repertoire
-                  </p>
-                )}
-              </div>
-            )
-          }
-          gapsContent={
-            comparisonResult ? (
-              <GapsList
-                deviations={comparisonResult.deviations}
-                onDeviationClick={handleDeviationClick}
-                selectedDeviation={selectedDeviation}
-              />
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                <p className="mb-2">No comparison data</p>
-                {hasRepertoire ? (
-                  <p className="text-sm">
-                    Click &quot;Compare to Repertoire&quot; to see gaps
-                  </p>
-                ) : (
-                  <p className="text-sm">
-                    Add a study first to compare against your repertoire
-                  </p>
-                )}
-              </div>
-            )
-          }
-        />
+    />
   );
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, ReactNode } from "react";
+import React, { ReactNode, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export interface SubTab {
   id: string;
@@ -13,11 +14,12 @@ export interface SubTab {
 interface SubTabPanelProps {
   tabs: SubTab[];
   initialTab?: string;
-  onTabChange?: (tabId: string) => void;
+  /** Optional header that appears above content in all tabs */
+  header?: ReactNode;
 }
 
 /**
- * Tab button component matching FlippablePanel style
+ * Tab button component
  */
 const TabButton: React.FC<{
   label: string;
@@ -56,24 +58,38 @@ const TabButton: React.FC<{
 };
 
 /**
- * A generalized panel with sub-tabs, styled like FlippablePanel.
- * Can be used for Practice (Quiz/History) and Repertoire (Manage/Browse) pages.
+ * A panel with sub-tabs that persists the active tab in the URL via query params.
  */
 export const SubTabPanel: React.FC<SubTabPanelProps> = ({
   tabs,
   initialTab,
-  onTabChange,
+  header,
 }) => {
-  const [currentTabId, setCurrentTabId] = useState<string>(
-    initialTab || tabs[0]?.id || ""
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Read current tab from URL, fall back to initialTab or first tab
+  const defaultTab = initialTab || tabs[0]?.id || "";
+  const currentTabId = searchParams.get("tab") || defaultTab;
+
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      // Update URL with new tab
+      const params = new URLSearchParams(searchParams.toString());
+      if (tabId === defaultTab) {
+        // Remove param if it's the default to keep URLs clean
+        params.delete("tab");
+      } else {
+        params.set("tab", tabId);
+      }
+      const newUrl = params.toString() ? `${pathname}?${params}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router, defaultTab]
   );
 
-  const handleTabChange = (tabId: string) => {
-    setCurrentTabId(tabId);
-    onTabChange?.(tabId);
-  };
-
-  const currentTab = tabs.find((tab) => tab.id === currentTabId);
+  const currentTab = tabs.find((tab) => tab.id === currentTabId) || tabs[0];
 
   if (tabs.length === 0) {
     return null;
@@ -95,13 +111,15 @@ export const SubTabPanel: React.FC<SubTabPanelProps> = ({
         ))}
       </div>
 
-      {/* Content area - flex container for children to fill */}
-      <div className="flex-1 min-h-0 flex flex-col bg-gray-800/30 rounded-b-lg p-3">
-        {currentTab?.content}
+      {/* Content area */}
+      <div className="flex-1 min-h-0 overflow-auto bg-gray-800/30 rounded-b-lg p-3 flex flex-col gap-3">
+        {header}
+        <div className="flex-1 min-h-0">
+          {currentTab?.content}
+        </div>
       </div>
     </div>
   );
 };
 
 export default SubTabPanel;
-

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useAppContext } from "@/context/AppContext";
 import { SubTabPanel, SubTab } from "@/components/SubTabPanel";
 import { Studies } from "@/components/Studies";
@@ -10,7 +10,6 @@ import { StudyChapterSelector } from "@/components/StudyChapterSelector";
 
 const RepertoirePage: React.FC = () => {
   const { chessboardState, studyData, engineData, reviewState } = useAppContext();
-  const [currentTab, setCurrentTab] = useState<string>("manage");
 
   // Memoize to ensure stable references when data is undefined
   const lines = useMemo(() => studyData.selectedChapterLines ?? [], [studyData.selectedChapterLines]);
@@ -73,8 +72,7 @@ const RepertoirePage: React.FC = () => {
     <div className="h-full flex flex-col">
       <SubTabPanel
         tabs={tabs}
-        initialTab={currentTab}
-        onTabChange={setCurrentTab}
+        initialTab="manage"
       />
     </div>
   );
