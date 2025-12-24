@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useCallback } from "react";
+import React, { ReactNode, Suspense, useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 export interface SubTab {
@@ -58,9 +58,9 @@ const TabButton: React.FC<{
 };
 
 /**
- * A panel with sub-tabs that persists the active tab in the URL via query params.
+ * Inner component that uses useSearchParams (requires Suspense boundary)
  */
-export const SubTabPanel: React.FC<SubTabPanelProps> = ({
+const SubTabPanelInner: React.FC<SubTabPanelProps> = ({
   tabs,
   initialTab,
   header,
@@ -91,10 +91,6 @@ export const SubTabPanel: React.FC<SubTabPanelProps> = ({
 
   const currentTab = tabs.find((tab) => tab.id === currentTabId) || tabs[0];
 
-  if (tabs.length === 0) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Tab headers - pt-2 gives room for badge overflow */}
@@ -119,6 +115,51 @@ export const SubTabPanel: React.FC<SubTabPanelProps> = ({
         </div>
       </div>
     </div>
+  );
+};
+
+/**
+ * Fallback shown while loading search params
+ */
+const SubTabPanelFallback: React.FC<{ tabs: SubTab[]; initialTab?: string }> = ({
+  tabs,
+  initialTab,
+}) => {
+  const defaultTab = initialTab || tabs[0]?.id || "";
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex gap-1 px-2 pt-2 bg-gray-900/50">
+        {tabs.map((tab) => (
+          <TabButton
+            key={tab.id}
+            label={tab.label}
+            isActive={tab.id === defaultTab}
+            onClick={() => {}}
+            badge={tab.badge}
+            badgeColor={tab.badgeColor}
+          />
+        ))}
+      </div>
+      <div className="flex-1 min-h-0 overflow-auto bg-gray-800/30 rounded-b-lg p-3">
+        {/* Show default tab content during loading */}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * A panel with sub-tabs that persists the active tab in the URL via query params.
+ */
+export const SubTabPanel: React.FC<SubTabPanelProps> = (props) => {
+  if (props.tabs.length === 0) {
+    return null;
+  }
+
+  return (
+    <Suspense fallback={<SubTabPanelFallback tabs={props.tabs} initialTab={props.initialTab} />}>
+      <SubTabPanelInner {...props} />
+    </Suspense>
   );
 };
 
