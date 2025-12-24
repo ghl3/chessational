@@ -21,6 +21,7 @@ export interface ReviewState {
   setLineAndChapter: (lineAndChapter: LineAndChapter | null) => void;
   setLineIndex: Dispatch<SetStateAction<number>>;
   initializeLine: (lineAndChapter: LineAndChapter) => void;
+  initializeLineAtIndex: (lineAndChapter: LineAndChapter, index: number) => void;
   clearLine: () => void;
 
   // Getters for board initialization (caller updates board)
@@ -56,6 +57,7 @@ export const useReviewState = (): ReviewState => {
 
   const [attemptResult, setAttemptResult] = useState<boolean | null>(null);
 
+  // Timeout acts as fallback; moveResult is also manually reset after opponent plays
   const [lineMoveResult, setLineMoveResult] =
     useStateWithTimeout<LineMoveResult | null>(null, 2000);
 
@@ -91,6 +93,15 @@ export const useReviewState = (): ReviewState => {
     }
   }, [setLineMoveResult]);
 
+  // Initialize line at a specific index (used for animation sequences)
+  const initializeLineAtIndex = useCallback((lineAndChapter: LineAndChapter, index: number) => {
+    setCurrentLineAndChapter(lineAndChapter);
+    setAttemptResult(null);
+    setShowSolution(false);
+    setLineMoveResult(null);
+    setCurrentLineIndex(index);
+  }, [setLineMoveResult]);
+
   // Getters for board initialization - caller updates board separately
   const getLinePositions = useCallback((): Position[] => {
     return currentLineAndChapter?.line.positions ?? [];
@@ -119,6 +130,7 @@ export const useReviewState = (): ReviewState => {
 
     clearLine,
     initializeLine,
+    initializeLineAtIndex,
 
     // Getters for board initialization
     getLinePositions,

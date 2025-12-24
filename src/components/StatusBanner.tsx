@@ -1,14 +1,12 @@
 import { LineStatus } from "@/chess/Line";
 import { LineMoveResult } from "@/components/MoveDescription";
-import { Color } from "chess.js";
 import React, { useEffect, useState } from "react";
 
-export type BannerState = "idle" | "your-turn" | "correct" | "incorrect" | "complete";
+export type BannerState = "idle" | "your-turn" | "incorrect" | "complete";
 
 export interface StatusBannerProps {
   lineStatus?: LineStatus;
   moveResult?: LineMoveResult;
-  orientation?: Color;
 }
 
 const getBannerState = (
@@ -20,15 +18,13 @@ const getBannerState = (
     return "complete";
   }
 
-  // Then check move result for immediate feedback
-  if (moveResult === "CORRECT") {
-    return "correct";
-  }
+  // Check for incorrect move - this needs immediate feedback
   if (moveResult === "INCORRECT") {
     return "incorrect";
   }
 
-  // Then check if awaiting user move
+  // If it's the user's turn, show "Your move" (with success styling handled separately)
+  // This takes priority over CORRECT so we don't flash between "Correct!" and "Your move"
   if (lineStatus === "WHITE_TO_MOVE" || lineStatus === "BLACK_TO_MOVE") {
     return "your-turn";
   }
@@ -72,23 +68,6 @@ const BlackPieceIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-const CheckIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M5 13l4 4L19 7"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 const XIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
     className={className}
@@ -126,19 +105,35 @@ const TrophyIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const StatusBanner: React.FC<StatusBannerProps> = ({
   lineStatus,
   moveResult,
-  orientation,
 }) => {
   const bannerState = getBannerState(lineStatus, moveResult);
-  const [showFlash, setShowFlash] = useState(false);
+  const [showSuccessFlash, setShowSuccessFlash] = useState(false);
+  const [showCompleteFlash, setShowCompleteFlash] = useState(false);
+  const [flashKey, setFlashKey] = useState(0);
 
-  // Trigger flash animation when we get a correct move or complete a line
+  // Trigger green-to-blue flash immediately when moveResult becomes CORRECT.
+  // We depend only on moveResult - the rapid-move issue is handled by resetting
+  // moveResult to null after opponent plays (in Review.tsx).
   useEffect(() => {
-    if (moveResult === "CORRECT" || lineStatus === "LINE_COMPLETE") {
-      setShowFlash(true);
-      const timer = setTimeout(() => setShowFlash(false), 600);
+    if (moveResult === "CORRECT") {
+      setFlashKey(k => k + 1);
+      setShowSuccessFlash(true);
+      const timer = setTimeout(() => setShowSuccessFlash(false), 700);
+      return () => clearTimeout(timer);
+    } else {
+      // Clear flash state when moveResult is not CORRECT (e.g., INCORRECT or null)
+      setShowSuccessFlash(false);
+    }
+  }, [moveResult]);
+
+  // Trigger flash for line complete
+  useEffect(() => {
+    if (lineStatus === "LINE_COMPLETE") {
+      setShowCompleteFlash(true);
+      const timer = setTimeout(() => setShowCompleteFlash(false), 600);
       return () => clearTimeout(timer);
     }
-  }, [moveResult, lineStatus]);
+  }, [lineStatus]);
 
   // Don't render anything in idle state
   if (bannerState === "idle") {
@@ -158,13 +153,6 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
               <BlackPieceIcon className="w-6 h-6" />
             )}
             <span className="font-semibold">Your move</span>
-          </>
-        );
-      case "correct":
-        return (
-          <>
-            <CheckIcon className="w-6 h-6" />
-            <span className="font-semibold">Correct!</span>
           </>
         );
       case "incorrect":
@@ -192,17 +180,20 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({
 
     switch (bannerState) {
       case "your-turn":
+        // When we just had a correct move, flash green-to-blue; otherwise steady blue with pulse
+        if (showSuccessFlash) {
+          return `${baseStyles} text-blue-100 status-banner-success-to-ready`;
+        }
         return `${baseStyles} bg-blue-900/50 border-2 border-blue-400 text-blue-100 status-banner-pulse`;
-      case "correct":
-        return `${baseStyles} bg-emerald-900/60 border-2 border-emerald-400 text-emerald-100 ${showFlash ? "status-banner-flash" : ""}`;
       case "incorrect":
         return `${baseStyles} bg-rose-900/50 border-2 border-rose-400 text-rose-100`;
       case "complete":
-        return `${baseStyles} bg-emerald-900/50 border-2 border-emerald-400 text-emerald-100 ${showFlash ? "status-banner-flash-green" : ""}`;
+        return `${baseStyles} bg-emerald-900/50 border-2 border-emerald-400 text-emerald-100 ${showCompleteFlash ? "status-banner-flash-green" : ""}`;
       default:
         return baseStyles;
     }
   };
 
-  return <div className={getBannerStyles()}>{getBannerContent()}</div>;
+  // Use flashKey to force animation restart when playing quickly
+  return <div key={flashKey} className={getBannerStyles()}>{getBannerContent()}</div>;
 };

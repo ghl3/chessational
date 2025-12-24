@@ -1,5 +1,6 @@
 import { storeAttemptResult } from "@/chess/Attempt";
-import { LineStatus } from "@/chess/Line";
+import { Line, LineStatus } from "@/chess/Line";
+import { Chapter } from "@/chess/Chapter";
 import { Move } from "@/chess/Move";
 import { Position } from "@/chess/Position";
 import { ChessboardState } from "@/hooks/UseChessboardState";
@@ -14,18 +15,36 @@ import { Button } from "./Button";
 import { DetailsPanel } from "./DetailsPanel";
 import { StatusBanner } from "./StatusBanner";
 
-/**
- * Compute the initial line index based on orientation.
- * If playing as black, start at index 1 (after white's first move).
- */
-const computeInitialLineIndex = (line: { orientation: string; positions: Position[] }): number => {
-  if (line.orientation === BLACK && line.positions.length > 1) {
-    return 1;
-  }
-  return 0;
-};
-
 const OPPONENT_MOVE_DELAY = 250;
+
+/**
+ * Sets up the board and review state for a line.
+ * For black orientation, animates white's first move after a delay.
+ */
+const setupLineOnBoard = (
+  line: Line,
+  chapter: Chapter,
+  chessboardState: ChessboardState,
+  reviewState: ReviewState,
+) => {
+  chessboardState.setOrientation(line.orientation as "w" | "b");
+
+  // For black, start at position 0 and animate white's first move
+  // For white, start at position 0 directly (no animation needed)
+  if (line.orientation === BLACK && line.positions.length > 1) {
+    reviewState.initializeLineAtIndex({ line, chapter }, 0);
+    chessboardState.clearAndSetPositions([line.positions[0]], 0);
+
+    // After a delay, animate white's first move
+    setTimeout(() => {
+      chessboardState.setNextPosition(line.positions[1], false);
+      reviewState.setLineIndex(1);
+    }, OPPONENT_MOVE_DELAY);
+  } else {
+    reviewState.initializeLine({ line, chapter });
+    chessboardState.clearAndSetPositions([line.positions[0]], 0);
+  }
+};
 
 export const executeLegalMoveIfIsCorrect = (
   chessboardState: ChessboardState,
@@ -97,10 +116,12 @@ export const executeLegalMoveIfIsCorrect = (
     } else {
       // Otherwise, pick the opponent's next move in the line
       // Do this in a delay to simulate a game.
-      setTimeout(async () => {
+      setTimeout(() => {
         const nextPosition = line.positions[nextLineIndex + 1];
         chessboardState.setNextPosition(nextPosition, false);
         reviewState.setLineIndex(nextLineIndex + 1);
+        // Reset moveResult so the next correct move triggers a fresh flash
+        reviewState.setLineMoveResult(null);
       }, OPPONENT_MOVE_DELAY);
     }
 
@@ -223,16 +244,7 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
       return;
     }
 
-    // Initialize review state
-    reviewState.initializeLine({ line, chapter });
-    
-    // Update board separately
-    chessboardState.setOrientation(line.orientation);
-    const initialIndex = computeInitialLineIndex(line);
-    // Only load positions up to (and including) the initial index for quiz mode
-    // This way, as the user progresses, positions can be added
-    const initialPositions = line.positions.slice(0, initialIndex + 1);
-    chessboardState.clearAndSetPositions(initialPositions, initialIndex);
+    setupLineOnBoard(line, chapter, chessboardState, reviewState);
   }, [
     reviewState,
     chessboardState,
@@ -247,17 +259,11 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
     }
     const { line, chapter } = reviewState.lineAndChapter;
     
-    // Clear and reinitialize review state
+    // Clear review state and board
     reviewState.clearLine();
-    reviewState.initializeLine({ line, chapter });
-    
-    // Update board separately
     chessboardState.clearGame();
-    chessboardState.setOrientation(line.orientation);
-    const initialIndex = computeInitialLineIndex(line);
-    // Only load positions up to (and including) the initial index for quiz mode
-    const initialPositions = line.positions.slice(0, initialIndex + 1);
-    chessboardState.clearAndSetPositions(initialPositions, initialIndex);
+
+    setupLineOnBoard(line, chapter, chessboardState, reviewState);
   }, [chessboardState, reviewState]);
 
   const arrows = useMemo(() => {
@@ -388,7 +394,6 @@ export const Review: React.FC<ReviewOrExploreLineProps> = ({
       <StatusBanner
         lineStatus={reviewState.lineStatus}
         moveResult={reviewState.lineMoveResult || undefined}
-        orientation={chessboardState.orientation}
       />
     </div>
   );
