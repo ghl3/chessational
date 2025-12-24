@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type Tab = "STUDIES" | "PRACTICE" | "GAMES";
+export type Tab = "STUDIES" | "PRACTICE" | "GAMES" | "ABOUT";
 
 // Map tabs to their URL paths
 const TAB_PATHS: Record<Tab, string> = {
   STUDIES: "/studies",
   PRACTICE: "/practice",
   GAMES: "/games",
+  ABOUT: "/about",
 };
 
 // Map paths to tabs for reverse lookup
@@ -18,6 +19,7 @@ const PATH_TO_TAB: Record<string, Tab> = {
   "/studies": "STUDIES",
   "/practice": "PRACTICE",
   "/games": "GAMES",
+  "/about": "ABOUT",
 };
 
 const NavEntry: React.FC<{
@@ -71,6 +73,11 @@ export const NavBar: React.FC = () => {
           name="Games"
           href={TAB_PATHS.GAMES}
           isActive={currentTab === "GAMES"}
+        />
+        <NavEntry
+          name="About"
+          href={TAB_PATHS.ABOUT}
+          isActive={currentTab === "ABOUT"}
         />
       </ul>
     </nav>
