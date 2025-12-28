@@ -148,24 +148,27 @@ const Chessboard: React.FC<ChessboardProps> = ({
     chessboardState.orientation === WHITE ? "white" : "black";
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full flex-1">
+    <div className="flex flex-col items-center gap-3 w-full h-full">
       <MaterialDiff
         pieceCount={pieceCount}
         color={chessboardState.orientation === WHITE ? BLACK : WHITE}
         className="h-6 flex-shrink-0"
       />
-      {/* Board wrapper - square aspect ratio, takes full width */}
-      <div className="w-full aspect-square flex-shrink-0">
-        <ReactChessboard
-          options={{
-            position: fen,
-            boardOrientation: boardOrientation,
-            darkSquareStyle: { backgroundColor: "#34495e" },
-            allowDrawingArrows: true,
-            arrows: convertedArrows,
-            onPieceDrop: onPieceDrop,
-          }}
-        />
+      {/* Board wrapper - takes remaining space after fixed elements */}
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        {/* Board - height fills wrapper, aspect-ratio makes it square, capped at container width */}
+        <div className="h-full aspect-square max-w-full">
+          <ReactChessboard
+            options={{
+              position: fen,
+              boardOrientation: boardOrientation,
+              darkSquareStyle: { backgroundColor: "#34495e" },
+              allowDrawingArrows: true,
+              arrows: convertedArrows,
+              onPieceDrop: onPieceDrop,
+            }}
+          />
+        </div>
       </div>
       <MaterialDiff
         pieceCount={pieceCount}

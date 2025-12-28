@@ -23,7 +23,7 @@ const ChessboardButtons: React.FC<ChessboardButtonsProps> = ({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-shrink-0">
       <Button
         label="«"
         variant="secondary"
