@@ -4,7 +4,11 @@ import { Position } from "@/chess/Position";
 import useArrowKeys from "@/hooks/UseArrowKeys";
 import { ChessboardState } from "@/hooks/UseChessboardState";
 import { BLACK, DEFAULT_POSITION, PieceSymbol, Square, WHITE } from "chess.js";
-import React, { HTMLAttributes, useCallback, useMemo } from "react";
+import React, {
+  HTMLAttributes,
+  useCallback,
+  useMemo,
+} from "react";
 import { Chessboard as ReactChessboard } from "react-chessboard";
 import ChessboardButtons from "./ChessboardButtons";
 import { MaterialDiff } from "./MaterialDiff";
@@ -39,6 +43,15 @@ const Chessboard: React.FC<ChessboardProps> = ({
   chessboardState,
   onLegalMove,
 }) => {
+  const boardSizeStyle = useMemo<React.CSSProperties>(
+    () =>
+      ({
+        width: "100cqmin",
+        height: "100cqmin",
+      }) as React.CSSProperties,
+    [],
+  );
+
   const handleFlipBoard = useCallback(() => {
     chessboardState.setOrientation((prevOrientation) =>
       prevOrientation === WHITE ? BLACK : WHITE,
@@ -155,9 +168,15 @@ const Chessboard: React.FC<ChessboardProps> = ({
         className="h-6 flex-shrink-0"
       />
       {/* Board wrapper - takes remaining space after fixed elements */}
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        {/* Board - height fills wrapper, aspect-ratio makes it square, capped at container width */}
-        <div className="h-full aspect-square max-w-full">
+      <div
+        className="flex-1 min-h-0 w-full flex items-center justify-center"
+        style={{ containerType: "size" } as React.CSSProperties}
+      >
+        {/* Board - largest square that fits within wrapper */}
+        <div
+          className="max-w-full max-h-full"
+          style={boardSizeStyle}
+        >
           <ReactChessboard
             options={{
               position: fen,
